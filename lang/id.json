@@ -1,0 +1,16 @@
+{
+    "Name": "Nama",
+    "Email": "Email",
+    "Username": "Nama pengguna",
+    "Password": "Kata sandi",
+    "Remember me": "Ingat saya",
+    "Forgot your password?": "Lupa kata sandi Anda?",
+    "Login failed": "Login gagal",
+    "User created successfully.": "Pengguna berhasil dibuat.",
+    "Password is required.": "Kata sandi wajib diisi.",
+    "Passwords do not match.": "Kata sandi tidak cocok.",
+    "A system error has occurred. Please try again.": "Terjadi kesalahan sistem, silakan coba lagi.",
+    "Dashboard": "Dasbor",
+    "Logout": "Keluar",
+    "Profile": "Profil"
+}
