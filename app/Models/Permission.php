@@ -16,4 +16,9 @@ class Permission extends Model
         'status',
         'description',
     ];
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_permissions');
+    }
 }

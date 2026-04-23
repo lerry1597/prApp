@@ -17,4 +17,9 @@ class Department extends Model
         'location',
         'status',
     ];
+
+    public function positions()
+    {
+        return $this->hasMany(Position::class);
+    }
 }
