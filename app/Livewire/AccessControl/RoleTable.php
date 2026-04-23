@@ -30,8 +30,8 @@ class RoleTable extends Component implements HasForms, HasTable, HasActions
     {
         return $table
             ->heading('Daftar Peran (Roles)')
-            ->description('Kelola dan definisikan hak akses pengguna berdasarkan peran yang diberikan dalam sistem.')
-            ->query(Role::query())
+            ->description('Gunakan halaman ini untuk menambah, mengubah, atau menghapus peran yang tersedia untuk pengaturan keamanan.')
+            ->query(Role::query()->where('name', '!=', 'super_admin'))
             ->columns([
                 TextColumn::make('title')
                     ->label('Nama Peran')
@@ -75,6 +75,7 @@ class RoleTable extends Component implements HasForms, HasTable, HasActions
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->label('Tambah Peran')
                     ->form([
                         TextInput::make('title')
                             ->required()

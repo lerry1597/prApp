@@ -2,18 +2,49 @@
     <style>
         .custom-grid-2 {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             gap: 2rem;
         }
+
         @media (min-width: 1024px) {
             .custom-grid-2 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
+        
+        .custom-nav {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .custom-nav {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .custom-nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+        }
+
+        /* Sembunyikan scrollbar */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
-    
-    <div x-data="{ tab: null }" class="space-y-8">
-        <nav class="flex flex-wrap" style="gap: 1rem; margin-bottom: 1rem;">
+
+    <div name="access-settings" x-data="{ tab: null }" class="space-y-8">
+        <nav class="custom-nav">
             <x-filament::tabs.item
                 active="tab === 'roles'"
                 icon="heroicon-m-key"

@@ -28,6 +28,8 @@ class PositionTable extends Component implements HasForms, HasTable, HasActions
     public function table(Table $table): Table
     {
         return $table
+            ->heading('Daftar Jabatan')
+            ->description('Gunakan halaman ini untuk menambah, mengubah, atau menghapus jabatan yang tersedia dalam sistem.')
             ->query(Position::query())
             ->columns([
                 TextColumn::make('name')
@@ -40,7 +42,7 @@ class PositionTable extends Component implements HasForms, HasTable, HasActions
                     ->color('info'),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'active' => 'success',
                         'inactive' => 'danger',
                         default => 'gray',
@@ -72,6 +74,7 @@ class PositionTable extends Component implements HasForms, HasTable, HasActions
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->label('Tambah Jabatan')
                     ->form([
                         TextInput::make('name')
                             ->required()

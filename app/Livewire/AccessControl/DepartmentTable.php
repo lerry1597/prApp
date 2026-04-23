@@ -28,6 +28,8 @@ class DepartmentTable extends Component implements HasForms, HasTable, HasAction
     public function table(Table $table): Table
     {
         return $table
+            ->heading('Daftar Departemen')
+            ->description('Gunakan halaman ini untuk menambah, mengubah, atau menghapus departemen yang tersedia dalam sistem.')
             ->query(Department::query())
             ->columns([
                 TextColumn::make('name')
@@ -41,7 +43,7 @@ class DepartmentTable extends Component implements HasForms, HasTable, HasAction
                     ->label('Lokasi'),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'active' => 'success',
                         'inactive' => 'danger',
                         default => 'gray',
@@ -72,6 +74,7 @@ class DepartmentTable extends Component implements HasForms, HasTable, HasAction
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->label('Tambah Departemen')
                     ->form([
                         TextInput::make('name')
                             ->required()

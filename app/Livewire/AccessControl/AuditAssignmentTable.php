@@ -22,6 +22,8 @@ class AuditAssignmentTable extends Component implements HasForms, HasTable, HasA
     public function table(Table $table): Table
     {
         return $table
+            ->heading('Riwayat Penugasan Peran')
+            ->description('Catatan perubahan pada hak akses yang diberikan kepada setiap peran.')
             ->query(RoleAssignmentLog::query()->latest('assigned_at'))
             ->columns([
                 TextColumn::make('assigned_at')
@@ -33,7 +35,7 @@ class AuditAssignmentTable extends Component implements HasForms, HasTable, HasA
                 TextColumn::make('action')
                     ->label('Aksi')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'assign' => 'success',
                         'revoke' => 'danger',
                         default => 'gray',

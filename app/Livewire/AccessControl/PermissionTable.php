@@ -28,6 +28,8 @@ class PermissionTable extends Component implements HasForms, HasTable, HasAction
     public function table(Table $table): Table
     {
         return $table
+            ->heading('Daftar Izin (Permissions)')
+            ->description('Daftar otorisasi yang dapat disesuaikan untuk setiap role pengguna.')
             ->query(Permission::query())
             ->columns([
                 TextColumn::make('title')
@@ -40,7 +42,7 @@ class PermissionTable extends Component implements HasForms, HasTable, HasAction
                     ->color('warning'),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'active' => 'success',
                         'inactive' => 'danger',
                         default => 'gray',
@@ -72,6 +74,7 @@ class PermissionTable extends Component implements HasForms, HasTable, HasAction
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->label('Tambah Izin')
                     ->form([
                         TextInput::make('title')
                             ->required()

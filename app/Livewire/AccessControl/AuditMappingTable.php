@@ -22,6 +22,8 @@ class AuditMappingTable extends Component implements HasForms, HasTable, HasActi
     public function table(Table $table): Table
     {
         return $table
+            ->heading('Riwayat Pemetaan Izin')
+            ->description('Catatan perubahan pada hak akses yang diberikan kepada setiap peran.')
             ->query(PermissionMappingLog::query()->latest('changed_at'))
             ->columns([
                 TextColumn::make('changed_at')
@@ -33,7 +35,7 @@ class AuditMappingTable extends Component implements HasForms, HasTable, HasActi
                 TextColumn::make('action')
                     ->label('Aksi')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'grant' => 'success',
                         'revoke' => 'danger',
                         default => 'gray',
