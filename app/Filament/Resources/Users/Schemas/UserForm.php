@@ -10,6 +10,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class UserForm
 {
@@ -24,8 +26,9 @@ class UserForm
                     ->schema([
                         TextInput::make('user_code')
                             ->label('Kode Pengguna')
-                            ->required()
-                            ->maxLength($userCodeMaxLength),
+                            ->placeholder('Otomatis')
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('username')
                             ->label('Nama Pengguna')
                             ->required()
@@ -51,8 +54,23 @@ class UserForm
                         TextInput::make('password')
                             ->label('Kata Sandi')
                             ->password()
-                            ->required(fn($record) => $record === null)
-                            ->dehydrated(fn($password) => filled($password)),
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->dehydrated(fn ($state) => filled($state)),
+                        Select::make('roles')
+                            ->label('Role / Peran')
+                            ->relationship(
+                                'roles',
+                                'title',
+                                fn (Builder $query) => $query->where('name', '!=', 'super_admin')
+                            )
+                            ->pivotData([
+                                'assigned_by' => Auth::id(),
+                                'assigned_at' => now(),
+                            ])
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->required(),
                     ]),
 
                 Section::make('Detail Pengguna')
@@ -63,6 +81,18 @@ class UserForm
                             ->label('Nomor Telepon'),
                         DatePicker::make('date_of_birth')
                             ->label('Tanggal Lahir'),
+                        Select::make('department_id')
+                            ->label('Departemen')
+                            ->relationship('department', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Select::make('position_id')
+                            ->label('Jabatan')
+                            ->relationship('position', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
                         Select::make('gender')
                             ->label('Jenis Kelamin')
                             ->options([

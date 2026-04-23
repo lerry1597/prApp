@@ -62,4 +62,11 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasOne(DetailsUser::class, 'user_id');
     }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class)
+            ->withPivot(['assigned_by', 'assigned_at'])
+            ->withTimestamps();
+    }
 }

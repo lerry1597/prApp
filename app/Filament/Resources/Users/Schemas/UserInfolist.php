@@ -5,14 +5,18 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Models\User;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 class UserInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema
-            ->components([
+        return $schema->components([
+            Grid::make()->columns([
+                'lg' => 1
+            ])->schema([
+                //Account Information
                 Section::make('Account Information')
                     ->columns(2)
                     ->schema([
@@ -32,7 +36,25 @@ class UserInfolist
                             ->dateTime()
                             ->placeholder('-'),
                     ]),
+                //Meta data    
+                Section::make('Metadata')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('created_at')
+                            ->dateTime(),
+                        TextEntry::make('updated_at')
+                            ->dateTime(),
+                        TextEntry::make('deleted_at')
+                            ->dateTime()
+                            ->visible(fn(User $record): bool => $record->trashed()),
+                    ]),
 
+            ]),
+
+            Grid::make()->columns([
+                'lg' => 1,
+            ])->schema([
+                //User Details    
                 Section::make('User Details')
                     ->relationship('detailsUser')
                     ->columns(2)
@@ -46,18 +68,7 @@ class UserInfolist
                         TextEntry::make('bio')
                             ->columnSpanFull(),
                     ]),
-
-                Section::make('Metadata')
-                    ->columns(2)
-                    ->schema([
-                        TextEntry::make('created_at')
-                            ->dateTime(),
-                        TextEntry::make('updated_at')
-                            ->dateTime(),
-                        TextEntry::make('deleted_at')
-                            ->dateTime()
-                            ->visible(fn(User $record): bool => $record->trashed()),
-                    ]),
-            ]);
+            ])
+        ]);
     }
 }
