@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 class CreateUser extends CreateRecord
 {
     protected static string $resource = UserResource::class;
+    
+    protected static ?string $title = 'Tambahkan Pengguna Baru';
 
     protected function handleRecordCreation(array $data): Model
     {

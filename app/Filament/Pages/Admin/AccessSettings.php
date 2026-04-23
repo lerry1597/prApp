@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Pages\Admin;
 
 use BackedEnum;
 use Filament\Pages\Page;
@@ -10,6 +10,8 @@ use UnitEnum;
 class AccessSettings extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+
+    protected static ?string $slug = 'access-settings';
 
     protected string $view = 'filament.pages.access-settings';
 
