@@ -9,6 +9,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -17,7 +18,22 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            if ($user->isForceDeleting()) {
+                $user->detailsUser()->forceDelete();
+            } else {
+                $user->detailsUser()->delete();
+            }
+        });
+
+        static::restoring(function ($user) {
+            $user->detailsUser()->restore();
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -40,5 +56,10 @@ class User extends Authenticatable implements FilamentUser
          * Untuk saat ini, kita set 'true' agar semua user yang login bisa masuk.
          */
         return true;
+    }
+
+    public function detailsUser()
+    {
+        return $this->hasOne(DetailsUser::class, 'user_id');
     }
 }
