@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Users\Schemas;
+namespace App\Filament\Resources\Admin\Users\Schemas;
 
 use App\Models\User;
 use Filament\Infolists\Components\TextEntry;

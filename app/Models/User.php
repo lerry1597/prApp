@@ -51,10 +51,12 @@ class User extends Authenticatable implements FilamentUser
     // 3. Tambahkan method wajib ini
     public function canAccessPanel(Panel $panel): bool
     {
-        /**
-         * Di sini Anda menentukan siapa yang boleh masuk.
-         * Untuk saat ini, kita set 'true' agar semua user yang login bisa masuk.
-         */
+        if ($panel->getId() === 'admin') {
+            return $this->roles()
+                ->whereIn('name', ['super_admin', 'admin'])
+                ->exists();
+        }
+
         return true;
     }
 

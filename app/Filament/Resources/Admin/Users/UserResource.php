@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\Users;
+namespace App\Filament\Resources\Admin\Users;
 
-use App\Filament\Resources\Users\Pages\CreateUser;
-use App\Filament\Resources\Users\Pages\EditUser;
-use App\Filament\Resources\Users\Pages\ListUsers;
-use App\Filament\Resources\Users\Pages\ViewUser;
-use App\Filament\Resources\Users\Schemas\UserForm;
-use App\Filament\Resources\Users\Schemas\UserInfolist;
-use App\Filament\Resources\Users\Tables\UsersTable;
+use App\Filament\Resources\Admin\Users\Pages\CreateUser;
+use App\Filament\Resources\Admin\Users\Pages\EditUser;
+use App\Filament\Resources\Admin\Users\Pages\ListUsers;
+use App\Filament\Resources\Admin\Users\Pages\ViewUser;
+use App\Filament\Resources\Admin\Users\Schemas\UserForm;
+use App\Filament\Resources\Admin\Users\Schemas\UserInfolist;
+use App\Filament\Resources\Admin\Users\Tables\UsersTable;
 use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
