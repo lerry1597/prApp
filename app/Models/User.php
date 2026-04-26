@@ -57,6 +57,16 @@ class User extends Authenticatable implements FilamentUser
                 ->exists();
         }
 
+        if ($panel->getId() === 'app') {
+            return $this->roles()
+                ->whereIn('name', [
+                    'procurement_officer',
+                    'technical_approver',
+                    'vessel_crew_requester'
+                ])
+                ->exists();
+        }
+
         return true;
     }
 
