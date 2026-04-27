@@ -35,6 +35,9 @@ class UserInfolist
                         TextEntry::make('email_verified_at')
                             ->dateTime()
                             ->placeholder('-'),
+                        TextEntry::make('vessel.name')
+                            ->label('Kapal (Vessel)')
+                            ->placeholder('Tidak ada kapal'),
                     ]),
                 //Meta data    
                 Section::make('Metadata')
