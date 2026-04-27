@@ -71,6 +71,11 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->navigationGroups([
+                \Filament\Navigation\NavigationGroup::make()
+                     ->label('Pengaturan')
+                     ->icon('heroicon-o-cog-6-tooth'),
+            ])
             ->spa()
             ->topNavigation(true);
     }
