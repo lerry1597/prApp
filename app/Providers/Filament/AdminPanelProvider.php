@@ -77,6 +77,10 @@ class AdminPanelProvider extends PanelProvider
                      ->icon('heroicon-o-cog-6-tooth'),
             ])
             ->spa()
-            ->topNavigation(true);
+            ->topNavigation(true)
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::BODY_START,
+                fn (): string => '<style>::-webkit-scrollbar{display:none !important;width:0 !important;background:transparent !important;}*{-ms-overflow-style:none !important;scrollbar-width:none !important;}</style>',
+            );
     }
 }
