@@ -36,4 +36,9 @@ class Vessel extends Model
     {
         return $this->hasMany(Item::class);
     }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
 }
