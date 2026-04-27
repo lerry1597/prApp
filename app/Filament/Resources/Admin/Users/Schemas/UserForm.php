@@ -71,6 +71,13 @@ class UserForm
                             ->preload()
                             ->searchable()
                             ->required(),
+                        Select::make('vessel_id')
+                            ->label('Kapal (Vessel)')
+                            ->relationship('vessel', 'name')
+                            ->placeholder('Pilih Kapal (Opsional)')
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn (string $operation): bool => $operation === 'edit'),
                     ]),
 
                 Section::make('Detail Pengguna')
