@@ -14,6 +14,7 @@ class Item extends Model
     protected $fillable = [
         'pr_detail_id',
         'vessel_id',
+        'item_category_id',
         'no',
         'type',
         'size',
@@ -21,6 +22,11 @@ class Item extends Model
         'quantity',
         'unit',
     ];
+
+    public function itemCategory(): BelongsTo
+    {
+        return $this->belongsTo(ItemCategory::class);
+    }
 
     public function vessel(): BelongsTo
     {

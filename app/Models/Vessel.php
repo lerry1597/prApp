@@ -14,6 +14,7 @@ class Vessel extends Model
 
     protected $fillable = [
         'company_id',
+        'vessel_category_id',
         'name',
         'code',
         'vessel_type',
@@ -21,6 +22,11 @@ class Vessel extends Model
         'status',
         'description',
     ];
+
+    public function vesselCategory(): BelongsTo
+    {
+        return $this->belongsTo(VesselCategory::class);
+    }
 
     public function company(): BelongsTo
     {
