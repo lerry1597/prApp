@@ -12,9 +12,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Constants\RoleConstant;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['username', 'name', 'email', 'password', 'vessel_id', 'id_employee', 'is_primary'])]
+#[Fillable(['username', 'name', 'email', 'password', 'vessel_id', 'id_employee', 'is_primary', 'user_code'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -59,16 +60,19 @@ class User extends Authenticatable implements FilamentUser
     {
         if ($panel->getId() === 'admin') {
             return $this->roles()
-                ->whereIn('name', ['super_admin', 'admin'])
+                ->whereIn('name', [
+                    RoleConstant::SUPER_ADMIN,
+                    RoleConstant::ADMIN,
+                ])
                 ->exists();
         }
 
         if ($panel->getId() === 'app') {
             return $this->roles()
                 ->whereIn('name', [
-                    'procurement_officer',
-                    'technical_approver',
-                    'vessel_crew_requester'
+                    RoleConstant::PROCUREMENT_OFFICER,
+                    RoleConstant::TECHNICAL_APPROVER,
+                    RoleConstant::VESSEL_CREW_REQUESTER,
                 ])
                 ->exists();
         }
