@@ -5,181 +5,219 @@ namespace App\Filament\Pages\Admin;
 use App\Models\Vessel;
 use App\Models\VesselCategory;
 use App\Models\Company;
-use Filament\Pages\Page;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\Select;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Notifications\Notification;
-use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Pages\Page;
+use Filament\Support\Enums\Alignment;
+use Illuminate\Support\Collection;
+use BackedEnum;
 use UnitEnum;
 
-use BackedEnum;
-
-class VesselSettings extends Page implements HasForms, HasActions
+class VesselSettings extends Page implements HasSchemas
 {
-    use InteractsWithForms, InteractsWithActions;
-
-    protected static string|BackedEnum|null $navigationIcon = null;
+    use InteractsWithSchemas;
 
     protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
-
-    protected static ?string $navigationLabel = 'Vessel';
-
+    protected static ?string $navigationLabel = 'Kelola Kapal';
     protected static ?string $title = 'Kelola Kapal & Kategori';
-
-    protected static ?string $slug = 'vessel-settings';
-
-    protected static ?int $navigationSort = 110;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected string $view = 'filament.pages.admin.vessel-settings';
 
-    public $activeTab = 'vessels';
-
-    // State for Vessels
-    public $vessels = [];
-    public $categories = [];
-
-    public function mount()
+    public function getVesselsProperty(): Collection
     {
-        $this->loadData();
+        return Vessel::with(['vesselCategory', 'company'])->get();
     }
 
-    public function loadData()
+    public function getCategoriesProperty(): Collection
     {
-        $this->vessels = Vessel::with(['company', 'vesselCategory'])->get();
-        $this->categories = VesselCategory::withCount('vessels')->get();
+        return VesselCategory::withCount('vessels')->get();
+    }
+
+    public function infolist(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Tabs::make('Vessel Settings')
+                    ->label('')
+                    ->tabs([
+                        Tab::make('Daftar Kapal')
+                            ->icon('lucide-ship')
+                            // ->badge($this->vessels->count())
+                            ->schema([
+                                Grid::make(['default' => 1, 'md' => 2, 'xl' => 3])
+                                    ->schema($this->getVesselSchema()),
+                            ]),
+                        Tab::make('Kategori kapal')
+                            ->icon('lucide-layers')
+                            // ->badge($this->categories->count())
+                            ->schema([
+                                Grid::make(['default' => 1, 'md' => 2, 'xl' => 3])
+                                    ->schema($this->getCategorySchema()),
+                            ]),
+                    ])
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    protected function getVesselSchema(): array
+    {
+        return $this->vessels->map(function (Vessel $vessel) {
+            return Section::make($vessel->name)
+                ->icon('lucide-ship')
+                ->description($vessel->vesselCategory->name ?? 'Uncategorized')
+                ->headerActions([
+                    Action::make('editVessel')
+                        ->icon('heroicon-m-pencil-square')
+                        ->color('gray')
+                        ->iconButton()
+                        ->action(fn() => $this->mountAction('editVessel', ['record' => $vessel->id])),
+                    Action::make('deleteVessel')
+                        ->icon('heroicon-m-trash')
+                        ->color('danger')
+                        ->iconButton()
+                        ->action(fn() => $this->mountAction('deleteVessel', ['record' => $vessel->id])),
+                ])
+                ->schema([
+                    Group::make([
+                        Text::make('IMO: ' . ($vessel->code ?: '-'))
+                            ->color('gray')
+                            ->size('xs'),
+                        Text::make($vessel->company->name ?? 'N/A')
+                            ->icon('heroicon-m-building-office')
+                            ->color('gray')
+                            ->size('xs'),
+                        // Text::make($vessel->flag ?: 'International')
+                        // ->badge()
+                        // ->color('primary'),
+                        Text::make($vessel->vesselCategory->name ?? 'Uncategorized')
+                            ->icon('lucide-layers')
+                            ->badge()
+                            ->color('warning'),
+                    ])->gap(),
+                ])
+                ->columnSpan(1);
+        })->toArray();
+    }
+
+    protected function getCategorySchema(): array
+    {
+        return $this->categories->map(function (VesselCategory $category) {
+            return Section::make($category->name)
+                ->icon('lucide-ship')
+                ->headerActions([
+                    Action::make('editCategory')
+                        ->icon('heroicon-m-pencil-square')
+                        ->color('gray')
+                        ->iconButton()
+                        ->action(fn() => $this->mountAction('editCategory', ['record' => $category->id])),
+                    Action::make('deleteCategory')
+                        ->icon('lucide-trash-2')
+                        ->color('danger')
+                        ->iconButton()
+                        ->action(fn() => $this->mountAction('deleteCategory', ['record' => $category->id])),
+                ])
+                ->schema([
+                    Group::make([
+                        Text::make('Kode: ' . strtoupper($category->code ?: '-'))
+                            ->color('gray')
+                            ->size('xs'),
+                        Text::make($category->vessels_count . ' Kapal Terdaftar')
+                            ->badge()
+                            ->color('warning'),
+                    ])->gap(),
+                ])
+                ->columnSpan(1);
+        })->toArray();
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make('createVessel')
+            Action::make('createVessel')
                 ->label('Tambah Kapal')
-                ->model(Vessel::class)
+                ->icon('heroicon-m-plus')
                 ->form([
-                    Select::make('company_id')
-                        ->label('Perusahaan')
-                        ->options(Company::pluck('name', 'id'))
-                        ->searchable()
-                        ->required(),
+                    TextInput::make('name')->required(),
+                    TextInput::make('code')->required()->unique(Vessel::class, 'code'),
                     Select::make('vessel_category_id')
                         ->label('Kategori')
                         ->options(VesselCategory::pluck('name', 'id'))
-                        ->searchable()
                         ->required(),
-                    TextInput::make('name')
-                        ->label('Nama Kapal')
+                    Select::make('company_id')
+                        ->label('Perusahaan')
+                        ->options(Company::pluck('name', 'id'))
                         ->required(),
-                    TextInput::make('code')
-                        ->label('Kode/IMO')
-                        ->unique(ignoreRecord: true),
-                    TextInput::make('vessel_type')
-                        ->label('Tipe (Manual)'),
-                    TextInput::make('flag')
-                        ->label('Bendera'),
-                    Textarea::make('description')
-                        ->label('Deskripsi'),
+                    TextInput::make('flag'),
+                    Textarea::make('description'),
                 ])
-                ->action(function (array $data) {
-                    Vessel::create($data);
-                    $this->loadData();
-                    Notification::make()->title('Kapal berhasil ditambahkan')->success()->send();
-                }),
+                ->action(fn(array $data) => Vessel::create($data)),
 
-            CreateAction::make('createCategory')
+            Action::make('createCategory')
                 ->label('Tambah Kategori')
-                ->model(VesselCategory::class)
+                ->icon('heroicon-m-plus')
+                ->color('warning')
                 ->form([
-                    TextInput::make('name')
-                        ->label('Nama Kategori')
-                        ->required(),
-                    TextInput::make('code')
-                        ->label('Kode Kategori')
-                        ->unique(ignoreRecord: true),
-                    Textarea::make('description')
-                        ->label('Deskripsi'),
+                    TextInput::make('name')->required(),
+                    TextInput::make('code'),
+                    Textarea::make('description'),
                 ])
-                ->action(function (array $data) {
-                    VesselCategory::create($data);
-                    $this->loadData();
-                    Notification::make()->title('Kategori berhasil ditambahkan')->success()->send();
-                }),
+                ->action(fn(array $data) => VesselCategory::create($data)),
         ];
     }
 
     public function editVesselAction(): Action
     {
         return Action::make('editVessel')
-            ->record(fn (array $arguments) => Vessel::find($arguments['record']))
             ->form([
-                Select::make('company_id')
-                    ->label('Perusahaan')
-                    ->options(Company::pluck('name', 'id'))
-                    ->required(),
+                TextInput::make('name')->required(),
+                TextInput::make('code')->required(),
                 Select::make('vessel_category_id')
-                    ->label('Kategori')
                     ->options(VesselCategory::pluck('name', 'id'))
                     ->required(),
-                TextInput::make('name')->required(),
-                TextInput::make('code'),
-                TextInput::make('vessel_type'),
+                Select::make('company_id')
+                    ->options(Company::pluck('name', 'id'))
+                    ->required(),
                 TextInput::make('flag'),
-                Textarea::make('description'),
             ])
-            ->action(function (Vessel $record, array $data): void {
-                $record->update($data);
-                $this->loadData();
-                Notification::make()->title('Kapal berhasil diperbarui')->success()->send();
-            });
-    }
-
-    public function editCategoryAction(): Action
-    {
-        return Action::make('editCategory')
-            ->record(fn (array $arguments) => VesselCategory::find($arguments['record']))
-            ->form([
-                TextInput::make('name')->required(),
-                TextInput::make('code'),
-                Textarea::make('description'),
-            ])
-            ->action(function (VesselCategory $record, array $data): void {
-                $record->update($data);
-                $this->loadData();
-                Notification::make()->title('Kategori berhasil diperbarui')->success()->send();
-            });
+            ->fillForm(fn(Vessel $record) => $record->toArray())
+            ->action(fn(Vessel $record, array $data) => $record->update($data));
     }
 
     public function deleteVesselAction(): Action
     {
         return Action::make('deleteVessel')
             ->requiresConfirmation()
-            ->color('danger')
-            ->action(function (array $arguments) {
-                Vessel::find($arguments['record'])?->delete();
-                $this->loadData();
-                Notification::make()->title('Kapal berhasil dihapus')->danger()->send();
-            });
+            ->action(fn(Vessel $record) => $record->delete());
+    }
+
+    public function editCategoryAction(): Action
+    {
+        return Action::make('editCategory')
+            ->form([
+                TextInput::make('name')->required(),
+                TextInput::make('code'),
+            ])
+            ->fillForm(fn(VesselCategory $record) => $record->toArray())
+            ->action(fn(VesselCategory $record, array $data) => $record->update($data));
     }
 
     public function deleteCategoryAction(): Action
     {
         return Action::make('deleteCategory')
             ->requiresConfirmation()
-            ->color('danger')
-            ->action(function (array $arguments) {
-                $category = VesselCategory::find($arguments['record']);
-                if ($category && $category->vessels()->count() > 0) {
-                    Notification::make()->title('Gagal dihapus')->body('Kategori ini masih memiliki kapal terkait.')->danger()->send();
-                    return;
-                }
-                $category?->delete();
-                $this->loadData();
-                Notification::make()->title('Kategori berhasil dihapus')->danger()->send();
-            });
+            ->action(fn(VesselCategory $record) => $record->delete());
     }
 }
