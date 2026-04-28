@@ -22,6 +22,10 @@ class UsersTable
                 TextColumn::make('user_code')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('id_employee')
+                    ->label('ID Karyawan')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),

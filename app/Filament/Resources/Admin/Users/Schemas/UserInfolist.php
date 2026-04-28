@@ -21,6 +21,9 @@ class UserInfolist
                     ->columns(2)
                     ->schema([
                         TextEntry::make('user_code'),
+                        TextEntry::make('id_employee')
+                            ->label('ID Karyawan')
+                            ->placeholder('-'),
                         TextEntry::make('username'),
                         TextEntry::make('name'),
                         TextEntry::make('email')

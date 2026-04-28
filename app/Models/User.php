@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['username', 'name', 'email', 'password', 'vessel_id'])]
+#[Fillable(['username', 'name', 'email', 'password', 'vessel_id', 'id_employee', 'is_primary'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {

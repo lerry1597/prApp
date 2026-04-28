@@ -29,6 +29,11 @@ class UserForm
                             ->placeholder('Otomatis')
                             ->disabled()
                             ->dehydrated(false),
+                        TextInput::make('id_employee')
+                            ->label('ID Karyawan')
+                            ->placeholder('Masukkan ID Karyawan')
+                            ->unique(ignoreRecord: true)
+                            ->nullable(),
                         TextInput::make('username')
                             ->label('Nama Pengguna')
                             ->required()
