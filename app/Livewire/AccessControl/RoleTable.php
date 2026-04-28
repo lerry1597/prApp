@@ -53,7 +53,7 @@ class RoleTable extends Component implements HasForms, HasTable, HasActions
                     ->limit(50),
             ])
             ->actions([
-                EditAction::make()
+                EditAction::make()->disabled()
                     ->form([
                         TextInput::make('title')
                             ->required()
@@ -71,10 +71,10 @@ class RoleTable extends Component implements HasForms, HasTable, HasActions
                             ->maxLength(65535)
                             ->columnSpanFull(),
                     ]),
-                DeleteAction::make(),
+                DeleteAction::make()->disabled(),
             ])
             ->headerActions([
-                CreateAction::make()
+                CreateAction::make()->disabled()
                     ->label('Tambah Peran')
                     ->form([
                         TextInput::make('title')

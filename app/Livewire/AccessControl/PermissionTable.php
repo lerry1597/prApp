@@ -52,7 +52,7 @@ class PermissionTable extends Component implements HasForms, HasTable, HasAction
                     ->limit(50),
             ])
             ->actions([
-                EditAction::make()
+                EditAction::make()->disabled()
                     ->form([
                         TextInput::make('title')
                             ->required()
@@ -70,10 +70,10 @@ class PermissionTable extends Component implements HasForms, HasTable, HasAction
                             ->maxLength(65535)
                             ->columnSpanFull(),
                     ]),
-                DeleteAction::make(),
+                DeleteAction::make()->disabled(),
             ])
             ->headerActions([
-                CreateAction::make()
+                CreateAction::make()->disabled()
                     ->label('Tambah Izin')
                     ->form([
                         TextInput::make('title')
