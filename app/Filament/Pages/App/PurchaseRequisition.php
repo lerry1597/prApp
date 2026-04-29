@@ -9,6 +9,7 @@ use App\Models\PrDetail;
 use App\Models\Item;
 use App\Models\Department;
 use App\Models\ItemCategory;
+use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -16,6 +17,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
@@ -23,7 +25,10 @@ use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Enums\FontWeight;
+use App\Service\DateService;
 
 class PurchaseRequisition extends Page implements HasSchemas
 {
@@ -37,6 +42,9 @@ class PurchaseRequisition extends Page implements HasSchemas
     public ?array $data = [];
     public string $sequenceNo = '';
     public string $departmentName = '';
+    
+    public array $items = [];
+    public array $itemCategories = [];
 
     public function getHeading(): string
     {
@@ -51,6 +59,32 @@ class PurchaseRequisition extends Page implements HasSchemas
         $user = auth()->user();
         $details = $user?->detailsUser;
         $this->departmentName = $details?->department?->name ?? 'Kru Kapal';
+
+        $this->itemCategories = ItemCategory::pluck('name', 'id')->toArray();
+        $this->items = [
+            ['item_category_id' => '', 'type' => '', 'size' => '', 'quantity' => '', 'unit' => '']
+        ];
+    }
+
+    public function addItem(): void
+    {
+        $this->items[] = [
+            'item_category_id' => '',
+            'type' => '',
+            'size' => '',
+            'quantity' => '',
+            'unit' => '',
+        ];
+    }
+
+    public function removeItem(int $index): void
+    {
+        unset($this->items[$index]);
+        $this->items = array_values($this->items);
+        
+        if (empty($this->items)) {
+            $this->addItem();
+        }
     }
 
     protected function generateSequenceNo(): string
@@ -62,7 +96,6 @@ class PurchaseRequisition extends Page implements HasSchemas
 
     protected function fillForm(): void
     {
-        // $this->getSchema('form')->fill([]);
         $this->form->fill();
     }
 
@@ -90,27 +123,12 @@ class PurchaseRequisition extends Page implements HasSchemas
                             ->color('gray'),
                         TextEntry::make('issue_date')
                             ->label('Tanggal Terbit')
-                            ->state(DocumentConstant::ISSUE_DATE)
-                            ->weight(FontWeight::Medium)
-                            ->color('gray'),
-                        TextEntry::make('rev_no')
-                            ->label('No. Revisi')
-                            ->state(DocumentConstant::REV_NO)
-                            ->weight(FontWeight::Medium)
-                            ->color('gray'),
-                        TextEntry::make('ref_date')
-                            ->label('Tanggal Referensi')
-                            ->state(DocumentConstant::REF_DATE)
+                            ->state(app(DateService::class)->getIssueDate())
                             ->weight(FontWeight::Medium)
                             ->color('gray'),
                         TextEntry::make('department_name')
-                            ->label('Departemen')
-                            ->state(fn() => $this->departmentName)
-                            ->weight(FontWeight::Medium)
-                            ->color('gray'),
-                        TextEntry::make('no')
-                            ->label('No. Urut')
-                            ->state(fn() => $this->sequenceNo)
+                            ->label('Nama Kapal')
+                            ->state("KN. GULAR")
                             ->weight(FontWeight::Medium)
                             ->color('gray'),
                         Radio::make('needs')
@@ -120,13 +138,7 @@ class PurchaseRequisition extends Page implements HasSchemas
                                 'Dek' => 'Dek',
                             ])
                             ->required()
-                            ->inline(),
-                        DatePicker::make('required_date')
-                            ->placeholder('Pilih Tanggal')
-                            ->label('Tanggal Dibutuhkan')
-                            ->maxWidth('full')
-                            ->native(false)
-                            ->default(null),
+                            ->inline()
                     ])
             ]);
     }
@@ -135,62 +147,17 @@ class PurchaseRequisition extends Page implements HasSchemas
     {
         return $schema
             ->statePath('data')
-            ->components([
-                Section::make('Daftar Item')
-                    ->schema([
-                        Repeater::make('items')
-                            ->schema([
-                                Select::make('item_category_id')
-                                    ->label('Kategori Item')
-                                    ->placeholder('Pilih Kategori')
-                                    ->options(ItemCategory::pluck('name', 'id'))
-                                    ->searchable()
-                                    ->required(),
-                                // TextInput::make('type')
-                                //     ->label('Tipe'),
-                                // TextInput::make('size')
-                                //     ->label('Ukuran'),
-                                // TextInput::make('quantity')
-                                //     ->label('Jumlah')
-                                //     ->numeric()
-                                //     ->required(),
-                                // TextInput::make('unit')
-                                //     ->label('Satuan')
-                                //     ->placeholder('Pcs, Box, dll')
-                                //     ->required(),
-                                MarkdownEditor::make('description')
-                                    // ->label('Harap belikan barang sebagai berikut : ')
-                                    ->hiddenLabel()
-                                    ->default('Harap belikan barang sebagai berikut : ')
-                                    ->toolbarButtons([
-                                        'bold',
-                                        'italic',
-                                        'strike',
-                                        'link',
-                                        'heading',
-                                        'bulletList',
-                                        'orderedList',
-                                        'table',
-                                        'undo',
-                                        'redo',
-                                    ])
-                                    ->required()
-                                    ->autofocus()
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(5)
-                            ->defaultItems(1)
-                            ->required()
-                            ->minItems(1)
-                            ->addActionLabel('Tambah')
-                            ->addAction(fn($action) => $action->icon('heroicon-m-plus')),
-                    ]),
-            ]);
+            ->components([]);
     }
 
     public function submit(): void
     {
-        $formData = $this->getSchema('form')->getState();
+        $this->validate([
+            'items.*.item_category_id' => 'required',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit' => 'required|string',
+        ]);
+
         $formDocument = $this->getSchema('infolist')->getState();
         $user = auth()->user();
         $details = $user?->detailsUser;
@@ -208,23 +175,23 @@ class PurchaseRequisition extends Page implements HasSchemas
         $detail = PrDetail::create([
             'pr_header_id' => $header->id,
             'priority' => null,
-            'document_no' => $formDocument['document_no'],
-            'title' => $formDocument['title'],
-            'issue_date' => $formDocument['issue_date'],
-            'rev_no' => $formDocument['rev_no'],
-            'ref_date' => $formDocument['ref_date'],
+            'document_no' => $formDocument['document_no'] ?? DocumentConstant::DOCUMENT_NO,
+            'title' => $formDocument['title'] ?? DocumentConstant::DOCUMENT_TITLE,
+            'issue_date' => $formDocument['issue_date'] ?? app(DateService::class)->getIssueDate(),
+            'rev_no' => $formDocument['rev_no'] ?? '00',
+            'ref_date' => $formDocument['ref_date'] ?? null,
             'document_type' => null,
             'no' => $this->sequenceNo,
-            'needs' => $formDocument['needs'],
+            'needs' => $formDocument['needs'] ?? 'Mesin',
             'vessel_id' => $user?->vessel_id,
-            'request_date' => now(),
+            'request_date' => app(DateService::class)->getCurrentDate(),
             'required_date' => $formDocument['required_date'] ?? null,
             'expired_date' => null,
             'description' => null,
         ]);
 
         // 3. Simpan Items
-        foreach ($formData['items'] as $itemData) {
+        foreach ($this->items as $itemData) {
             Item::create([
                 'pr_detail_id' => $detail->id,
                 'vessel_id' => $user?->vessel_id,
@@ -244,8 +211,7 @@ class PurchaseRequisition extends Page implements HasSchemas
             ->success()
             ->send();
 
-        // Reset form and update sequence
         $this->sequenceNo = $this->generateSequenceNo();
-        $this->fillForm();
+        $this->mount();
     }
 }
