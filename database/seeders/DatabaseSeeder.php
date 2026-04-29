@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             DepartmentSeeder::class,
             PositionSeeder::class,
+            ItemCategorySeeder::class,
         ]);
 
         // User::factory(10)->create();

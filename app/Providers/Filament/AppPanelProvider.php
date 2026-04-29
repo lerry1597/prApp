@@ -34,10 +34,12 @@ class AppPanelProvider extends PanelProvider
             ])
             ->spa()
             ->topNavigation(true)
-            ->discoverResources(in: app_path('Filament/App/Resources'), for: 'App\Filament\App\Resources')
-            ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')
+            ->discoverResources(in: app_path('Filament/Resources/App'), for: 'App\Filament\Resources\App')
+            ->discoverPages(in: app_path('Filament/Pages/App'), for: 'App\Filament\Pages\App')
             ->pages([
                 Dashboard::class,
+                \App\Filament\Pages\App\PurchaseRequisition::class,
+                \App\Filament\Pages\App\PurchaseRequisitionHistory::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([
@@ -59,5 +61,15 @@ class AppPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    public function register(): void
+    {
+        parent::register();
+
+        $this->app->singleton(
+            \Filament\Auth\Http\Responses\Contracts\LoginResponse::class,
+            \App\Http\Responses\CustomLoginResponse::class
+        );
     }
 }
