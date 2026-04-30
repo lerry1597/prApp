@@ -31,6 +31,7 @@ class PurchaseRequisition extends Page
 
     public array $items = [];
     public array $itemCategories = [];
+    public bool $showPreviewModal = false;
 
     public function getHeading(): string
     {
@@ -44,7 +45,7 @@ class PurchaseRequisition extends Page
         $user = auth()->user();
         $details = $user?->detailsUser;
         $vessel = $user?->vessel;
-        
+
         $this->vesselName = $vessel?->name ?? 'UNKNOWN VESSEL';
         $this->companyCode = $vessel?->company?->code ?? 'UNKNOWN';
         $this->departmentName = $details?->department?->name ?? 'Kru Kapal';
@@ -84,7 +85,7 @@ class PurchaseRequisition extends Page
     {
         unset($this->items[$index]);
         $this->items = array_values($this->items);
-        
+
         if (empty($this->items)) {
             $this->addItem();
         }
@@ -99,7 +100,11 @@ class PurchaseRequisition extends Page
 
 
 
-    public function submit(): void
+    /**
+     * Langkah 1: Validasi form, lalu tampilkan modal preview.
+     * Data BELUM disimpan ke database di sini.
+     */
+    public function previewSubmit(): void
     {
         $this->validate([
             'items.*.item_category_id' => 'required',
@@ -117,7 +122,25 @@ class PurchaseRequisition extends Page
             'items.*.unit.required' => 'Satuan wajib diisi',
             'items.*.remaining.required' => 'Sisa wajib diisi',
         ]);
-        
+
+        // Urutkan items berdasarkan item_category_id agar grouping di UI benar
+        $itemsCollection = collect($this->items);
+        $this->items = $itemsCollection->sortBy('item_category_id')->values()->toArray();
+
+        // Validasi lulus — tampilkan modal preview
+        $this->showPreviewModal = true;
+    }
+
+    public function closePreview(): void
+    {
+        $this->showPreviewModal = false;
+    }
+
+    /**
+     * Langkah 2: Konfirmasi dari modal preview, simpan ke database.
+     */
+    public function confirmSubmit(): void
+    {
         $user = auth()->user();
         $details = $user?->detailsUser;
 
@@ -165,6 +188,8 @@ class PurchaseRequisition extends Page
                 'remaining' => $itemData['remaining'] ?? null,
             ]);
         }
+
+        $this->showPreviewModal = false;
 
         Notification::make()
             ->title('Pengajuan PR Berhasil')
