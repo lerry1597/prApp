@@ -490,7 +490,7 @@
 
             {{-- ===== TABLE SECTION ===== --}}
             <div class="pr-table-section">
-                <div class="pr-table-label">Daftar Item yang Diminta</div>
+                <div class="pr-table-label">Harap dibelikan barang sbb:</div>
                 <div class="pr-table-scroll">
                     <table class="pr-table">
                         <thead>
