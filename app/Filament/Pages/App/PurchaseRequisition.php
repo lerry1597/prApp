@@ -42,7 +42,8 @@ class PurchaseRequisition extends Page implements HasSchemas
     public ?array $data = [];
     public string $sequenceNo = '';
     public string $departmentName = '';
-    
+    public string $needs = 'Mesin';
+
     public array $items = [];
     public array $itemCategories = [];
 
@@ -75,6 +76,13 @@ class PurchaseRequisition extends Page implements HasSchemas
             'quantity' => '',
             'unit' => '',
         ];
+
+        $this->js("
+            setTimeout(function() {
+                var el = document.querySelector('.pr-table-scroll');
+                if (el) el.scrollTop = el.scrollHeight;
+            }, 50);
+        ");
     }
 
     public function removeItem(int $index): void

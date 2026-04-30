@@ -1,186 +1,630 @@
 <x-filament-panels::page>
-    <style>
-        trix-editor {
-            min-height: 600px !important;
-            padding-bottom: 400px !important;
-            height: auto !important;
-        }
+<style>
+    /* ===== DOCUMENT WRAPPER ===== */
+    .pr-document-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
 
-        /* Custom Table styling */
-        .custom-table-container {
-            max-height: 450px;
-            overflow-y: auto;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    /* ===== DOCUMENT CARD ===== */
+    .pr-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        box-shadow: 0 4px 24px 0 rgba(15, 23, 42, 0.07);
+        overflow: hidden;
+    }
+    .dark .pr-card {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== DOCUMENT HEADER ===== */
+    .pr-doc-header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: stretch;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .dark .pr-doc-header {
+        border-bottom-color: #334155;
+    }
+
+    .pr-doc-logo-cell {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #e2e8f0;
+        min-width: 120px;
+    }
+    .dark .pr-doc-logo-cell {
+        border-right-color: #334155;
+    }
+    .pr-doc-logo-text {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: 0.05em;
+    }
+    .dark .pr-doc-logo-text {
+        color: #f1f5f9;
+    }
+
+    .pr-doc-title-cell {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .pr-doc-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+    }
+    .dark .pr-doc-title {
+        color: #f1f5f9;
+    }
+
+    .pr-doc-meta-cell {
+        border-left: 1px solid #e2e8f0;
+        min-width: 200px;
+    }
+    .dark .pr-doc-meta-cell {
+        border-left-color: #334155;
+    }
+    .pr-doc-meta-row {
+        display: flex;
+        align-items: center;
+        padding: 0.45rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.75rem;
+        gap: 0.5rem;
+    }
+    .pr-doc-meta-row:last-child {
+        border-bottom: none;
+    }
+    .dark .pr-doc-meta-row {
+        border-bottom-color: #334155;
+    }
+    .pr-doc-meta-label {
+        color: #64748b;
+        font-weight: 500;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    .dark .pr-doc-meta-label {
+        color: #94a3b8;
+    }
+    .pr-doc-meta-value {
+        color: #0f172a;
+        font-weight: 600;
+    }
+    .dark .pr-doc-meta-value {
+        color: #f1f5f9;
+    }
+
+    /* ===== INFO SECTION ===== */
+    .pr-info-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .dark .pr-info-section {
+        border-bottom-color: #334155;
+    }
+    .pr-info-group {
+        padding: 1rem 1.5rem;
+    }
+    .pr-info-group:first-child {
+        border-right: 1px solid #e2e8f0;
+    }
+    .dark .pr-info-group:first-child {
+        border-right-color: #334155;
+    }
+    .pr-info-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.625rem;
+        gap: 0.75rem;
+    }
+    .pr-info-row:last-child {
+        margin-bottom: 0;
+    }
+    .pr-info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+        min-width: 130px;
+        white-space: nowrap;
+    }
+    .dark .pr-info-label {
+        color: #94a3b8;
+    }
+    .pr-info-colon {
+        color: #94a3b8;
+        font-weight: 600;
+    }
+    .pr-info-value {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .dark .pr-info-value {
+        color: #f1f5f9;
+    }
+
+    /* ===== NEEDS RADIO ===== */
+    .pr-needs-group {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    .pr-radio-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #334155;
+        cursor: pointer;
+    }
+    .dark .pr-radio-label {
+        color: #cbd5e1;
+    }
+    .pr-radio-input {
+        width: 1rem;
+        height: 1rem;
+        accent-color: #3b82f6;
+        cursor: pointer;
+    }
+
+    /* ===== TABLE SECTION ===== */
+    .pr-table-section {
+        padding: 0;
+    }
+    .pr-table-label {
+        padding: 0.875rem 1.5rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #475569;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+    .dark .pr-table-label {
+        color: #94a3b8;
+        border-bottom-color: #334155;
+        background: #0f172a;
+    }
+
+    .pr-table-scroll {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 294px; /* ≈ 6 baris */
+    }
+    .pr-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8125rem;
+    }
+    .pr-table thead th {
+        background: #f1f5f9;
+        color: #374151;
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 0.75rem 0.875rem;
+        text-align: left;
+        border-bottom: 2px solid #cbd5e1;
+        white-space: nowrap;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+    .dark .pr-table thead th {
+        background: #1e293b;
+        color: #94a3b8;
+        border-bottom-color: #475569;
+    }
+    .pr-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+        transition: background 0.15s;
+    }
+    .pr-table tbody tr:last-child {
+        border-bottom: none;
+    }
+    .dark .pr-table tbody tr {
+        border-bottom-color: #334155;
+    }
+    .pr-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    .dark .pr-table tbody tr:hover {
+        background: #0f172a;
+    }
+    .pr-table td {
+        padding: 0.5rem 0.875rem;
+        vertical-align: middle;
+    }
+    .pr-table .col-no    { width: 4%; text-align: center; color: #94a3b8; font-weight: 700; }
+    .pr-table .col-cat   { width: 22%; }
+    .pr-table .col-type  { width: 22%; }
+    .pr-table .col-size  { width: 18%; }
+    .pr-table .col-qty   { width: 12%; }
+    .pr-table .col-unit  { width: 14%; }
+    .pr-table .col-act   { width: 8%; text-align: center; }
+
+    /* ===== FORM INPUTS IN TABLE ===== */
+    .pr-field {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8125rem;
+        color: #0f172a;
+        background: #ffffff;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        line-height: 1.5;
+    }
+    .pr-field:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .dark .pr-field {
+        background: #0f172a;
+        border-color: #475569;
+        color: #f1f5f9;
+    }
+    .dark .pr-field:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+    .pr-field-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.4rem center;
+        background-size: 1.25em;
+        padding-right: 2rem !important;
+        cursor: pointer;
+    }
+    .pr-field-error {
+        font-size: 0.7rem;
+        color: #ef4444;
+        margin-top: 0.2rem;
+        display: block;
+    }
+
+    /* ===== DELETE BUTTON ===== */
+    .pr-btn-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.375rem;
+        border: 1px solid #fca5a5;
+        background: #fff1f2;
+        color: #ef4444;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .pr-btn-delete:hover {
+        background: #fee2e2;
+        border-color: #ef4444;
+    }
+    .dark .pr-btn-delete {
+        background: rgba(239,68,68,0.1);
+        border-color: rgba(239,68,68,0.3);
+        color: #f87171;
+    }
+    .dark .pr-btn-delete:hover {
+        background: rgba(239,68,68,0.2);
+    }
+
+    /* ===== FOOTER ACTIONS ===== */
+    .pr-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: 0 0 1rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    .dark .pr-footer {
+        border-top-color: #334155;
+        background: #0f172a;
+    }
+
+    .pr-item-count {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .dark .pr-item-count {
+        color: #94a3b8;
+    }
+
+    .pr-footer-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .pr-empty {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .pr-doc-header {
+            grid-template-columns: 1fr;
         }
-        
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        
-        .custom-table th {
-            background-color: #f8fafc;
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 0.875rem;
-            padding: 0.75rem 1rem;
-            border-bottom: 2px solid #cbd5e1;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        .custom-table td {
-            padding: 0.5rem 1rem;
+        .pr-doc-logo-cell {
+            border-right: none;
             border-bottom: 1px solid #e2e8f0;
-            vertical-align: middle;
         }
-        
-        .custom-table tr:hover {
-            background-color: #f8fafc;
+        .pr-doc-meta-cell {
+            border-left: none;
+            border-top: 1px solid #e2e8f0;
+            min-width: unset;
         }
-        
-        /* Form inputs */
-        .custom-input {
-            width: 100%;
-            border: 1px solid #94a3b8 !important;
-            border-radius: 0.375rem !important;
-            padding: 0.5rem 0.75rem !important;
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            font-size: 0.875rem !important;
-            transition: all 0.2s ease-in-out;
+        .pr-info-section {
+            grid-template-columns: 1fr;
         }
-        
-        .custom-input:focus {
-            border-color: #3b82f6 !important;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
-            outline: none !important;
+        .pr-info-group:first-child {
+            border-right: none;
+            border-bottom: 1px solid #e2e8f0;
         }
+    }
+</style>
 
-        /* Dark Mode support */
-        .dark .custom-table-container {
-            border-color: #334155;
-            background-color: #0f172a;
-        }
-        
-        .dark .custom-table th {
-            background-color: #1e293b;
-            color: #f1f5f9;
-            border-bottom-color: #475569;
-        }
-        
-        .dark .custom-table td {
-            border-bottom-color: #334155;
-        }
-        
-        .dark .custom-table tr:hover {
-            background-color: #1e293b;
-        }
-        
-        .dark .custom-input {
-            border-color: #475569 !important;
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-        }
-        
-        .dark .custom-input:focus {
-            border-color: #60a5fa !important;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
-        }
-    </style>
-
-    <div class="mb-6">
-        {{ $this->getSchema('infolist') }}
-    </div>
-
+<div class="pr-document-wrapper">
     <form wire:submit.prevent="submit">
-        <div class="custom-table-container">
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">Kategori Item</th>
-                        <th style="width: 25%;">Jenis</th>
-                        <th style="width: 20%;">Ukuran</th>
-                        <th style="width: 12%;">Jumlah</th>
-                        <th style="width: 12%;">Satuan</th>
-                        <th style="width: 6%; text-align: center;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($items as $index => $item)
-                        <tr wire:key="item-row-{{ $index }}">
-                            <!-- Kategori Item -->
-                            <td>
-                                <select wire:model="items.{{ $index }}.item_category_id" class="custom-input">
-                                    <option value="">Pilih Kategori</option>
-                                    @foreach($itemCategories as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                                @error("items.{$index}.item_category_id")
-                                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </td>
+        <div class="pr-card">
 
-                            <!-- Jenis -->
-                            <td>
-                                <input type="text" wire:model="items.{{ $index }}.type" class="custom-input">
-                                @error("items.{$index}.type")
-                                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </td>
+            {{-- ===== DOCUMENT HEADER ===== --}}
+            <div class="pr-doc-header">
+                {{-- Logo --}}
+                <div class="pr-doc-logo-cell">
+                    <span class="pr-doc-logo-text">PATIN</span>
+                </div>
 
-                            <!-- Ukuran -->
-                            <td>
-                                <input type="text" wire:model="items.{{ $index }}.size" class="custom-input">
-                                @error("items.{$index}.size")
-                                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </td>
+                {{-- Judul --}}
+                <div class="pr-doc-title-cell">
+                    <span class="pr-doc-title">Formulir Permintaan Barang</span>
+                    <span style="font-size:0.7rem;color:#94a3b8;margin-top:0.2rem;font-weight:500;">Purchase Requisition Form</span>
+                </div>
 
-                            <!-- Jumlah -->
-                            <td>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" wire:model="items.{{ $index }}.quantity" class="custom-input">
-                                @error("items.{$index}.quantity")
-                                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </td>
+                {{-- Meta dokumen --}}
+                <div class="pr-doc-meta-cell">
+                    <div class="pr-doc-meta-row">
+                        <span class="pr-doc-meta-label">No. Dokumen</span>
+                        <span style="color:#94a3b8;">:</span>
+                        <span class="pr-doc-meta-value">FR-SM-BEST-IV-66</span>
+                    </div>
+                    <div class="pr-doc-meta-row">
+                        <span class="pr-doc-meta-label">Tanggal Terbit</span>
+                        <span style="color:#94a3b8;">:</span>
+                        <span class="pr-doc-meta-value">{{ app(\App\Service\DateService::class)->getIssueDate() }}</span>
+                    </div>
+                    <div class="pr-doc-meta-row">
+                        <span class="pr-doc-meta-label">Rev. No</span>
+                        <span style="color:#94a3b8;">:</span>
+                        <span class="pr-doc-meta-value">2</span>
+                    </div>
+                    <div class="pr-doc-meta-row">
+                        <span class="pr-doc-meta-label">Ref. Date</span>
+                        <span style="color:#94a3b8;">:</span>
+                        <span class="pr-doc-meta-value">2024-11-08</span>
+                    </div>
+                </div>
+            </div>
 
-                            <!-- Satuan -->
-                            <td>
-                                <input type="text" wire:model="items.{{ $index }}.unit" placeholder="Pcs, Box, dll" class="custom-input">
-                                @error("items.{$index}.unit")
-                                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </td>
+            {{-- ===== INFO SECTION ===== --}}
+            <div class="pr-info-section">
+                {{-- Kolom kiri --}}
+                <div class="pr-info-group">
+                    <div class="pr-info-row">
+                        <span class="pr-info-label">Nama Kapal</span>
+                        <span class="pr-info-colon">:</span>
+                        <span class="pr-info-value">KN. GULAR</span>
+                    </div>
+                    <div class="pr-info-row">
+                        <span class="pr-info-label">No. Urut</span>
+                        <span class="pr-info-colon">:</span>
+                        <span class="pr-info-value">{{ $sequenceNo }}</span>
+                    </div>
+                    <div class="pr-info-row">
+                        <span class="pr-info-label">Kebutuhan</span>
+                        <span class="pr-info-colon">:</span>
+                        <div class="pr-needs-group">
+                            <label class="pr-radio-label">
+                                <input type="radio" class="pr-radio-input" wire:model="needs" value="Mesin">
+                                Mesin
+                            </label>
+                            <label class="pr-radio-label">
+                                <input type="radio" class="pr-radio-input" wire:model="needs" value="Dek">
+                                Dek
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-                            <!-- Aksi -->
-                            <td style="text-align: center;">
-                                <button type="button" wire:click="removeItem({{ $index }})" 
-                                        class="text-danger-600 hover:text-danger-700 dark:text-danger-400 dark:hover:text-danger-300 font-semibold text-sm transition-colors">
-                                    Hapus
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                {{-- Kolom kanan --}}
+                <div class="pr-info-group">
+                    <div class="pr-info-row">
+                        <span class="pr-info-label">Bagian / Dept.</span>
+                        <span class="pr-info-colon">:</span>
+                        <span class="pr-info-value">{{ $departmentName }}</span>
+                    </div>
+                    <div class="pr-info-row">
+                        <span class="pr-info-label">Tanggal Permintaan</span>
+                        <span class="pr-info-colon">:</span>
+                        <span class="pr-info-value">{{ app(\App\Service\DateService::class)->getCurrentDate() }}</span>
+                    </div>
+                    <div class="pr-info-row">
+                        <span class="pr-info-label">Pemohon</span>
+                        <span class="pr-info-colon">:</span>
+                        <span class="pr-info-value">{{ auth()->user()?->name ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Tombol Tambah & Submit -->
-        <div class="mt-4 flex justify-between items-center">
-            <x-filament::button type="button" wire:click="addItem" icon="heroicon-m-plus" color="gray" size="sm">
-                Tambah Item
-            </x-filament::button>
+            {{-- ===== TABLE SECTION ===== --}}
+            <div class="pr-table-section">
+                <div class="pr-table-label">Daftar Item yang Diminta</div>
+                <div class="pr-table-scroll">
+                    <table class="pr-table">
+                        <thead>
+                            <tr>
+                                <th class="col-no">#</th>
+                                <th class="col-cat">Kategori Item</th>
+                                <th class="col-type">Jenis / Nama Barang</th>
+                                <th class="col-size">Ukuran / Spesifikasi</th>
+                                <th class="col-qty">Jumlah</th>
+                                <th class="col-unit">Satuan</th>
+                                <th class="col-act">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($items as $index => $item)
+                                <tr wire:key="pr-item-{{ $index }}">
+                                    {{-- No --}}
+                                    <td class="col-no">{{ $index + 1 }}</td>
 
-            <x-filament::button type="submit" size="lg">
-                Kirim Pengajuan PR
-            </x-filament::button>
-        </div>
+                                    {{-- Kategori --}}
+                                    <td class="col-cat">
+                                        <select wire:model="items.{{ $index }}.item_category_id"
+                                                class="pr-field pr-field-select">
+                                            <option value="">— Pilih —</option>
+                                            @foreach($itemCategories as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error("items.{$index}.item_category_id")
+                                            <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
+                                    {{-- Jenis --}}
+                                    <td class="col-type">
+                                        <input type="text"
+                                               wire:model="items.{{ $index }}.type"
+                                               placeholder="Nama barang..."
+                                               class="pr-field">
+                                        @error("items.{$index}.type")
+                                            <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
+                                    {{-- Ukuran --}}
+                                    <td class="col-size">
+                                        <input type="text"
+                                               wire:model="items.{{ $index }}.size"
+                                               placeholder="mis. 10mm, 1/2 inch"
+                                               class="pr-field">
+                                        @error("items.{$index}.size")
+                                            <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
+                                    {{-- Jumlah --}}
+                                    <td class="col-qty">
+                                        <input type="number"
+                                               wire:model="items.{{ $index }}.quantity"
+                                               placeholder="0"
+                                               min="1"
+                                               class="pr-field"
+                                               style="text-align:right;">
+                                        @error("items.{$index}.quantity")
+                                            <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
+                                    {{-- Satuan --}}
+                                    <td class="col-unit">
+                                        <input type="text"
+                                               wire:model="items.{{ $index }}.unit"
+                                               placeholder="Pcs, Ltr, Box..."
+                                               class="pr-field">
+                                        @error("items.{$index}.unit")
+                                            <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
+                                    {{-- Aksi --}}
+                                    <td class="col-act">
+                                        <button type="button"
+                                                wire:click="removeItem({{ $index }})"
+                                                class="pr-btn-delete"
+                                                title="Hapus baris">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                 stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="pr-empty">
+                                        Belum ada item. Klik <strong>+ Tambah Item</strong> untuk mulai menambahkan.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ===== FOOTER ACTIONS ===== --}}
+            <div class="pr-footer">
+                <div class="pr-footer-actions">
+                    <x-filament::button
+                        type="button"
+                        wire:click="addItem"
+                        icon="heroicon-m-plus"
+                        color="gray"
+                        size="sm">
+                        Tambah Item
+                    </x-filament::button>
+                    <span class="pr-item-count">
+                        {{ count($items) }} item{{ count($items) !== 1 ? '' : '' }} dalam daftar
+                    </span>
+                </div>
+
+                <x-filament::button
+                    type="submit"
+                    icon="heroicon-m-paper-airplane"
+                    size="md"
+                    wire:loading.attr="disabled"
+                    wire:target="submit">
+                    <span wire:loading.remove wire:target="submit">Kirim Pengajuan PR</span>
+                    <span wire:loading wire:target="submit">Mengirim...</span>
+                </x-filament::button>
+            </div>
+
+        </div>{{-- end pr-card --}}
     </form>
+</div>
+
 </x-filament-panels::page>
