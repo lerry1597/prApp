@@ -2,37 +2,18 @@
 
 namespace App\Filament\Pages\App;
 
-use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 use App\Constants\DocumentConstant;
 use App\Models\PrHeader;
 use App\Models\PrDetail;
 use App\Models\Item;
 use App\Models\Department;
 use App\Models\ItemCategory;
-use Filament\Actions\Action as ActionsAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Contracts\HasSchemas;
-use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Actions;
-use Filament\Schemas\Components\Utilities\Set;
-use Filament\Support\Enums\FontWeight;
 use App\Service\DateService;
 
-class PurchaseRequisition extends Page implements HasSchemas
+class PurchaseRequisition extends Page
 {
-    use InteractsWithSchemas;
 
     protected static ?string $navigationLabel = 'Form Pengajuan PR';
     protected static ?string $title = 'Formulir Permintaan';
@@ -42,6 +23,10 @@ class PurchaseRequisition extends Page implements HasSchemas
     public ?array $data = [];
     public string $sequenceNo = '';
     public string $departmentName = '';
+    public string $vesselName = '';
+    public string $companyCode = '';
+    public string $documentNo = '';
+    public string $clientDateTime = '';
     public string $needs = 'Mesin';
 
     public array $items = [];
@@ -54,16 +39,25 @@ class PurchaseRequisition extends Page implements HasSchemas
 
     public function mount(): void
     {
-        $this->fillForm();
         $this->sequenceNo = $this->generateSequenceNo();
 
         $user = auth()->user();
         $details = $user?->detailsUser;
+        $vessel = $user?->vessel;
+        
+        $this->vesselName = $vessel?->name ?? 'UNKNOWN VESSEL';
+        $this->companyCode = $vessel?->company?->code ?? 'UNKNOWN';
         $this->departmentName = $details?->department?->name ?? 'Kru Kapal';
+
+        $now = app(DateService::class)->getCurrentDate();
+        $month = $now->format('m');
+        $year = $now->format('Y');
+        $vesselCode = $vessel?->code ?? 'VSSL';
+        $this->documentNo = "PR-{$vesselCode}-{$this->companyCode}-{$month}-{$year}-{$this->sequenceNo}";
 
         $this->itemCategories = ItemCategory::pluck('name', 'id')->toArray();
         $this->items = [
-            ['item_category_id' => '', 'type' => '', 'size' => '', 'quantity' => '', 'unit' => '']
+            ['item_category_id' => '', 'type' => '', 'size' => '', 'quantity' => '', 'unit' => '', 'remaining' => '']
         ];
     }
 
@@ -75,6 +69,7 @@ class PurchaseRequisition extends Page implements HasSchemas
             'size' => '',
             'quantity' => '',
             'unit' => '',
+            'remaining' => '',
         ];
 
         $this->js("
@@ -97,82 +92,38 @@ class PurchaseRequisition extends Page implements HasSchemas
 
     protected function generateSequenceNo(): string
     {
-        $latestNo = PrDetail::max('no');
+        $latestNo = PrDetail::all()->max(fn($detail) => (int)$detail->no);
         $nextNo = $latestNo ? (int)$latestNo + 1 : 1;
-        return str_pad($nextNo, 4, '0', STR_PAD_LEFT);
+        return (string)$nextNo;
     }
 
-    protected function fillForm(): void
-    {
-        $this->form->fill();
-    }
 
-    public function infolist(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
-                Section::make()
-                    ->columns([
-                        'default' => 1,
-                        'sm' => 3,
-                    ])
-                    ->schema([
-                        TextEntry::make('form_title')
-                            ->hiddenLabel()
-                            ->state(DocumentConstant::DOCUMENT_TITLE)
-                            ->columnSpanFull()
-                            ->extraAttributes([
-                                'style' => 'display: block !important; text-align: center !important; font-size: 1.75rem !important; font-weight: 800 !important; width: 100% !important; padding-top: 1rem !important; padding-bottom: 1rem !important;'
-                            ]),
-                        TextEntry::make('document_no')
-                            ->label('No. Dokumen')
-                            ->state(DocumentConstant::DOCUMENT_NO)
-                            ->weight(FontWeight::Medium)
-                            ->color('gray'),
-                        TextEntry::make('issue_date')
-                            ->label('Tanggal Terbit')
-                            ->state(app(DateService::class)->getIssueDate())
-                            ->weight(FontWeight::Medium)
-                            ->color('gray'),
-                        TextEntry::make('department_name')
-                            ->label('Nama Kapal')
-                            ->state("KN. GULAR")
-                            ->weight(FontWeight::Medium)
-                            ->color('gray'),
-                        Radio::make('needs')
-                            ->label('Kebutuhan')
-                            ->options([
-                                'Mesin' => 'Mesin',
-                                'Dek' => 'Dek',
-                            ])
-                            ->required()
-                            ->inline()
-                    ])
-            ]);
-    }
-
-    public function form(Schema $schema): Schema
-    {
-        return $schema
-            ->statePath('data')
-            ->components([]);
-    }
 
     public function submit(): void
     {
         $this->validate([
             'items.*.item_category_id' => 'required',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.type' => 'required|string',
+            'items.*.size' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit' => 'required|string',
+            'items.*.remaining' => 'required|numeric',
+        ], [
+            'items.*.item_category_id.required' => 'Kategori wajib dipilih',
+            'items.*.type.required' => 'Nama barang wajib diisi',
+            'items.*.size.required' => 'Ukuran wajib diisi',
+            'items.*.quantity.required' => 'Jumlah wajib diisi',
+            'items.*.quantity.min' => 'Minimal 1',
+            'items.*.unit.required' => 'Satuan wajib diisi',
+            'items.*.remaining.required' => 'Sisa wajib diisi',
         ]);
-
-        $formDocument = $this->getSchema('infolist')->getState();
+        
         $user = auth()->user();
         $details = $user?->detailsUser;
 
         // 1. Simpan PrHeader
         $header = PrHeader::create([
-            'pr_number' => 'PR-' . strtoupper(uniqid()),
+            'pr_number' => $this->documentNo,
             'pr_status' => 'pending',
             'requester_id' => $user?->id,
             'department_id' => $details?->department_id ?? Department::firstOrCreate(['name' => 'Departemen Kru Kapal'])->id,
@@ -183,17 +134,18 @@ class PurchaseRequisition extends Page implements HasSchemas
         $detail = PrDetail::create([
             'pr_header_id' => $header->id,
             'priority' => null,
-            'document_no' => $formDocument['document_no'] ?? DocumentConstant::DOCUMENT_NO,
-            'title' => $formDocument['title'] ?? DocumentConstant::DOCUMENT_TITLE,
-            'issue_date' => $formDocument['issue_date'] ?? app(DateService::class)->getIssueDate(),
-            'rev_no' => $formDocument['rev_no'] ?? '00',
-            'ref_date' => $formDocument['ref_date'] ?? null,
+            'document_no' => $this->documentNo,
+            'title' => DocumentConstant::DOCUMENT_TITLE,
+            'issue_date' => app(DateService::class)->getIssueDate(),
+            'rev_no' => '00',
+            'ref_date' => null,
             'document_type' => null,
             'no' => $this->sequenceNo,
-            'needs' => $formDocument['needs'] ?? 'Mesin',
+            'needs' => $this->needs,
             'vessel_id' => $user?->vessel_id,
             'request_date' => app(DateService::class)->getCurrentDate(),
-            'required_date' => $formDocument['required_date'] ?? null,
+            'request_date_client' => $this->clientDateTime,
+            'required_date' => null,
             'expired_date' => null,
             'description' => null,
         ]);
@@ -210,6 +162,7 @@ class PurchaseRequisition extends Page implements HasSchemas
                 'description' => $itemData['description'] ?? null,
                 'quantity' => $itemData['quantity'],
                 'unit' => $itemData['unit'],
+                'remaining' => $itemData['remaining'] ?? null,
             ]);
         }
 

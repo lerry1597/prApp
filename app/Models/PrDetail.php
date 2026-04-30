@@ -25,6 +25,7 @@ class PrDetail extends Model
         'needs',
         'vessel_id',
         'request_date',
+        'request_date_client',
         'required_date',
         'expired_date',
         'description',

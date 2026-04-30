@@ -15,7 +15,7 @@ class DateService
      */
     public function getCurrentDate(): Carbon
     {
-        return Carbon::now();
+        return Carbon::now('Asia/Jakarta');
     }
 
     /**
@@ -37,5 +37,15 @@ class DateService
     public function getFormattedDate(string $format = 'd-m-Y'): string
     {
         return $this->getCurrentDate()->format($format);
+    }
+
+    /**
+     * Get current date and time formatted for display.
+     *
+     * @return string
+     */
+    public function getDateTimeDisplay(): string
+    {
+        return $this->getCurrentDate()->translatedFormat('d F Y, H:i') . ' WIB';
     }
 }

@@ -21,6 +21,7 @@ class Item extends Model
         'description',
         'quantity',
         'unit',
+        'remaining',
     ];
 
     public function itemCategory(): BelongsTo

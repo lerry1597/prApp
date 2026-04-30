@@ -80,7 +80,7 @@
     }
     .pr-doc-meta-row {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         padding: 0.45rem 1rem;
         border-bottom: 1px solid #e2e8f0;
         font-size: 0.75rem;
@@ -104,6 +104,10 @@
     .pr-doc-meta-value {
         color: #0f172a;
         font-weight: 600;
+        word-break: break-word;
+        line-height: 1.25;
+        max-width: 180px;
+        display: block;
     }
     .dark .pr-doc-meta-value {
         color: #f1f5f9;
@@ -252,16 +256,17 @@
         background: #0f172a;
     }
     .pr-table td {
-        padding: 0.5rem 0.875rem;
-        vertical-align: middle;
+        padding: 0.75rem 0.875rem;
+        vertical-align: top;
     }
     .pr-table .col-no    { width: 4%; text-align: center; color: #94a3b8; font-weight: 700; }
-    .pr-table .col-cat   { width: 22%; }
-    .pr-table .col-type  { width: 22%; }
-    .pr-table .col-size  { width: 18%; }
-    .pr-table .col-qty   { width: 12%; }
-    .pr-table .col-unit  { width: 14%; }
-    .pr-table .col-act   { width: 8%; text-align: center; }
+    .pr-table .col-cat   { width: 12%; }
+    .pr-table .col-type  { width: 38%; }
+    .pr-table .col-size  { width: 15%; }
+    .pr-table .col-qty   { width: 6%; }
+    .pr-table .col-unit  { width: 7%; }
+    .pr-table .col-rem   { width: 8%; }
+    .pr-table .col-act   { width: 10%; text-align: center; }
 
     /* ===== FORM INPUTS IN TABLE ===== */
     .pr-field {
@@ -303,19 +308,39 @@
         color: #ef4444;
         margin-top: 0.2rem;
         display: block;
+        font-weight: 600;
     }
+    .pr-field-invalid {
+        border: 2px solid #dc2626 !important;
+        /* Reverted background-color as requested */
+    }
+    .dark .pr-field-invalid {
+        border-color: #f87171 !important;
+    }
+    .pr-row-invalid {
+        border-left: 4px solid #dc2626 !important;
+    }
+    .dark .pr-row-invalid {
+        background-color: rgba(239, 68, 68, 0.05) !important;
+    }
+
+    /* ===== CUSTOM NOTIFICATION STYLE ===== */
 
     /* ===== DELETE BUTTON ===== */
     .pr-btn-delete {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
+        padding: 0.35rem 0.75rem;
+        gap: 0.4rem;
         border-radius: 0.375rem;
         border: 1px solid #fca5a5;
         background: #fff1f2;
         color: #ef4444;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
         cursor: pointer;
         transition: all 0.15s;
     }
@@ -418,23 +443,15 @@
                     <div class="pr-doc-meta-row">
                         <span class="pr-doc-meta-label">No. Dokumen</span>
                         <span style="color:#94a3b8;">:</span>
-                        <span class="pr-doc-meta-value">FR-SM-BEST-IV-66</span>
+                        <span class="pr-doc-meta-value">{{ $documentNo }}</span>
                     </div>
                     <div class="pr-doc-meta-row">
                         <span class="pr-doc-meta-label">Tanggal Terbit</span>
                         <span style="color:#94a3b8;">:</span>
                         <span class="pr-doc-meta-value">{{ app(\App\Service\DateService::class)->getIssueDate() }}</span>
                     </div>
-                    <div class="pr-doc-meta-row">
-                        <span class="pr-doc-meta-label">Rev. No</span>
-                        <span style="color:#94a3b8;">:</span>
-                        <span class="pr-doc-meta-value">2</span>
-                    </div>
-                    <div class="pr-doc-meta-row">
-                        <span class="pr-doc-meta-label">Ref. Date</span>
-                        <span style="color:#94a3b8;">:</span>
-                        <span class="pr-doc-meta-value">2024-11-08</span>
-                    </div>
+
+
                 </div>
             </div>
 
@@ -445,13 +462,9 @@
                     <div class="pr-info-row">
                         <span class="pr-info-label">Nama Kapal</span>
                         <span class="pr-info-colon">:</span>
-                        <span class="pr-info-value">KN. GULAR</span>
+                        <span class="pr-info-value">{{ $vesselName }}</span>
                     </div>
-                    <div class="pr-info-row">
-                        <span class="pr-info-label">No. Urut</span>
-                        <span class="pr-info-colon">:</span>
-                        <span class="pr-info-value">{{ $sequenceNo }}</span>
-                    </div>
+
                     <div class="pr-info-row">
                         <span class="pr-info-label">Kebutuhan</span>
                         <span class="pr-info-colon">:</span>
@@ -470,21 +483,35 @@
 
                 {{-- Kolom kanan --}}
                 <div class="pr-info-group">
-                    <div class="pr-info-row">
-                        <span class="pr-info-label">Bagian / Dept.</span>
+
+                    <div class="pr-info-row" 
+                         x-data="{ 
+                            clientTime: @entangle('clientDateTime'),
+                            update() {
+                                const now = new Date();
+                                const options = { day: '2-digit', month: 'long', year: 'numeric' };
+                                const offset = -now.getTimezoneOffset();
+                                let tzName = '';
+                                if (offset === 420) tzName = 'WIB';
+                                else if (offset === 480) tzName = 'WITA';
+                                else if (offset === 540) tzName = 'WIT';
+                                else {
+                                    const sign = offset >= 0 ? '+' : '-';
+                                    const hours = Math.floor(Math.abs(offset) / 60);
+                                    const minutes = Math.abs(offset) % 60;
+                                    tzName = `GMT${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                                }
+                                this.clientTime = now.toLocaleString('id-ID', options) + ', ' + 
+                                                  now.getHours().toString().padStart(2, '0') + ':' + 
+                                                  now.getMinutes().toString().padStart(2, '0') + ' ' + tzName;
+                            }
+                         }" 
+                         x-init="update(); setInterval(() => update(), 30000)">
+                        <span class="pr-info-label">Waktu Pengajuan</span>
                         <span class="pr-info-colon">:</span>
-                        <span class="pr-info-value">{{ $departmentName }}</span>
+                        <span class="pr-info-value" x-text="clientTime || '{{ $clientDateTime }}'"></span>
                     </div>
-                    <div class="pr-info-row">
-                        <span class="pr-info-label">Tanggal Permintaan</span>
-                        <span class="pr-info-colon">:</span>
-                        <span class="pr-info-value">{{ app(\App\Service\DateService::class)->getCurrentDate() }}</span>
-                    </div>
-                    <div class="pr-info-row">
-                        <span class="pr-info-label">Pemohon</span>
-                        <span class="pr-info-colon">:</span>
-                        <span class="pr-info-value">{{ auth()->user()?->name ?? '-' }}</span>
-                    </div>
+
                 </div>
             </div>
 
@@ -501,19 +528,23 @@
                                 <th class="col-size">Ukuran / Spesifikasi</th>
                                 <th class="col-qty">Jumlah</th>
                                 <th class="col-unit">Satuan</th>
+                                <th class="col-rem">Sisa</th>
                                 <th class="col-act">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($items as $index => $item)
-                                <tr wire:key="pr-item-{{ $index }}">
+                                @php
+                                    $hasRowError = $errors->has("items.{$index}.*");
+                                @endphp
+                                <tr wire:key="pr-item-{{ $index }}" @class(['pr-row-invalid' => $hasRowError])>
                                     {{-- No --}}
                                     <td class="col-no">{{ $index + 1 }}</td>
 
                                     {{-- Kategori --}}
                                     <td class="col-cat">
                                         <select wire:model="items.{{ $index }}.item_category_id"
-                                                class="pr-field pr-field-select">
+                                                @class(['pr-field', 'pr-field-select', 'pr-field-invalid' => $errors->has("items.{$index}.item_category_id")])>
                                             <option value="">— Pilih —</option>
                                             @foreach($itemCategories as $id => $name)
                                                 <option value="{{ $id }}">{{ $name }}</option>
@@ -529,7 +560,7 @@
                                         <input type="text"
                                                wire:model="items.{{ $index }}.type"
                                                placeholder="Nama barang..."
-                                               class="pr-field">
+                                               @class(['pr-field', 'pr-field-invalid' => $errors->has("items.{$index}.type")])>
                                         @error("items.{$index}.type")
                                             <span class="pr-field-error">{{ $message }}</span>
                                         @enderror
@@ -540,7 +571,7 @@
                                         <input type="text"
                                                wire:model="items.{{ $index }}.size"
                                                placeholder="mis. 10mm, 1/2 inch"
-                                               class="pr-field">
+                                               @class(['pr-field', 'pr-field-invalid' => $errors->has("items.{$index}.size")])>
                                         @error("items.{$index}.size")
                                             <span class="pr-field-error">{{ $message }}</span>
                                         @enderror
@@ -552,7 +583,7 @@
                                                wire:model="items.{{ $index }}.quantity"
                                                placeholder="0"
                                                min="1"
-                                               class="pr-field"
+                                               @class(['pr-field', 'pr-field-invalid' => $errors->has("items.{$index}.quantity")])
                                                style="text-align:right;">
                                         @error("items.{$index}.quantity")
                                             <span class="pr-field-error">{{ $message }}</span>
@@ -564,8 +595,21 @@
                                         <input type="text"
                                                wire:model="items.{{ $index }}.unit"
                                                placeholder="Pcs, Ltr, Box..."
-                                               class="pr-field">
+                                               @class(['pr-field', 'pr-field-invalid' => $errors->has("items.{$index}.unit")])>
                                         @error("items.{$index}.unit")
+                                            <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
+                                    {{-- Sisa --}}
+                                    <td class="col-rem">
+                                        <input type="number"
+                                               wire:model="items.{{ $index }}.remaining"
+                                               placeholder="0"
+                                               step="0.01"
+                                               @class(['pr-field', 'pr-field-invalid' => $errors->has("items.{$index}.remaining")])
+                                               style="text-align:right;">
+                                        @error("items.{$index}.remaining")
                                             <span class="pr-field-error">{{ $message }}</span>
                                         @enderror
                                     </td>
@@ -577,16 +621,17 @@
                                                 class="pr-btn-delete"
                                                 title="Hapus baris">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                 stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;">
+                                                 stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                      d="M6 18L18 6M6 6l12 12"/>
+                                                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
                                             </svg>
+                                            <span>Hapus</span>
                                         </button>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="pr-empty">
+                                    <td colspan="8" class="pr-empty">
                                         Belum ada item. Klik <strong>+ Tambah Item</strong> untuk mulai menambahkan.
                                     </td>
                                 </tr>
@@ -625,6 +670,37 @@
 
         </div>{{-- end pr-card --}}
     </form>
-</div>
+    <script>
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            // Cari elemen error (pesan error atau border merah)
+            const firstError = document.querySelector('.pr-field-invalid, .pr-field-error');
+            
+            if (firstError && !firstError.dataset.scrolled) {
+                setTimeout(() => {
+                    // Scroll ke elemen error tersebut
+                    firstError.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+
+                    // Coba fokuskan ke input terkait
+                    const input = firstError.tagName === 'INPUT' || firstError.tagName === 'SELECT' 
+                        ? firstError 
+                        : firstError.closest('td')?.querySelector('input, select');
+                    
+                    if (input) input.focus();
+                    
+                    firstError.dataset.scrolled = "true";
+                }, 150);
+            }
+        });
+
+        Livewire.hook('request', () => {
+            document.querySelectorAll('[data-scrolled]').forEach(el => delete el.dataset.scrolled);
+        });
+    });
+</script>
 
 </x-filament-panels::page>
