@@ -16,14 +16,14 @@ class PrStatusConstant
     public static function getStatuses(): array
     {
         return [
-            self::DRAFT => 'Draft',
-            self::SUBMITTED => 'Submitted',
-            self::WAITING_APPROVAL => 'Waiting Approval',
-            self::APPROVED => 'Approved',
-            self::REJECTED => 'Rejected',
-            self::CONVERTED_TO_PO => 'Converted to PO',
-            self::CLOSED => 'Closed',
-            self::PENDING => 'Pending',
+            self::DRAFT => 'Draf',
+            self::SUBMITTED => 'Diajukan',
+            self::WAITING_APPROVAL => 'Menunggu Persetujuan',
+            self::APPROVED => 'Disetujui',
+            self::REJECTED => 'Ditolak',
+            self::CONVERTED_TO_PO => 'Dikonversi ke PO',
+            self::CLOSED => 'Ditutup',
+            self::PENDING => 'Menunggu',
         ];
     }
 }
