@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\ApprovalStep;
 use App\Models\ApprovalWorkflow;
+use App\Models\Role;
+use App\Constants\RoleConstant;
 use Illuminate\Database\Seeder;
 
 class ApprovalWorkflowSeeder extends Seeder
@@ -22,35 +24,41 @@ class ApprovalWorkflowSeeder extends Seeder
             ]
         );
 
+        $requesterRole = Role::where('name', RoleConstant::VESSEL_CREW_REQUESTER)->first();
+        $technicalRole = Role::where('name', RoleConstant::TECHNICAL_APPROVER)->first();
+        $procurementRole = Role::where('name', RoleConstant::PROCUREMENT_OFFICER)->first();
+
         $steps = [
             [
                 'step_order' => 1,
-                'role_id' => 11,
+                'role_id' => $requesterRole?->id,
                 'name' => 'request',
                 'status' => 'active',
             ],
             [
                 'step_order' => 2,
-                'role_id' => 10,
+                'role_id' => $technicalRole?->id,
                 'name' => 'technical approver',
                 'status' => 'active',
             ],
             [
                 'step_order' => 3,
-                'role_id' => 9,
+                'role_id' => $procurementRole?->id,
                 'name' => 'purchasing process po',
                 'status' => 'active',
             ],
         ];
 
         foreach ($steps as $stepData) {
-            ApprovalStep::updateOrCreate(
-                [
-                    'approval_workflow_id' => $workflow->id,
-                    'step_order' => $stepData['step_order'],
-                ],
-                $stepData
-            );
+            if ($stepData['role_id']) {
+                ApprovalStep::updateOrCreate(
+                    [
+                        'approval_workflow_id' => $workflow->id,
+                        'step_order' => $stepData['step_order'],
+                    ],
+                    $stepData
+                );
+            }
         }
     }
 }
