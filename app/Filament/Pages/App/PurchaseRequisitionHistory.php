@@ -21,7 +21,7 @@ class PurchaseRequisitionHistory extends Page
     public $endDate = null;
 
     protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
-    protected static ?string $title = 'Daftar Pengajuan Permintaan Barang';
+    protected static ?string $title = 'Daftar Pengajuan Barang';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
     protected string $view = 'filament.app.pages.purchase-requisition-history';
 
