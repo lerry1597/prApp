@@ -13,6 +13,8 @@ use App\Models\ApprovalWorkflow;
 use App\Models\ApprovalStep;
 use App\Models\PrLog;
 use App\Models\PrHistory;
+use App\Models\ItemLog;
+use App\Models\ItemHistory;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use App\Service\DateService;
@@ -145,6 +147,23 @@ class PurchaseRequisitionForm extends Page
     }
 
     /**
+     * Real-time Validation
+     * Dijalankan setiap kali field di dalam array $items berubah.
+     */
+    public function updatedItems($value, $name): void
+    {
+        // $name akan berisi format seperti 'items.0.type'
+        $this->validateOnly($name, [
+            'items.*.item_category_id' => 'required',
+            'items.*.type' => 'required|string',
+            'items.*.size' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit' => 'required|string',
+            'items.*.remaining' => 'required|numeric',
+        ]);
+    }
+
+    /**
      * Langkah 2: Konfirmasi dari modal preview, simpan ke database.
      */
     public function confirmSubmit(): void
@@ -196,6 +215,7 @@ class PurchaseRequisitionForm extends Page
             DB::transaction(function () use ($user, $details, $workflow, $currentStep, $nextStep, $prNumber, $batchId) {
                 // A. Simpan PrHeader
                 $header = PrHeader::create([
+                    'batch_id' => $batchId,
                     'pr_number' => $prNumber,
                     'pr_status' => PrStatusConstant::WAITING_APPROVAL,
                     'requester_id' => $user?->id,
@@ -287,9 +307,9 @@ class PurchaseRequisitionForm extends Page
                     'detail_description' => $detail->description,
                 ]);
 
-                // E. Simpan Items
+                // E. Simpan Items & Snapshots
                 foreach ($this->items as $itemData) {
-                    Item::create([
+                    $item = Item::create([
                         'pr_detail_id' => $detail->id,
                         'vessel_id' => $user->vessel_id,
                         'item_category_id' => $itemData['item_category_id'],
@@ -299,6 +319,36 @@ class PurchaseRequisitionForm extends Page
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
                         'description' => $itemData['type'],
+                    ]);
+
+                    // Snapshot ke items_log
+                    ItemLog::create([
+                        'batch_id' => $batchId,
+                        'pr_detail_id' => $detail->id,
+                        'vessel_id' => $user->vessel_id,
+                        'item_category_id' => $itemData['item_category_id'],
+                        'no' => $item->no,
+                        'type' => $itemData['type'],
+                        'size' => $itemData['size'],
+                        'description' => $itemData['type'],
+                        'quantity' => $itemData['quantity'],
+                        'unit' => $itemData['unit'],
+                        'remaining' => $itemData['remaining'],
+                    ]);
+
+                    // Snapshot ke items_history
+                    ItemHistory::create([
+                        'batch_id' => $batchId,
+                        'pr_detail_id' => $detail->id,
+                        'vessel_id' => $user->vessel_id,
+                        'item_category_id' => $itemData['item_category_id'],
+                        'no' => $item->no,
+                        'type' => $itemData['type'],
+                        'size' => $itemData['size'],
+                        'description' => $itemData['type'],
+                        'quantity' => $itemData['quantity'],
+                        'unit' => $itemData['unit'],
+                        'remaining' => $itemData['remaining'],
                     ]);
                 }
             });

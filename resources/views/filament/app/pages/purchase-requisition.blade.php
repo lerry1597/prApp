@@ -36,13 +36,12 @@
             width: 12px;
             flex-shrink: 0;
         }
-        .status-pending, .status-waiting_approval { background: #f59e0b; }
-        .status-approved { background: #10b981; }
-        .status-rejected { background: #ef4444; }
+        .status-pending, .status-waiting_approval, .status-approved { background: #f59e0b; } /* Warning */
+        .status-rejected { background: #ef4444; } /* Danger */
         .status-draft { background: #64748b; }
         .status-submitted { background: #3b82f6; }
-        .status-converted_to_po { background: #6366f1; }
-        .status-closed { background: #1f2937; }
+        .status-converted_to_po { background: #10b981; } /* Success */
+        .status-closed { background: #94a3b8; } /* Light grey stripe for closed */
 
         .pr-card-content {
             flex: 1;
@@ -117,20 +116,18 @@
             min-width: 140px;
         }
 
-        .badge-pending, .badge-waiting_approval { background: #fffbeb; color: #92400e; border: 2px solid #fde68a; }
-        .badge-approved { background: #ecfdf5; color: #065f46; border: 2px solid #a7f3d0; }
+        .badge-pending, .badge-waiting_approval, .badge-approved { background: #fffbeb; color: #92400e; border: 2px solid #fde68a; }
         .badge-rejected { background: #fef2f2; color: #991b1b; border: 2px solid #fecaca; }
         .badge-draft { background: #f8fafc; color: #334155; border: 2px solid #e2e8f0; }
         .badge-submitted { background: #eff6ff; color: #1e40af; border: 2px solid #bfdbfe; }
-        .badge-converted_to_po { background: #eef2ff; color: #3730a3; border: 2px solid #c7d2fe; }
-        .badge-closed { background: #f3f4f6; color: #111827; border: 2px solid #d1d5db; }
+        .badge-converted_to_po { background: #ecfdf5; color: #065f46; border: 2px solid #a7f3d0; }
+        .badge-closed { background: #f9fafb; color: #4b5563; border: 2px solid #e5e7eb; }
 
-        .dark .badge-pending, .dark .badge-waiting_approval { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
-        .dark .badge-approved { background: rgba(16, 185, 129, 0.1); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+        .dark .badge-pending, .dark .badge-waiting_approval, .dark .badge-approved { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
         .dark .badge-rejected { background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
         .dark .badge-submitted { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
-        .dark .badge-converted_to_po { background: rgba(99, 102, 241, 0.1); color: #818cf8; border-color: rgba(99, 102, 241, 0.3); }
-        .dark .badge-closed { background: rgba(31, 41, 55, 0.1); color: #9ca3af; border-color: rgba(31, 41, 55, 0.3); }
+        .dark .badge-converted_to_po { background: rgba(16, 185, 129, 0.1); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+        .dark .badge-closed { background: rgba(107, 114, 128, 0.1); color: #d1d5db; border-color: rgba(107, 114, 128, 0.3); }
 
         /* Action Button - Updated with Text */
         .pr-action-btn {
@@ -452,6 +449,110 @@
         .dark .flatpickr-weekday {
             color: #94a3b8 !important;
         }
+
+        /* ===== DETAIL MODAL STYLES (Reused from Form Preview) ===== */
+        .pr-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 9000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+            backdrop-filter: blur(2px);
+            animation: fadeInOverlay 0.2s ease;
+        }
+        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+        .pr-modal-container {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 960px;
+            display: flex;
+            flex-direction: column;
+            max-height: 88vh;
+            animation: slideUpModal 0.25s ease;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+        .dark .pr-modal-container { background: #1e293b; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
+        @keyframes slideUpModal { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .pr-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.75rem;
+            border-bottom: 2px solid #e2e8f0;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            border-radius: 1.25rem 1.25rem 0 0;
+            flex-shrink: 0;
+        }
+        .pr-modal-header-title { display: flex; align-items: center; gap: 0.75rem; }
+        .pr-modal-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 0.625rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pr-modal-title { font-size: 1.125rem; font-weight: 700; color: #ffffff; letter-spacing: 0.02em; }
+        .pr-modal-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.75); margin-top: 0.1rem; }
+        .pr-modal-close {
+            width: 2.25rem; height: 2.25rem;
+            background: rgba(255,255,255,0.15);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 0.5rem;
+            color: #ffffff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .pr-modal-close:hover { background: rgba(255,255,255,0.3); }
+
+        .pr-modal-body { overflow-y: auto; flex: 1; padding: 1.5rem 1.75rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+        .pr-preview-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+        @media (max-width: 640px) { .pr-preview-info-grid { grid-template-columns: 1fr; } }
+        .pr-preview-info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem 1.25rem; }
+        .dark .pr-preview-info-card { background: #0f172a; border-color: #334155; }
+        .pr-preview-info-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0; border-bottom: 1px solid #f1f5f9; }
+        .dark .pr-preview-info-item { border-bottom-color: #1e293b; }
+        .pr-preview-info-item:last-child { border-bottom: none; }
+        .pr-preview-info-label { font-size: 0.75rem; font-weight: 600; color: #64748b; min-width: 110px; }
+        .dark .pr-preview-info-label { color: #94a3b8; }
+        .pr-preview-info-value { font-size: 0.875rem; font-weight: 700; color: #0f172a; }
+        .dark .pr-preview-info-value { color: #f1f5f9; }
+        .pr-preview-badge { padding: 0.2rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: #dbeafe; color: #1d4ed8; }
+        .dark .pr-preview-badge { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+        .pr-preview-section-title { font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: block; }
+        .dark .pr-preview-section-title { color: #94a3b8; }
+
+        .pr-preview-table-wrap { border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; }
+        .dark .pr-preview-table-wrap { border-color: #334155; }
+        .pr-preview-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        .pr-preview-table thead th { background: #f1f5f9; color: #374151; font-weight: 700; font-size: 0.75rem; padding: 0.75rem 1rem; text-align: left; border-bottom: 2px solid #cbd5e1; text-transform: uppercase; }
+        .dark .pr-preview-table thead th { background: #0f172a; color: #94a3b8; border-bottom-color: #475569; }
+        .pr-preview-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; color: #0f172a; }
+        .dark .pr-preview-table td { border-bottom-color: #1e293b; color: #e2e8f0; }
+        .pr-preview-table tr:last-child td { border-bottom: none; }
+
+        .pr-cat-divider td { background: linear-gradient(90deg, #eff6ff, #f8fafc) !important; border-top: 2px solid #bfdbfe !important; padding: 0.5rem 1rem !important; }
+        .dark .pr-cat-divider td { background: linear-gradient(90deg, rgba(30,64,175,0.12), rgba(15,23,42,0.5)) !important; border-top-color: rgba(59,130,246,0.3) !important; }
+        .pr-cat-divider-label { font-size: 0.75rem; font-weight: 800; color: #1d4ed8; text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem; }
+
+        .pr-modal-footer { display: flex; align-items: center; justify-content: flex-end; padding: 1.125rem 1.75rem; border-top: 2px solid #e2e8f0; background: #f8fafc; border-radius: 0 0 1.25rem 1.25rem; }
+        .dark .pr-modal-footer { border-top-color: #334155; background: #0f172a; }
+
+        /* Color classes for table cells */
+        .pr-col-category { color: #1d4ed8; font-weight: 600; }
+        .dark .pr-col-category { color: #93c5fd; } /* Brighter blue for dark mode */
     </style>
 
     {{-- Flatpickr Assets - Moved to @assets for SPA persistence --}}
@@ -576,7 +677,7 @@
                                 </div>
                             </div>
 
-                            <button class="pr-action-btn">
+                            <button class="pr-action-btn" wire:click="showDetail({{ $pr->id }})">
                                 <span>Selengkapnya</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1.5rem;height:1.5rem;">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -719,6 +820,112 @@
             </style>
         </x-filament::section>
     </div>
+
+    {{-- ===== DETAIL MODAL ===== --}}
+    @if($showDetailModal && $selectedPr)
+    <div class="pr-modal-overlay" wire:click.self="closeDetail">
+        <div class="pr-modal-container">
+            {{-- MODAL HEADER --}}
+            <div class="pr-modal-header">
+                <div class="pr-modal-header-title">
+                    <div class="pr-modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="white" style="width:1.25rem;height:1.25rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="pr-modal-title">Detail Pengajuan PR</div>
+                        <div class="pr-modal-subtitle">Nomor PR: {{ $selectedPr->pr_number }}</div>
+                    </div>
+                </div>
+                <button type="button" class="pr-modal-close" wire:click="closeDetail" title="Tutup">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1rem;height:1rem;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- MODAL BODY --}}
+            <div class="pr-modal-body">
+                {{-- INFO SUMMARY --}}
+                <div class="pr-preview-info-grid">
+                    <div class="pr-preview-info-card">
+                        <div class="pr-preview-info-item">
+                            <span class="pr-preview-info-label">No. Dokumen</span>
+                            <span class="pr-preview-info-value">{{ $selectedPr->detail->document_no }}</span>
+                        </div>
+                        <div class="pr-preview-info-item">
+                            <span class="pr-preview-info-label">Nama Kapal</span>
+                            <span class="pr-preview-info-value">{{ $selectedPr->detail->vessel->name ?? '-' }}</span>
+                        </div>
+                        <div class="pr-preview-info-item">
+                            <span class="pr-preview-info-label">Tanggal Pengajuan</span>
+                            <span class="pr-preview-info-value">{{ $selectedPr->created_at->format('d F Y') }}</span>
+                        </div>
+                    </div>
+                    <div class="pr-preview-info-card">
+                        <div class="pr-preview-info-item">
+                            <span class="pr-preview-info-label">Status</span>
+                            <span class="pr-status-badge badge-{{ strtolower($selectedPr->pr_status ?? 'pending') }}" style="padding: 0.2rem 1rem; font-size: 0.75rem; min-width: auto;">
+                                {{ \App\Constants\PrStatusConstant::getStatuses()[$selectedPr->pr_status] ?? $selectedPr->pr_status }}
+                            </span>
+                        </div>
+                        <div class="pr-preview-info-item">
+                            <span class="pr-preview-info-label">Kebutuhan</span>
+                            <span class="pr-preview-info-value">{{ $selectedPr->detail->needs }}</span>
+                        </div>
+                        <div class="pr-preview-info-item">
+                            <span class="pr-preview-info-label">Total Item</span>
+                            <span class="pr-preview-info-value">{{ $selectedPr->detail->items->count() }} item</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ITEMS TABLE --}}
+                <div>
+                    <span class="pr-preview-section-title">Daftar Barang</span>
+                    <div class="pr-preview-table-wrap">
+                        <div class="pr-preview-table-scroll">
+                            <table class="pr-preview-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px; text-align: center;">#</th>
+                                        <th>Kategori Item</th>
+                                        <th>Jenis / Nama Barang</th>
+                                        <th>Ukuran / Spesifikasi</th>
+                                        <th style="text-align: right;">Jumlah</th>
+                                        <th>Satuan</th>
+                                        <th style="text-align: right;">Sisa</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($selectedPr->detail->items as $index => $item)
+                                        <tr>
+                                            <td style="text-align: center; color: #94a3b8; font-weight: 700;">{{ $index + 1 }}</td>
+                                            <td class="pr-col-category">{{ $item->itemCategory->name ?? '—' }}</td>
+                                            <td style="font-weight: 700;">{{ $item->type }}</td>
+                                            <td>{{ $item->size }}</td>
+                                            <td style="text-align: right; font-weight: 700;">{{ $item->quantity }}</td>
+                                            <td style="color: #64748b;">{{ $item->unit }}</td>
+                                            <td style="text-align: right; font-weight: 700;">{{ $item->remaining }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- MODAL FOOTER --}}
+            <div class="pr-modal-footer">
+                <x-filament::button color="gray" wire:click="closeDetail">
+                    Tutup
+                </x-filament::button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Script manual dihapus karena sudah ditangani oleh Alpine x-init di atas --}}
 </x-filament-panels::page>

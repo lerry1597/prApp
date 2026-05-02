@@ -630,7 +630,7 @@
 
                                     {{-- Kategori --}}
                                     <td class="col-cat">
-                                        <select wire:model="items.{{ $index }}.item_category_id"
+                                        <select wire:model.blur="items.{{ $index }}.item_category_id"
                                             @class(['pr-field', 'pr-field-select' , 'pr-field-invalid'=> $errors->has("items.{$index}.item_category_id")])>
                                             <option value="">— Pilih —</option>
                                             @foreach($itemCategories as $id => $name)
@@ -645,7 +645,7 @@
                                     {{-- Jenis --}}
                                     <td class="col-type">
                                         <input type="text"
-                                            wire:model="items.{{ $index }}.type"
+                                            wire:model.blur="items.{{ $index }}.type"
                                             placeholder="Nama barang..."
                                             @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.type")])>
                                         @error("items.{$index}.type")
@@ -656,7 +656,7 @@
                                     {{-- Ukuran --}}
                                     <td class="col-size">
                                         <input type="text"
-                                            wire:model="items.{{ $index }}.size"
+                                            wire:model.blur="items.{{ $index }}.size"
                                             placeholder="mis. 10mm, 1/2 inch"
                                             @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.size")])>
                                         @error("items.{$index}.size")
@@ -667,7 +667,7 @@
                                     {{-- Jumlah --}}
                                     <td class="col-qty">
                                         <input type="number"
-                                            wire:model="items.{{ $index }}.quantity"
+                                            wire:model.blur="items.{{ $index }}.quantity"
                                             placeholder="0"
                                             min="1"
                                             @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.quantity")])
@@ -680,7 +680,7 @@
                                     {{-- Satuan --}}
                                     <td class="col-unit">
                                         <input type="text"
-                                            wire:model="items.{{ $index }}.unit"
+                                            wire:model.blur="items.{{ $index }}.unit"
                                             placeholder="Pcs, Ltr, Box..."
                                             @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.unit")])>
                                         @error("items.{$index}.unit")
@@ -691,7 +691,7 @@
                                     {{-- Sisa --}}
                                     <td class="col-rem">
                                         <input type="number"
-                                            wire:model="items.{{ $index }}.remaining"
+                                            wire:model.blur="items.{{ $index }}.remaining"
                                             placeholder="0"
                                             step="0.01"
                                             @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.remaining")])

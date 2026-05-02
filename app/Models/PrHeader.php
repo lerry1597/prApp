@@ -13,6 +13,7 @@ class PrHeader extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'batch_id',
         'pr_number',
         'pr_status',
         'requester_id',

@@ -22,17 +22,18 @@ class DatabaseSeeder extends Seeder
             PositionSeeder::class,
             ItemCategorySeeder::class,
             ApprovalWorkflowSeeder::class,
+            AdminUserSeeder::class,
         ]);
 
         // User::factory(10)->create();
 
-        User::updateOrCreate(
-            ['username' => 'testuser'],
-            [
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-                'password' => 'password', // The model cast 'hashed' will handle this
-            ]
-        );
+        // User::updateOrCreate(
+        //     ['username' => 'testuser'],
+        //     [
+        //         'name' => 'Test User',
+        //         'email' => 'test@example.com',
+        //         'password' => 'password', // The model cast 'hashed' will handle this
+        //     ]
+        // );
     }
 }

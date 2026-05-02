@@ -19,6 +19,9 @@ class PurchaseRequisition extends Page
     public $search = '';
     public $startDate = null;
     public $endDate = null;
+    
+    public $showDetailModal = false;
+    public $selectedPr = null;
 
     protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
     protected static ?string $title = 'Daftar Pengajuan Barang';
@@ -72,5 +75,21 @@ class PurchaseRequisition extends Page
         return [
             'prList' => $prList,
         ];
+    }
+
+    public function showDetail($id)
+    {
+        $this->selectedPr = PrHeader::with(['detail', 'detail.vessel', 'detail.items', 'detail.items.itemCategory', 'currentRole'])
+            ->find($id);
+            
+        if ($this->selectedPr) {
+            $this->showDetailModal = true;
+        }
+    }
+
+    public function closeDetail()
+    {
+        $this->showDetailModal = false;
+        $this->selectedPr = null;
     }
 }
