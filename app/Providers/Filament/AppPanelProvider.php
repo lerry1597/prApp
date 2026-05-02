@@ -38,8 +38,8 @@ class AppPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages/App'), for: 'App\Filament\Pages\App')
             ->pages([
                 Dashboard::class,
+                \App\Filament\Pages\App\PurchaseRequisitionForm::class,
                 \App\Filament\Pages\App\PurchaseRequisition::class,
-                \App\Filament\Pages\App\PurchaseRequisitionHistory::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([

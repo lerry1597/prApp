@@ -1,1277 +1,724 @@
 <x-filament-panels::page>
     <style>
-        /* ===== DOCUMENT WRAPPER ===== */
-        .pr-document-wrapper {
-            max-width: 1100px;
+        .pr-history-container {
+            max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
         }
 
-        /* ===== DOCUMENT CARD ===== */
-        .pr-card {
+        /* ===== ELDERLY FRIENDLY TYPOGRAPHY ===== */
+        .pr-list-card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1rem;
-            box-shadow: 0 4px 24px 0 rgba(15, 23, 42, 0.07);
-            overflow: hidden;
-        }
-
-        .dark .pr-card {
-            background: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        /* ===== DOCUMENT HEADER ===== */
-        .pr-doc-header {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: stretch;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .dark .pr-doc-header {
-            border-bottom-color: #334155;
-        }
-
-        .pr-doc-logo-cell {
-            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #94a3b8; /* Darker, more proper separator */
+            transition: background-color 0.2s;
             display: flex;
+            align-items: stretch;
+        }
+
+        .pr-list-card:last-child {
+            border-bottom: none;
+        }
+
+        .dark .pr-list-card {
+            background: #1e293b;
+            border-color: #475569;
+        }
+
+        .pr-list-card:hover {
+            background: #f8fafc;
+        }
+        .dark .pr-list-card:hover {
+            background: #334155;
+        }
+
+        /* Status Stripe */
+        .pr-status-stripe {
+            width: 12px;
+            flex-shrink: 0;
+        }
+        .status-pending, .status-waiting_approval { background: #f59e0b; }
+        .status-approved { background: #10b981; }
+        .status-rejected { background: #ef4444; }
+        .status-draft { background: #64748b; }
+        .status-submitted { background: #3b82f6; }
+        .status-converted_to_po { background: #6366f1; }
+        .status-closed { background: #1f2937; }
+
+        .pr-card-content {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
             align-items: center;
-            justify-content: center;
-            border-right: 1px solid #e2e8f0;
-            min-width: 120px;
+            gap: 2rem;
         }
 
-        .dark .pr-doc-logo-cell {
-            border-right-color: #334155;
+        /* Main Info Section */
+        .pr-main-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
         }
 
-        .pr-doc-logo-text {
-            font-size: 1rem;
+        .pr-number-label {
+            font-size: 1.1rem;
             font-weight: 800;
-            color: #0f172a;
+            color: #1e40af;
+            text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+        .dark .pr-number-label { color: #60a5fa; }
 
-        .dark .pr-doc-logo-text {
-            color: #f1f5f9;
+        .pr-title-label {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+        .dark .pr-title-label { color: #f1f5f9; }
+
+        .pr-document-no {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #64748b;
+            letter-spacing: 0.02em;
+        }
+        .dark .pr-document-no { color: #94a3b8; }
+
+        .pr-meta-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+            color: #64748b;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .dark .pr-meta-info { color: #94a3b8; }
+
+        .pr-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .pr-doc-title-cell {
-            padding: 1.25rem 1.5rem;
+        /* Status Badge - Adjusted for visibility but smaller */
+        .pr-status-badge {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .badge-pending, .badge-waiting_approval { background: #fffbeb; color: #92400e; border: 2px solid #fde68a; }
+        .badge-approved { background: #ecfdf5; color: #065f46; border: 2px solid #a7f3d0; }
+        .badge-rejected { background: #fef2f2; color: #991b1b; border: 2px solid #fecaca; }
+        .badge-draft { background: #f8fafc; color: #334155; border: 2px solid #e2e8f0; }
+        .badge-submitted { background: #eff6ff; color: #1e40af; border: 2px solid #bfdbfe; }
+        .badge-converted_to_po { background: #eef2ff; color: #3730a3; border: 2px solid #c7d2fe; }
+        .badge-closed { background: #f3f4f6; color: #111827; border: 2px solid #d1d5db; }
+
+        .dark .badge-pending, .dark .badge-waiting_approval { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+        .dark .badge-approved { background: rgba(16, 185, 129, 0.1); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+        .dark .badge-rejected { background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .dark .badge-submitted { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
+        .dark .badge-converted_to_po { background: rgba(99, 102, 241, 0.1); color: #818cf8; border-color: rgba(99, 102, 241, 0.3); }
+        .dark .badge-closed { background: rgba(31, 41, 55, 0.1); color: #9ca3af; border-color: rgba(31, 41, 55, 0.3); }
+
+        /* Action Button - Updated with Text */
+        .pr-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: 1rem;
+            background: #f1f5f9;
+            color: #1e40af;
+            font-size: 1.1rem;
+            font-weight: 800;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            white-space: nowrap;
+        }
+        .dark .pr-action-btn { background: #334155; color: #60a5fa; }
+
+        .pr-action-btn:hover {
+            background: #1e40af;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+        .dark .pr-action-btn:hover { background: #60a5fa; color: #0f172a; box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3); }
+
+        /* Empty State */
+        .pr-empty-state {
+            padding: 8rem 2rem;
+            text-align: center;
+            background: #ffffff;
+            border: none;
+            border-radius: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
+            width: 100%;
         }
+        .dark .pr-empty-state { background: #1e293b; }
 
-        .pr-doc-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #0f172a;
-            letter-spacing: 0.025em;
-            text-transform: uppercase;
-        }
-
-        .dark .pr-doc-title {
-            color: #f1f5f9;
-        }
-
-        .pr-doc-meta-cell {
-            border-left: 1px solid #e2e8f0;
-            min-width: 200px;
-        }
-
-        .dark .pr-doc-meta-cell {
-            border-left-color: #334155;
-        }
-
-        .pr-doc-meta-row {
-            display: flex;
-            align-items: flex-start;
-            padding: 0.45rem 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 0.75rem;
-            gap: 0.5rem;
-        }
-
-        .pr-doc-meta-row:last-child {
-            border-bottom: none;
-        }
-
-        .dark .pr-doc-meta-row {
-            border-bottom-color: #334155;
-        }
-
-        .pr-doc-meta-label {
-            color: #64748b;
-            font-weight: 500;
-            white-space: nowrap;
-            min-width: 80px;
-        }
-
-        .dark .pr-doc-meta-label {
+        .pr-empty-icon {
+            width: 5rem;
+            height: 5rem;
+            margin: 0 auto 1.5rem;
             color: #94a3b8;
         }
 
-        .pr-doc-meta-value {
-            color: #0f172a;
-            font-weight: 600;
-            word-break: break-word;
-            line-height: 1.25;
-            max-width: 180px;
-            display: block;
-        }
-
-        .dark .pr-doc-meta-value {
-            color: #f1f5f9;
-        }
-
-        /* ===== INFO SECTION ===== */
-        .pr-info-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .dark .pr-info-section {
-            border-bottom-color: #334155;
-        }
-
-        .pr-info-group {
-            padding: 1rem 1.5rem;
-        }
-
-        .pr-info-group:first-child {
-            border-right: 1px solid #e2e8f0;
-        }
-
-        .dark .pr-info-group:first-child {
-            border-right-color: #334155;
-        }
-
-        .pr-info-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.625rem;
-            gap: 0.75rem;
-        }
-
-        .pr-info-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .pr-info-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #475569;
-            min-width: 130px;
-            white-space: nowrap;
-        }
-
-        .dark .pr-info-label {
-            color: #94a3b8;
-        }
-
-        .pr-info-colon {
-            color: #94a3b8;
-            font-weight: 600;
-        }
-
-        .pr-info-value {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .dark .pr-info-value {
-            color: #f1f5f9;
-        }
-
-        /* ===== NEEDS RADIO ===== */
-        .pr-needs-group {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .pr-radio-label {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #334155;
-            cursor: pointer;
-        }
-
-        .dark .pr-radio-label {
-            color: #cbd5e1;
-        }
-
-        .pr-radio-input {
-            width: 1rem;
-            height: 1rem;
-            accent-color: #3b82f6;
-            cursor: pointer;
-        }
-
-        /* ===== TABLE SECTION ===== */
-        .pr-table-section {
-            padding: 0;
-        }
-
-        .pr-table-label {
-            padding: 0.875rem 1.5rem 0.5rem;
-            font-size: 0.8rem;
+        .pr-empty-text {
+            font-size: 1.5rem;
             font-weight: 700;
             color: #475569;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            border-bottom: 1px solid #e2e8f0;
-            background: #f8fafc;
+        }
+        .dark .pr-empty-text { color: #94a3b8; }
+
+        @media (max-width: 768px) {
+            .pr-card-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            .pr-main-info { align-items: center; }
+            .pr-meta-info { justify-content: center; flex-wrap: wrap; }
+            .pr-action-btn { width: 100%; height: auto; padding: 1rem; }
         }
 
-        .dark .pr-table-label {
-            color: #94a3b8;
-            border-bottom-color: #334155;
-            background: #0f172a;
-        }
-
-        .pr-table-scroll {
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 294px;
-            /* ≈ 6 baris */
-        }
-
-        .pr-table {
+        /* Search Section */
+        .pr-search-container {
+            display: flex;
+            justify-content: flex-end;
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8125rem;
         }
 
-        .pr-table thead th {
-            background: #f1f5f9;
-            color: #374151;
-            font-weight: 700;
-            font-size: 0.75rem;
-            padding: 0.75rem 0.875rem;
-            text-align: left;
-            border-bottom: 2px solid #cbd5e1;
-            white-space: nowrap;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
-
-        .dark .pr-table thead th {
-            background: #1e293b;
-            color: #94a3b8;
-            border-bottom-color: #475569;
-        }
-
-        .pr-table tbody tr {
-            border-bottom: 1px solid #e2e8f0;
-            transition: background 0.15s;
-        }
-
-        .pr-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .dark .pr-table tbody tr {
-            border-bottom-color: #334155;
-        }
-
-        .pr-table tbody tr:hover {
-            background: #f8fafc;
-        }
-
-        .dark .pr-table tbody tr:hover {
-            background: #0f172a;
-        }
-
-        .pr-table td {
-            padding: 0.75rem 0.875rem;
-            vertical-align: top;
-        }
-
-        .pr-table .col-no {
-            width: 4%;
-            text-align: center;
-            color: #94a3b8;
-            font-weight: 700;
-        }
-
-        .pr-table .col-cat {
-            width: 12%;
-        }
-
-        .pr-table .col-type {
-            width: 38%;
-        }
-
-        .pr-table .col-size {
-            width: 15%;
-        }
-
-        .pr-table .col-qty {
-            width: 6%;
-        }
-
-        .pr-table .col-unit {
-            width: 7%;
-        }
-
-        .pr-table .col-rem {
-            width: 8%;
-        }
-
-        .pr-table .col-act {
-            width: 10%;
-            text-align: center;
-        }
-
-        /* ===== FORM INPUTS IN TABLE ===== */
-        .pr-field {
+        .pr-search-input-wrapper {
+            position: relative;
             width: 100%;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.375rem;
-            padding: 0.4rem 0.6rem;
-            font-size: 0.8125rem;
-            color: #0f172a;
+            max-width: 450px;
+        }
+
+        .pr-search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            border-radius: 1.25rem;
+            border: 3px solid #cbd5e1;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e293b;
             background: #ffffff;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            line-height: 1.5;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .pr-field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-
-        .dark .pr-field {
-            background: #0f172a;
+        .dark .pr-search-input {
+            background: #1e293b;
             border-color: #475569;
             color: #f1f5f9;
         }
 
-        .dark .pr-field:focus {
+        .pr-search-input:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+        }
+
+        .dark .pr-search-input:focus {
             border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
         }
 
-        .pr-field-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.4rem center;
-            background-size: 1.25em;
-            padding-right: 2rem !important;
-            cursor: pointer;
-        }
-
-        .pr-field-error {
-            font-size: 0.7rem;
-            color: #ef4444;
-            margin-top: 0.2rem;
-            display: block;
-            font-weight: 600;
-        }
-
-        .pr-field-invalid {
-            border: 2px solid #dc2626 !important;
-            /* Reverted background-color as requested */
-        }
-
-        .dark .pr-field-invalid {
-            border-color: #f87171 !important;
-        }
-
-        .pr-row-invalid {
-            border-left: 4px solid #dc2626 !important;
-        }
-
-        .dark .pr-row-invalid {
-            background-color: rgba(239, 68, 68, 0.05) !important;
-        }
-
-        /* ===== CUSTOM NOTIFICATION STYLE ===== */
-
-        /* ===== DELETE BUTTON ===== */
-        .pr-btn-delete {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.35rem 0.75rem;
-            gap: 0.4rem;
-            border-radius: 0.375rem;
-            border: 1px solid #fca5a5;
-            background: #fff1f2;
-            color: #ef4444;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .pr-btn-delete:hover {
-            background: #fee2e2;
-            border-color: #ef4444;
-        }
-
-        .dark .pr-btn-delete {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #f87171;
-        }
-
-        .dark .pr-btn-delete:hover {
-            background: rgba(239, 68, 68, 0.2);
-        }
-
-        /* ===== FOOTER ACTIONS ===== */
-        .pr-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e2e8f0;
-            background: #f8fafc;
-            border-radius: 0 0 1rem 1rem;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        .dark .pr-footer {
-            border-top-color: #334155;
-            background: #0f172a;
-        }
-
-        .pr-item-count {
-            font-size: 0.75rem;
+        .pr-search-icon {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
             color: #64748b;
-            font-weight: 500;
+            width: 1.75rem;
+            height: 1.75rem;
         }
+        .dark .pr-search-icon { color: #94a3b8; }
 
-        .dark .pr-item-count {
-            color: #94a3b8;
-        }
-
-        .pr-footer-actions {
+        /* Internal Header Styles */
+        /* Unified Toolbar Styles */
+        .pr-toolbar {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        /* ===== EMPTY STATE ===== */
-        .pr-empty {
-            text-align: center;
-            padding: 2.5rem 1rem;
-            color: #94a3b8;
-            font-size: 0.875rem;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .pr-doc-header {
-                grid-template-columns: 1fr;
-            }
-
-            .pr-doc-logo-cell {
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0;
-            }
-
-            .pr-doc-meta-cell {
-                border-left: none;
-                border-top: 1px solid #e2e8f0;
-                min-width: unset;
-            }
-
-            .pr-info-section {
-                grid-template-columns: 1fr;
-            }
-
-            .pr-info-group:first-child {
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0;
-            }
-        }
-    </style>
-
-    <div class="pr-document-wrapper">
-        <form wire:submit.prevent="previewSubmit">
-            <div class="pr-card">
-
-                {{-- ===== DOCUMENT HEADER ===== --}}
-                <div class="pr-doc-header">
-                    {{-- Logo --}}
-                    <div class="pr-doc-logo-cell">
-                        <span class="pr-doc-logo-text">PATIN</span>
-                    </div>
-
-                    {{-- Judul --}}
-                    <div class="pr-doc-title-cell">
-                        <span class="pr-doc-title">Formulir Permintaan Barang</span>
-                        <span style="font-size:0.7rem;color:#94a3b8;margin-top:0.2rem;font-weight:500;">Purchase Requisition Form</span>
-                    </div>
-
-                    {{-- Meta dokumen --}}
-                    <div class="pr-doc-meta-cell">
-                        <div class="pr-doc-meta-row">
-                            <span class="pr-doc-meta-label">No. Dokumen</span>
-                            <span style="color:#94a3b8;">:</span>
-                            <span class="pr-doc-meta-value">{{ $documentNo }}</span>
-                        </div>
-                        <div class="pr-doc-meta-row">
-                            <span class="pr-doc-meta-label">Tanggal Terbit</span>
-                            <span style="color:#94a3b8;">:</span>
-                            <span class="pr-doc-meta-value">{{ app(\App\Service\DateService::class)->getIssueDate() }}</span>
-                        </div>
-
-
-                    </div>
-                </div>
-
-                {{-- ===== INFO SECTION ===== --}}
-                <div class="pr-info-section">
-                    {{-- Kolom kiri --}}
-                    <div class="pr-info-group">
-                        <div class="pr-info-row">
-                            <span class="pr-info-label">Nama Kapal</span>
-                            <span class="pr-info-colon">:</span>
-                            <span class="pr-info-value">{{ $vesselName }}</span>
-                        </div>
-
-                        <div class="pr-info-row">
-                            <span class="pr-info-label">Kebutuhan</span>
-                            <span class="pr-info-colon">:</span>
-                            <div class="pr-needs-group">
-                                <label class="pr-radio-label">
-                                    <input type="radio" class="pr-radio-input" wire:model="needs" value="Mesin">
-                                    Mesin
-                                </label>
-                                <label class="pr-radio-label">
-                                    <input type="radio" class="pr-radio-input" wire:model="needs" value="Dek">
-                                    Dek
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Kolom kanan --}}
-                    <div class="pr-info-group">
-
-                        <div class="pr-info-row"
-                            x-data="{ 
-                            clientTime: @entangle('clientDateTime'),
-                            update() {
-                                const now = new Date();
-                                const options = { day: '2-digit', month: 'long', year: 'numeric' };
-                                const offset = -now.getTimezoneOffset();
-                                let tzName = '';
-                                if (offset === 420) tzName = 'WIB';
-                                else if (offset === 480) tzName = 'WITA';
-                                else if (offset === 540) tzName = 'WIT';
-                                else {
-                                    const sign = offset >= 0 ? '+' : '-';
-                                    const hours = Math.floor(Math.abs(offset) / 60);
-                                    const minutes = Math.abs(offset) % 60;
-                                    tzName = `GMT${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                                }
-                                this.clientTime = now.toLocaleString('id-ID', options) + ', ' + 
-                                                  now.getHours().toString().padStart(2, '0') + ':' + 
-                                                  now.getMinutes().toString().padStart(2, '0') + ' ' + tzName;
-                            }
-                         }"
-                            x-init="update(); setInterval(() => update(), 30000)">
-                            <span class="pr-info-label">Waktu Pengajuan</span>
-                            <span class="pr-info-colon">:</span>
-                            <span class="pr-info-value" x-text="clientTime || '{{ $clientDateTime }}'"></span>
-                        </div>
-
-                    </div>
-                </div>
-
-                {{-- ===== TABLE SECTION ===== --}}
-                <div class="pr-table-section">
-                    <div class="pr-table-label">Harap dibelikan barang sbb:</div>
-                    <div class="pr-table-scroll">
-                        <table class="pr-table">
-                            <thead>
-                                <tr>
-                                    <th class="col-no">#</th>
-                                    <th class="col-cat">Kategori Item</th>
-                                    <th class="col-type">Jenis / Nama Barang</th>
-                                    <th class="col-size">Ukuran / Spesifikasi</th>
-                                    <th class="col-qty">Jumlah</th>
-                                    <th class="col-unit">Satuan</th>
-                                    <th class="col-rem">Sisa</th>
-                                    <th class="col-act">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($items as $index => $item)
-                                @php
-                                $hasRowError = $errors->has("items.{$index}.*");
-                                @endphp
-                                <tr wire:key="pr-item-{{ $index }}" @class(['pr-row-invalid'=> $hasRowError])>
-                                    {{-- No --}}
-                                    <td class="col-no">{{ $index + 1 }}</td>
-
-                                    {{-- Kategori --}}
-                                    <td class="col-cat">
-                                        <select wire:model="items.{{ $index }}.item_category_id"
-                                            @class(['pr-field', 'pr-field-select' , 'pr-field-invalid'=> $errors->has("items.{$index}.item_category_id")])>
-                                            <option value="">— Pilih —</option>
-                                            @foreach($itemCategories as $id => $name)
-                                            <option value="{{ $id }}">{{ $name }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error("items.{$index}.item_category_id")
-                                        <span class="pr-field-error">{{ $message }}</span>
-                                        @enderror
-                                    </td>
-
-                                    {{-- Jenis --}}
-                                    <td class="col-type">
-                                        <input type="text"
-                                            wire:model="items.{{ $index }}.type"
-                                            placeholder="Nama barang..."
-                                            @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.type")])>
-                                        @error("items.{$index}.type")
-                                        <span class="pr-field-error">{{ $message }}</span>
-                                        @enderror
-                                    </td>
-
-                                    {{-- Ukuran --}}
-                                    <td class="col-size">
-                                        <input type="text"
-                                            wire:model="items.{{ $index }}.size"
-                                            placeholder="mis. 10mm, 1/2 inch"
-                                            @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.size")])>
-                                        @error("items.{$index}.size")
-                                        <span class="pr-field-error">{{ $message }}</span>
-                                        @enderror
-                                    </td>
-
-                                    {{-- Jumlah --}}
-                                    <td class="col-qty">
-                                        <input type="number"
-                                            wire:model="items.{{ $index }}.quantity"
-                                            placeholder="0"
-                                            min="1"
-                                            @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.quantity")])
-                                        style="text-align:right;">
-                                        @error("items.{$index}.quantity")
-                                        <span class="pr-field-error">{{ $message }}</span>
-                                        @enderror
-                                    </td>
-
-                                    {{-- Satuan --}}
-                                    <td class="col-unit">
-                                        <input type="text"
-                                            wire:model="items.{{ $index }}.unit"
-                                            placeholder="Pcs, Ltr, Box..."
-                                            @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.unit")])>
-                                        @error("items.{$index}.unit")
-                                        <span class="pr-field-error">{{ $message }}</span>
-                                        @enderror
-                                    </td>
-
-                                    {{-- Sisa --}}
-                                    <td class="col-rem">
-                                        <input type="number"
-                                            wire:model="items.{{ $index }}.remaining"
-                                            placeholder="0"
-                                            step="0.01"
-                                            @class(['pr-field', 'pr-field-invalid'=> $errors->has("items.{$index}.remaining")])
-                                        style="text-align:right;">
-                                        @error("items.{$index}.remaining")
-                                        <span class="pr-field-error">{{ $message }}</span>
-                                        @enderror
-                                    </td>
-
-                                    {{-- Aksi --}}
-                                    <td class="col-act">
-                                        <button type="button"
-                                            wire:click="removeItem({{ $index }})"
-                                            class="pr-btn-delete"
-                                            title="Hapus baris">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                            </svg>
-                                            <span>Hapus</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="8" class="pr-empty">
-                                        Belum ada item. Klik <strong>+ Tambah Item</strong> untuk mulai menambahkan.
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {{-- ===== FOOTER ACTIONS ===== --}}
-                <div class="pr-footer">
-                    <div class="pr-footer-actions">
-                        <x-filament::button
-                            type="button"
-                            wire:click="addItem"
-                            icon="heroicon-m-plus"
-                            color="gray"
-                            size="sm">
-                            Tambah Item
-                        </x-filament::button>
-                        <span class="pr-item-count">
-                            {{ count($items) }} item{{ count($items) !== 1 ? '' : '' }} dalam daftar
-                        </span>
-                    </div>
-
-                    <x-filament::button
-                        type="button"
-                        wire:click="previewSubmit"
-                        icon="heroicon-m-eye"
-                        size="md"
-                        wire:target="previewSubmit">
-                        Preview & Kirim
-                    </x-filament::button>
-                </div>
-
-            </div>{{-- end pr-card --}}
-        </form>
-        <script>
-            document.addEventListener('livewire:initialized', () => {
-                Livewire.hook('morph.updated', ({
-                    el,
-                    component
-                }) => {
-                    const firstError = document.querySelector('.pr-field-invalid, .pr-field-error');
-                    if (firstError && !firstError.dataset.scrolled) {
-                        setTimeout(() => {
-                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-                            const input = firstError.tagName === 'INPUT' || firstError.tagName === 'SELECT' ?
-                                firstError : firstError.closest('td')?.querySelector('input, select');
-                            if (input) input.focus();
-                            firstError.dataset.scrolled = "true";
-                        }, 150);
-                    }
-                });
-                Livewire.hook('request', () => {
-                    document.querySelectorAll('[data-scrolled]').forEach(el => delete el.dataset.scrolled);
-                });
-            });
-        </script>
-    <style>
-        /* ===== PREVIEW MODAL OVERLAY ===== */
-        .pr-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.65);
-            z-index: 9000;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding: 1.5rem 1rem;
-            overflow-y: auto;
-            backdrop-filter: blur(2px);
-            animation: fadeInOverlay 0.2s ease;
-        }
-        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
-
-        /* ===== MODAL CONTAINER ===== */
-        .pr-modal-container {
-            background: #ffffff;
-            border-radius: 1.25rem;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            justify-content: flex-end;
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #f1f5f9;
             width: 100%;
-            max-width: 960px;
-            display: flex;
-            flex-direction: column;
-            max-height: 88vh;
-            animation: slideUpModal 0.25s ease;
-            overflow: hidden;
         }
-        .dark .pr-modal-container {
-            background: #1e293b;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-        }
-        @keyframes slideUpModal { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .dark .pr-toolbar { border-bottom-color: #334155; }
 
-        /* ===== MODAL HEADER ===== */
-        .pr-modal-header {
+        .pr-toolbar-container {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 1.25rem 1.75rem;
-            border-bottom: 2px solid #e2e8f0;
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            border-radius: 1.25rem 1.25rem 0 0;
-            flex-shrink: 0;
-        }
-        .dark .pr-modal-header { border-bottom-color: #334155; }
-        .pr-modal-header-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .pr-modal-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            background: rgba(255,255,255,0.2);
-            border-radius: 0.625rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pr-modal-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: 0.02em;
-        }
-        .pr-modal-subtitle {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.75);
-            margin-top: 0.1rem;
-        }
-        .pr-modal-close {
-            width: 2.25rem;
-            height: 2.25rem;
-            background: rgba(255,255,255,0.15);
-            border: 1.5px solid rgba(255,255,255,0.3);
-            border-radius: 0.5rem;
-            color: #ffffff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s;
-            flex-shrink: 0;
-        }
-        .pr-modal-close:hover { background: rgba(255,255,255,0.3); }
-
-        /* ===== MODAL BODY (scrollable) ===== */
-        .pr-modal-body {
-            overflow-y: auto;
-            flex: 1;
-            padding: 1.5rem 1.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        /* ===== INFO SUMMARY CARDS ===== */
-        .pr-preview-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.875rem;
-        }
-        @media (max-width: 640px) { .pr-preview-info-grid { grid-template-columns: 1fr; } }
-        .pr-preview-info-card {
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            padding: 1rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 1.25rem;
+            padding: 0.5rem;
+            gap: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s;
         }
-        .dark .pr-preview-info-card {
+        .dark .pr-toolbar-container {
             background: #0f172a;
             border-color: #334155;
         }
-        .pr-preview-info-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.375rem 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .dark .pr-preview-info-item { border-bottom-color: #1e293b; }
-        .pr-preview-info-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .pr-preview-info-item:first-child { padding-top: 0; }
-        .pr-preview-info-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            min-width: 110px;
-            white-space: nowrap;
-        }
-        .dark .pr-preview-info-label { color: #94a3b8; }
-        .pr-preview-info-value {
-            font-size: 0.875rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-        .dark .pr-preview-info-value { color: #f1f5f9; }
-        .pr-preview-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.2rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            background: #dbeafe;
-            color: #1d4ed8;
-            letter-spacing: 0.02em;
-        }
-        .dark .pr-preview-badge { background: rgba(59,130,246,0.2); color: #93c5fd; }
 
-        /* ===== ITEMS SECTION LABEL ===== */
-        .pr-preview-section-label {
+        .pr-toolbar-container:focus-within {
+            border-color: #1e40af;
+            box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+        }
+        .dark .pr-toolbar-container:focus-within {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
+        }
+
+        .pr-toolbar-section {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-        .pr-preview-section-title {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-        .dark .pr-preview-section-title { color: #94a3b8; }
-        .pr-preview-total-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            background: #f1f5f9;
+            gap: 0.75rem;
             padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            border: 1px solid #e2e8f0;
-        }
-        .dark .pr-preview-total-badge { background: #1e293b; border-color: #334155; color: #94a3b8; }
-
-        /* ===== PREVIEW TABLE WRAPPER ===== */
-        .pr-preview-table-wrap {
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            overflow: hidden;
-        }
-        .dark .pr-preview-table-wrap { border-color: #334155; }
-        .pr-preview-table-scroll {
-            overflow-x: auto;
         }
 
-        /* ===== PREVIEW TABLE ===== */
-        .pr-preview-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem;
+        .pr-toolbar-divider {
+            width: 2px;
+            height: 2rem;
+            background: #e2e8f0;
+            margin: 0 0.5rem;
         }
-        .pr-preview-table thead th {
-            background: #f1f5f9;
-            color: #374151;
-            font-weight: 700;
-            font-size: 0.75rem;
-            padding: 0.75rem 1rem;
-            text-align: left;
-            border-bottom: 2px solid #cbd5e1;
-            white-space: nowrap;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-        .dark .pr-preview-table thead th {
-            background: #0f172a;
-            color: #94a3b8;
-            border-bottom-color: #475569;
-        }
-        .pr-preview-table td {
-            padding: 0.75rem 1rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f5f9;
-            color: #0f172a;
-            font-size: 0.875rem;
-        }
-        .dark .pr-preview-table td {
-            border-bottom-color: #1e293b;
-            color: #e2e8f0;
-        }
-        .pr-preview-table tbody tr:last-child td { border-bottom: none; }
-        .pr-preview-table tbody tr:hover td { background: #f8fafc; }
-        .dark .pr-preview-table tbody tr:hover td { background: rgba(255,255,255,0.03); }
+        .dark .pr-toolbar-divider { background: #334155; }
 
-        /* ===== CATEGORY DIVIDER ROW ===== */
-        .pr-cat-divider td {
-            background: linear-gradient(90deg, #eff6ff, #f8fafc) !important;
-            border-top: 2px solid #bfdbfe !important;
-            border-bottom: 1px solid #bfdbfe !important;
-            padding: 0.5rem 1rem !important;
+        .pr-toolbar-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #64748b;
         }
-        .dark .pr-cat-divider td {
-            background: linear-gradient(90deg, rgba(30,64,175,0.12), rgba(15,23,42,0.5)) !important;
-            border-top-color: rgba(59,130,246,0.3) !important;
-            border-bottom-color: rgba(59,130,246,0.2) !important;
+        .dark .pr-toolbar-icon { color: #94a3b8; }
+
+        .pr-toolbar-input {
+            border: none !important;
+            background: transparent !important;
+            padding: 0.5rem !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            box-shadow: none !important;
+            outline: none !important;
+            width: auto;
         }
-        .pr-cat-divider-label {
-            font-size: 0.75rem;
+        .dark .pr-toolbar-input { color: #f1f5f9 !important; }
+
+        .pr-toolbar-input::placeholder { color: #94a3b8; }
+
+        .pr-date-input-unified {
+            width: 160px;
+            cursor: pointer;
+            background: #eff6ff !important;
+            border: 2px solid #bfdbfe !important;
+            border-radius: 0.8rem;
+            padding: 0.4rem 0.75rem !important;
+            font-weight: 800 !important;
+            color: #1e40af !important;
+            accent-color: #1e40af; /* Matches calendar UI to button color */
+            transition: all 0.2s;
+            outline: none !important;
+        }
+
+        .pr-date-input-unified:hover {
+            background: #dbeafe !important;
+            border-color: #1e40af !important;
+        }
+
+        .dark .pr-date-input-unified {
+            background: rgba(30, 64, 175, 0.2) !important;
+            border-color: rgba(96, 165, 250, 0.3) !important;
+            color: #60a5fa !important;
+            accent-color: #60a5fa;
+        }
+
+        .pr-toolbar-dash {
             font-weight: 800;
-            color: #1d4ed8;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        .dark .pr-cat-divider-label { color: #93c5fd; }
-
-        /* ===== NO COLUMN ===== */
-        .pr-preview-table .col-no {
-            width: 4%;
-            text-align: center;
             color: #94a3b8;
-            font-weight: 700;
-            font-size: 0.75rem;
+            margin: 0 0.25rem;
         }
-        .pr-preview-table .col-qty,
-        .pr-preview-table .col-rem {
-            text-align: right;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-        }
-        .pr-preview-table .col-unit {
-            color: #64748b;
-            font-size: 0.8rem;
-        }
-        .dark .pr-preview-table .col-unit { color: #94a3b8; }
 
-        /* ===== MODAL FOOTER ===== */
-        .pr-modal-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.125rem 1.75rem;
-            border-top: 2px solid #e2e8f0;
-            background: #f8fafc;
-            border-radius: 0 0 1.25rem 1.25rem;
-            flex-shrink: 0;
-            gap: 1rem;
-            flex-wrap: wrap;
+        @media (max-width: 768px) {
+            .pr-toolbar { justify-content: center; }
+            .pr-toolbar-container {
+                flex-direction: column;
+                width: 100%;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .pr-toolbar-divider { display: none; }
+            .pr-toolbar-section { width: 100%; justify-content: center; }
         }
-        .dark .pr-modal-footer {
-            border-top-color: #334155;
-            background: #0f172a;
-        }
-        .pr-modal-footer-info {
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-        .dark .pr-modal-footer-info { color: #94a3b8; }
-        .pr-modal-footer-actions { display: flex; align-items: center; gap: 0.75rem; }
 
-        .pr-btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.6rem 1.25rem;
-            border-radius: 0.5rem;
-            border: 1.5px solid #cbd5e1;
-            background: #ffffff;
-            color: #374151;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
+        /* Flatpickr Custom Premium Theme */
+        .flatpickr-calendar {
+            background: #ffffff !important;
+            border-radius: 1.25rem !important;
+            box-shadow: 0 20px 25px -5px rgba(30, 64, 175, 0.15), 0 10px 10px -5px rgba(30, 64, 175, 0.1) !important;
+            border: 2px solid #e2e8f0 !important;
+            font-family: inherit !important;
+            width: 315px !important; /* Ukuran pas agar Sabtu tidak terpotong dan tidak terlalu lebar */
         }
-        .pr-btn-back:hover { background: #f1f5f9; border-color: #94a3b8; }
-        .dark .pr-btn-back { background: #1e293b; border-color: #475569; color: #e2e8f0; }
-        .dark .pr-btn-back:hover { background: #334155; }
-
-        .pr-btn-confirm {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.5rem;
-            border-radius: 0.5rem;
-            border: none;
-            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
-            color: #ffffff;
-            font-size: 0.875rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.4);
-            letter-spacing: 0.01em;
+        .flatpickr-innerContainer {
+            padding: 0.5rem !important;
         }
-        .pr-btn-confirm:hover {
-            background: linear-gradient(135deg, #1e40af, #2563eb);
-            box-shadow: 0 4px 16px rgba(59,130,246,0.5);
-            transform: translateY(-1px);
+        .dark .flatpickr-calendar {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
         }
-        .pr-btn-confirm:active { transform: translateY(0); }
-        .pr-btn-confirm:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+        .flatpickr-day {
+            color: #0f172a !important; /* Teks tanggal lebih gelap dan tajam */
+            font-weight: 700 !important;
+            border-radius: 0.75rem !important;
+        }
+        .flatpickr-day.selected {
+            background: #1e40af !important;
+            border-color: #1e40af !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.4) !important;
+        }
+        .dark .flatpickr-day {
+            color: #f1f5f9 !important;
+        }
+        .dark .flatpickr-day.selected {
+            background: #60a5fa !important;
+            border-color: #60a5fa !important;
+            color: #0f172a !important;
+        }
+        .flatpickr-months .flatpickr-month {
+            color: #0f172a !important;
+            fill: #0f172a !important;
+        }
+        .dark .flatpickr-months .flatpickr-month {
+            color: #f1f5f9 !important;
+            fill: #f1f5f9 !important;
+        }
+        .flatpickr-prev-month svg, .flatpickr-next-month svg {
+            fill: #1e40af !important; /* Warna panah navigasi biru tegas */
+            width: 14px !important;
+            height: 14px !important;
+        }
+        .dark .flatpickr-prev-month svg, .dark .flatpickr-next-month svg {
+            fill: #60a5fa !important;
+        }
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            background: transparent !important;
+        }
+        .flatpickr-current-month .flatpickr-monthDropdown-months option {
+            background: #ffffff !important;
+            color: #0f172a !important;
+        }
+        .dark .flatpickr-current-month .flatpickr-monthDropdown-months {
+            color: #f1f5f9 !important;
+        }
+        .dark .flatpickr-current-month .flatpickr-monthDropdown-months option {
+            background: #1e293b !important;
+            color: #f1f5f9 !important;
+        }
+        .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+            border-bottom-color: #1e40af !important;
+        }
+        .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+            border-top-color: #1e40af !important;
+        }
+        .flatpickr-weekday {
+            color: #475569 !important;
+            font-weight: 800 !important;
+        }
+        .dark .flatpickr-weekday {
+            color: #94a3b8 !important;
+        }
     </style>
 
-    {{-- ===== PREVIEW MODAL ===== --}}
-    @if($showPreviewModal)
-    <div class="pr-modal-overlay" wire:click.self="$set('showPreviewModal', false)">
-        <div class="pr-modal-container">
+    {{-- Flatpickr Assets - Moved to @assets for SPA persistence --}}
+    @assets
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @endassets
 
-            {{-- MODAL HEADER --}}
-            <div class="pr-modal-header">
-                <div class="pr-modal-header-title">
-                    <div class="pr-modal-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="white" style="width:1.25rem;height:1.25rem;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <div class="pr-history-container">
+        <x-filament::section>
+            <div class="pr-toolbar">
+                <div class="pr-toolbar-container">
+                    <!-- Date Section -->
+                    <div class="pr-toolbar-section">
+                        <svg class="pr-toolbar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
-                    </div>
-                    <div>
-                        <div class="pr-modal-title">Preview Pengajuan PR</div>
-                        <div class="pr-modal-subtitle">Periksa kembali data sebelum dikirim</div>
-                    </div>
-                </div>
-                <button type="button" class="pr-modal-close" wire:click="closePreview" wire:target="closePreview" title="Tutup">
-                    <svg wire:loading.remove wire:target="closePreview" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1rem;height:1rem;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <x-filament::loading-indicator wire:loading wire:target="closePreview" class="h-4 w-4" />
-                </button>
-            </div>
-
-            {{-- MODAL BODY --}}
-            <div class="pr-modal-body">
-
-                {{-- INFO SUMMARY --}}
-                <div class="pr-preview-info-grid">
-                    {{-- Kiri --}}
-                    <div class="pr-preview-info-card">
-                        <div class="pr-preview-info-item">
-                            <span class="pr-preview-info-label">No. Dokumen</span>
-                            <span class="pr-preview-info-value">{{ $documentNo }}</span>
-                        </div>
-                        <div class="pr-preview-info-item">
-                            <span class="pr-preview-info-label">Nama Kapal</span>
-                            <span class="pr-preview-info-value">{{ $vesselName }}</span>
-                        </div>
-                        <div class="pr-preview-info-item">
-                            <span class="pr-preview-info-label">Tanggal Terbit</span>
-                            <span class="pr-preview-info-value">{{ app(\App\Service\DateService::class)->getIssueDate() }}</span>
-                        </div>
-                    </div>
-                    {{-- Kanan --}}
-                    <div class="pr-preview-info-card">
-                        <div class="pr-preview-info-item">
-                            <span class="pr-preview-info-label">Kebutuhan</span>
-                            <span class="pr-preview-badge">{{ $needs }}</span>
-                        </div>
-                        <div class="pr-preview-info-item">
-                            <span class="pr-preview-info-label">Waktu Pengajuan</span>
-                            <span class="pr-preview-info-value" style="font-size:0.8rem;">{{ $clientDateTime }}</span>
-                        </div>
-                        <div class="pr-preview-info-item">
-                            <span class="pr-preview-info-label">Total Item</span>
-                            <span class="pr-preview-info-value">{{ count($items) }} item</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ITEMS TABLE --}}
-                <div>
-                    <div class="pr-preview-section-label">
-                        <span class="pr-preview-section-title">Daftar Barang yang Diminta</span>
-                        <span class="pr-preview-total-badge">{{ count($items) }} item</span>
+                        <input 
+                            type="text" 
+                            wire:model.live="startDate" 
+                            id="startDate"
+                            class="pr-toolbar-input pr-date-input-unified" 
+                            placeholder="yyyy-mm-dd"
+                            readonly
+                            x-data="{
+                                init() {
+                                    flatpickr($el, {
+                                        dateFormat: 'Y-m-d',
+                                        disableMobile: true,
+                                        onChange: (selectedDates, dateStr) => {
+                                            $wire.set('startDate', dateStr);
+                                        }
+                                    });
+                                }
+                            }"
+                        >
+                        <span class="pr-toolbar-dash">—</span>
+                        <input 
+                            type="text" 
+                            wire:model.live="endDate" 
+                            id="endDate"
+                            class="pr-toolbar-input pr-date-input-unified" 
+                            placeholder="yyyy-mm-dd"
+                            readonly
+                            x-data="{
+                                init() {
+                                    flatpickr($el, {
+                                        dateFormat: 'Y-m-d',
+                                        disableMobile: true,
+                                        onChange: (selectedDates, dateStr) => {
+                                            $wire.set('endDate', dateStr);
+                                        }
+                                    });
+                                }
+                            }"
+                        >
                     </div>
 
-                    <div class="pr-preview-table-wrap">
-                        <div class="pr-preview-table-scroll">
-                            <table class="pr-preview-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-no">#</th>
-                                        <th>Kategori Item</th>
-                                        <th>Jenis / Nama Barang</th>
-                                        <th>Ukuran / Spesifikasi</th>
-                                        <th class="col-qty">Jumlah</th>
-                                        <th class="col-unit">Satuan</th>
-                                        <th class="col-rem">Sisa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php
-                                        $currentCat = null;
-                                        $rowNo = 0;
-                                    @endphp
-                                    @foreach($items as $item)
-                                        @php
-                                            $catName = $itemCategories[$item['item_category_id']] ?? '—';
-                                            $rowNo++;
-                                        @endphp
-                                        @if($catName !== $currentCat)
-                                            @php $currentCat = $catName; @endphp
-                                            <tr class="pr-cat-divider">
-                                                <td colspan="7">
-                                                    <span class="pr-cat-divider-label">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:0.75rem;height:0.75rem;">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
-                                                        </svg>
-                                                        {{ $catName }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endif
-                                        <tr>
-                                            <td class="col-no">{{ $rowNo }}</td>
-                                            <td>{{ $catName }}</td>
-                                            <td>{{ $item['type'] ?: '—' }}</td>
-                                            <td>{{ $item['size'] ?: '—' }}</td>
-                                            <td class="col-qty">{{ $item['quantity'] ?: '—' }}</td>
-                                            <td class="col-unit">{{ $item['unit'] ?: '—' }}</td>
-                                            <td class="col-rem">{{ $item['remaining'] !== '' ? $item['remaining'] : '—' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="pr-toolbar-divider"></div>
+
+                    <!-- Search Section -->
+                    <div class="pr-toolbar-section">
+                        <svg class="pr-toolbar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                        <input 
+                            type="text" 
+                            wire:model.live.debounce.500ms="search" 
+                            placeholder="Cari PR..." 
+                            class="pr-toolbar-input"
+                            style="width: 250px;"
+                        >
                     </div>
-                </div>
-
-            </div>{{-- end modal-body --}}
-
-            {{-- MODAL FOOTER --}}
-            <div class="pr-modal-footer">
-                <span class="pr-modal-footer-info">
-                    ✦ Pastikan semua data sudah benar sebelum mengirim.
-                </span>
-                <div class="pr-modal-footer-actions">
-                    <x-filament::button
-                        type="button"
-                        color="gray"
-                        icon="heroicon-m-arrow-left"
-                        wire:click="closePreview"
-                        wire:target="closePreview">
-                        Kembali Edit
-                    </x-filament::button>
-
-                    <x-filament::button
-                        type="button"
-                        icon="heroicon-m-check"
-                        wire:click="confirmSubmit"
-                        wire:target="confirmSubmit">
-                        Konfirmasi &amp; Kirim
-                    </x-filament::button>
                 </div>
             </div>
+            <div class="mt-0 overflow-hidden border border-slate-300 dark:border-slate-600 rounded-xl">
+                @forelse($prList as $pr)
+                    <div class="pr-list-card">
+                        <div class="pr-status-stripe status-{{ strtolower($pr->pr_status ?? 'pending') }}"></div>
+                        
+                        <div class="pr-card-content">
+                            <div class="pr-main-info">
+                                <span class="pr-number-label">{{ $pr->detail->title ?? 'Tanpa Judul' }}</span>
+                                <h2 class="pr-title-label">
+                                    {{ $pr->pr_number }}
+                                    @if($pr->detail->document_no)
+                                        <span class="pr-document-no">{{ $pr->detail->document_no }}</span>
+                                    @endif
+                                </h2>
+                                
+                                <div class="pr-meta-info">
+                                    <div class="pr-meta-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.5rem;height:1.5rem;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                        </svg>
+                                        <span>{{ $pr->created_at?->format('d F Y') ?? '-' }}</span>
+                                    </div>
+                                    
+                                    <div class="pr-meta-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.5rem;height:1.5rem;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 14h2l-2 5H4l-2-5h2v-3l4-2h8l4 2v3z M8 11V7h3v4M13 11V5h3v6" />
+                                        </svg>
+                                        <span>{{ $pr->detail->vessel->name ?? 'Semua Kapal' }}</span>
+                                    </div>
 
-        </div>
+                                    <div class="pr-meta-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.5rem;height:1.5rem;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+                                        </svg>
+                                        <span>{{ $pr->detail->needs ?? '-' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pr-status-container">
+                                @php
+                                    $statusLabel = \App\Constants\PrStatusConstant::getStatuses()[$pr->pr_status] ?? $pr->pr_status ?? 'Menunggu';
+                                @endphp
+                                <div class="pr-status-badge badge-{{ strtolower($pr->pr_status ?? 'pending') }}">
+                                    {{ $statusLabel }}
+                                </div>
+                            </div>
+
+                            <button class="pr-action-btn">
+                                <span>Selengkapnya</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1.5rem;height:1.5rem;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <div class="pr-empty-state">
+                        <div class="pr-empty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                        </div>
+                        <p class="pr-empty-text">Belum ada daftar pengajuan barang.</p>
+                        <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 1.1rem;">Semua pengajuan yang Anda buat akan muncul di sini.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <div class="mt-10 pr-pagination-wrapper">
+                @if ($prList->hasPages())
+                    <nav role="navigation" aria-label="Pagination Navigation" class="pr-pagination-nav">
+                        {{-- Previous Page Link --}}
+                        @if ($prList->onFirstPage())
+                            <span class="pr-page-btn pr-page-disabled">
+                                Sebelumnya
+                            </span>
+                        @else
+                            <button wire:click="previousPage" wire:loading.attr="disabled" rel="prev" class="pr-page-btn pr-page-active-btn">
+                                Sebelumnya
+                            </button>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @foreach ($prList->getUrlRange(1, $prList->lastPage()) as $page => $url)
+                            @if ($page == $prList->currentPage())
+                                <span class="pr-page-num pr-page-num-current">{{ $page }}</span>
+                            @else
+                                <button wire:click="gotoPage({{ $page }})" class="pr-page-num pr-page-num-btn">
+                                    {{ $page }}
+                                </button>
+                            @endif
+                        @endforeach
+
+                        {{-- Next Page Link --}}
+                        @if ($prList->hasMorePages())
+                            <button wire:click="nextPage" wire:loading.attr="disabled" rel="next" class="pr-page-btn pr-page-active-btn">
+                                Berikutnya
+                            </button>
+                        @else
+                            <span class="pr-page-btn pr-page-disabled">
+                                Berikutnya
+                            </span>
+                        @endif
+                    </nav>
+                @endif
+            </div>
+
+            <style>
+                .pr-pagination-wrapper {
+                    display: flex;
+                    justify-content: center;
+                    width: 100%;
+                    border-top: 2px solid #f1f5f9;
+                    padding-top: 2.5rem;
+                    margin-top: 2.5rem;
+                }
+                .dark .pr-pagination-wrapper { border-color: #334155; }
+
+                .pr-pagination-nav {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.75rem;
+                    width: 100%;
+                    flex-wrap: nowrap;
+                    white-space: nowrap;
+                }
+
+                .pr-page-btn {
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 0.75rem;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    transition: all 0.2s;
+                    border: 2px solid transparent;
+                }
+
+                .pr-page-active-btn {
+                    background: #f1f5f9;
+                    color: #1e40af;
+                    cursor: pointer;
+                }
+                .dark .pr-page-active-btn { background: #334155; color: #60a5fa; }
+
+                .pr-page-active-btn:hover {
+                    background: #1e40af;
+                    color: #ffffff;
+                }
+                .dark .pr-page-active-btn:hover { background: #60a5fa; color: #0f172a; }
+
+                .pr-page-disabled {
+                    color: #94a3b8;
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
+
+                .pr-page-num {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 3.5rem;
+                    height: 3.5rem;
+                    border-radius: 50%;
+                    font-size: 1.2rem;
+                    font-weight: 800;
+                    transition: all 0.2s;
+                }
+
+                .pr-page-num-btn {
+                    color: #475569;
+                    background: transparent;
+                    cursor: pointer;
+                }
+                .dark .pr-page-num-btn { color: #94a3b8; }
+
+                .pr-page-num-btn:hover {
+                    background: #f1f5f9;
+                    color: #1e40af;
+                }
+                .dark .pr-page-num-btn:hover { background: #334155; color: #60a5fa; }
+
+                .pr-page-num-current {
+                    background: #1e40af;
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+                }
+                .dark .pr-page-num-current { background: #60a5fa; color: #0f172a; }
+            </style>
+        </x-filament::section>
     </div>
-    @endif
 
+    {{-- Script manual dihapus karena sudah ditangani oleh Alpine x-init di atas --}}
 </x-filament-panels::page>

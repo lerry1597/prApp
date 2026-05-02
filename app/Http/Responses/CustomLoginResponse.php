@@ -18,7 +18,7 @@ class CustomLoginResponse extends LoginResponse
 
         if ($user && Filament::getCurrentPanel()?->getId() === 'app') {
             if ($user->roles()->where('name', RoleConstant::VESSEL_CREW_REQUESTER)->exists()) {
-                return redirect('/purchase-requisition');
+                return redirect('/purchase-requisition-form');
             }
             return redirect('/');
         }
