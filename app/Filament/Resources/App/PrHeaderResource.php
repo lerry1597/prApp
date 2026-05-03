@@ -98,14 +98,8 @@ class PrHeaderResource extends Resource
                                 TextEntry::make('pr_status')
                                     ->label('Status Saat Ini')
                                     ->badge()
-                                    ->formatStateUsing(fn(string $state): string => \App\Constants\PrStatusConstant::getStatuses()[$state] ?? $state)
-                                    ->color(fn(string $state): string => match ($state) {
-                                        \App\Constants\PrStatusConstant::WAITING_APPROVAL, \App\Constants\PrStatusConstant::APPROVED => 'warning',
-                                        \App\Constants\PrStatusConstant::REJECTED => 'danger',
-                                        \App\Constants\PrStatusConstant::CONVERTED_TO_PO => 'success',
-                                        \App\Constants\PrStatusConstant::CLOSED => 'gray',
-                                        default => 'gray',
-                                    }),
+                                    ->formatStateUsing(fn(string $state): string => PrStatusConstant::getStatuses()[$state] ?? $state)
+                                    ->color(fn(string $state): string => PrStatusConstant::getColor($state)),
 
                                 TextEntry::make('detail.vessel.name')
                                     ->label('Nama Kapal')
@@ -159,14 +153,8 @@ class PrHeaderResource extends Resource
                 \Filament\Tables\Columns\TextColumn::make('pr_status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => \App\Constants\PrStatusConstant::getStatuses()[$state] ?? $state)
-                    ->color(fn(string $state): string => match ($state) {
-                        \App\Constants\PrStatusConstant::WAITING_APPROVAL, \App\Constants\PrStatusConstant::APPROVED => 'warning',
-                        \App\Constants\PrStatusConstant::REJECTED => 'danger',
-                        \App\Constants\PrStatusConstant::CONVERTED_TO_PO => 'success',
-                        \App\Constants\PrStatusConstant::CLOSED => 'gray',
-                        default => 'gray',
-                    }),
+                    ->formatStateUsing(fn(string $state): string => PrStatusConstant::getStatuses()[$state] ?? $state)
+                    ->color(fn(string $state): string => PrStatusConstant::getColor($state)),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([

@@ -26,4 +26,19 @@ class PrStatusConstant
             self::PENDING => 'Menunggu',
         ];
     }
+
+    /**
+     * Kembalikan warna badge Filament berdasarkan status PR.
+     * Definisikan di satu tempat agar konsisten di seluruh aplikasi.
+     */
+    public static function getColor(string $status): string
+    {
+        return match ($status) {
+            self::WAITING_APPROVAL, self::CONVERTED_TO_PO   => 'warning',
+            self::REJECTED                                  => 'danger',
+            self::APPROVED                                  => 'success',
+            self::SUBMITTED                                 => 'info',
+            default                                         => 'gray',
+        };
+    }
 }
