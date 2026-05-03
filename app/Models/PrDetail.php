@@ -31,6 +31,15 @@ class PrDetail extends Model
         'description',
     ];
 
+    protected $casts = [
+        'request_date' => 'datetime',
+        'request_date_client' => 'datetime',
+        'required_date' => 'datetime',
+        'expired_date' => 'datetime',
+        'issue_date' => 'datetime',
+        'ref_date' => 'datetime',
+    ];
+
     public function vessel(): BelongsTo
     {
         return $this->belongsTo(Vessel::class);

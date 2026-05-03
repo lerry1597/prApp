@@ -20,6 +20,11 @@ class CustomLoginResponse extends LoginResponse
             if ($user->roles()->where('name', RoleConstant::VESSEL_CREW_REQUESTER)->exists()) {
                 return redirect('/purchase-requisition-form');
             }
+
+            if ($user->roles()->where('name', RoleConstant::TECHNICAL_APPROVER)->exists()) {
+                return redirect('/approvals');
+            }
+
             return redirect('/');
         }
 

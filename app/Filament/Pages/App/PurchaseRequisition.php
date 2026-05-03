@@ -28,6 +28,11 @@ class PurchaseRequisition extends Page
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
     protected string $view = 'filament.app.pages.purchase-requisition';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->roles()->where('name', \App\Constants\RoleConstant::VESSEL_CREW_REQUESTER)->exists() ?? false;
+    }
+
     public function updatedSearch()
     {
         $this->resetPage();

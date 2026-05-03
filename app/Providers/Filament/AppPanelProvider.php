@@ -36,6 +36,9 @@ class AppPanelProvider extends PanelProvider
             ->topNavigation(true)
             ->discoverResources(in: app_path('Filament/Resources/App'), for: 'App\Filament\Resources\App')
             ->discoverPages(in: app_path('Filament/Pages/App'), for: 'App\Filament\Pages\App')
+            ->resources([
+                \App\Filament\Resources\App\PrHeaderResource::class,
+            ])
             ->pages([
                 Dashboard::class,
                 \App\Filament\Pages\App\PurchaseRequisitionForm::class,

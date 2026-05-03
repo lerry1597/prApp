@@ -30,6 +30,11 @@ class PurchaseRequisitionForm extends Page
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-pencil-square';
     protected string $view = 'filament.app.pages.purchase-requisition-form';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->roles()->where('name', \App\Constants\RoleConstant::VESSEL_CREW_REQUESTER)->exists() ?? false;
+    }
+
     public ?array $data = [];
     public string $sequenceNo = '';
     public string $departmentName = '';
@@ -227,20 +232,21 @@ class PurchaseRequisitionForm extends Page
                 ]);
 
                 // B. Simpan PrDetail
+                $dateService = app(DateService::class);
                 $detail = PrDetail::create([
                     'pr_header_id' => $header->id,
                     'priority' => null,
                     'document_no' => $this->documentNo,
                     'title' => DocumentConstant::DOCUMENT_TITLE,
-                    'issue_date' => app(DateService::class)->getIssueDate(),
+                    'issue_date' => $dateService->getCurrentDate(), // Sekarang disimpan sebagai Carbon/DateTime
                     'rev_no' => '00',
                     'ref_date' => null,
                     'document_type' => null,
                     'no' => $this->sequenceNo,
                     'needs' => $this->needs,
                     'vessel_id' => $user?->vessel_id,
-                    'request_date' => app(DateService::class)->getCurrentDate(),
-                    'request_date_client' => $this->clientDateTime,
+                    'request_date' => $dateService->getCurrentDate(),
+                    'request_date_client' => $dateService->parseLocalizedDate($this->clientDateTime), // Parsing string Indonesia ke DateTime
                     'required_date' => null,
                     'expired_date' => null,
                     'description' => null,
