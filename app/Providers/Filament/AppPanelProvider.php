@@ -6,7 +6,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -33,6 +32,15 @@ class AppPanelProvider extends PanelProvider
                 'primary' => Color::Indigo,
             ])
             ->spa()
+            ->homeUrl(function (): string {
+                $user = auth()->user();
+
+                if ($user?->roles()->where('name', \App\Constants\RoleConstant::VESSEL_CREW_REQUESTER)->exists()) {
+                    return route('filament.app.pages.purchase-requisition-form');
+                }
+
+                return route('filament.app.pages.dashboard');
+            })
             ->topNavigation(true)
             ->discoverResources(in: app_path('Filament/Resources/App'), for: 'App\Filament\Resources\App')
             ->discoverPages(in: app_path('Filament/Pages/App'), for: 'App\Filament\Pages\App')
@@ -40,9 +48,10 @@ class AppPanelProvider extends PanelProvider
                 \App\Filament\Resources\App\PrHeaderResource::class,
             ])
             ->pages([
-                Dashboard::class,
+                \App\Filament\Pages\App\AppDashboard::class,
                 \App\Filament\Pages\App\PurchaseRequisitionForm::class,
                 \App\Filament\Pages\App\PurchaseRequisition::class,
+                \App\Filament\Pages\App\PurchaseRequisitionHistory::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([

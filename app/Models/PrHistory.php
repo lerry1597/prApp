@@ -49,4 +49,24 @@ class PrHistory extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requester_id');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approver_id');
+    }
+
+    public function currentRole(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'current_role_id');
+    }
+
+    public function currentStep(): BelongsTo
+    {
+        return $this->belongsTo(ApprovalStep::class, 'current_step_id');
+    }
 }
