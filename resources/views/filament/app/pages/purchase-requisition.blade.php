@@ -901,6 +901,279 @@
             background: #0f172a;
         }
 
+        /* ===== HISTORY MODAL ===== */
+        .pr-history-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 9500;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+            backdrop-filter: blur(3px);
+            animation: fadeInOverlay 0.2s ease;
+        }
+
+        .pr-history-modal-container {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            animation: slideUpModal 0.25s ease;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .dark .pr-history-modal-container {
+            background: #1e293b;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7);
+        }
+
+        .pr-history-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.75rem;
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            border-radius: 1.25rem 1.25rem 0 0;
+            flex-shrink: 0;
+        }
+
+        .pr-history-modal-body {
+            overflow-x: auto;
+            overflow-y: auto;
+            flex: 1;
+            padding: 1.5rem 1.75rem;
+        }
+
+        /* Timeline snapshot labels */
+        .pr-snapshot-timeline {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .pr-snapshot-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 140px;
+        }
+
+        .pr-snapshot-dot {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: #7c3aed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .pr-snapshot-dot.first {
+            background: #1e40af;
+        }
+
+        .pr-snapshot-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #7c3aed;
+            text-align: center;
+            margin-top: 0.25rem;
+            white-space: nowrap;
+        }
+
+        .pr-snapshot-label.first {
+            color: #1e40af;
+        }
+
+        .pr-snapshot-line {
+            flex: 1;
+            height: 2px;
+            background: #e2e8f0;
+            min-width: 30px;
+            margin-bottom: 1.5rem;
+        }
+
+        .dark .pr-snapshot-line {
+            background: #334155;
+        }
+
+        /* Diff table */
+        .pr-diff-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .pr-diff-table th {
+            background: #f1f5f9;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .dark .pr-diff-table th {
+            background: #0f172a;
+            color: #94a3b8;
+            border-bottom-color: #334155;
+        }
+
+        .pr-diff-table th.snapshot-header {
+            background: #ede9fe;
+            color: #5b21b6;
+            text-align: center;
+            border-left: 1px solid #ddd6fe;
+        }
+
+        .dark .pr-diff-table th.snapshot-header {
+            background: rgba(124, 58, 237, 0.15);
+            color: #a78bfa;
+            border-left-color: rgba(124, 58, 237, 0.3);
+        }
+
+        .pr-diff-table th.snapshot-header.first {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left-color: #bfdbfe;
+        }
+
+        .dark .pr-diff-table th.snapshot-header.first {
+            background: rgba(30, 64, 175, 0.15);
+            color: #60a5fa;
+        }
+
+        .pr-diff-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .dark .pr-diff-table td {
+            border-bottom-color: #1e293b;
+        }
+
+        .pr-diff-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .dark .pr-diff-table tr:hover td {
+            background: #334155;
+        }
+
+        .pr-diff-table td.snapshot-cell {
+            text-align: center;
+            border-left: 1px solid #f1f5f9;
+            font-weight: 700;
+            min-width: 110px;
+        }
+
+        .dark .pr-diff-table td.snapshot-cell {
+            border-left-color: #1e293b;
+        }
+
+        /* Changed cell highlight */
+        .pr-diff-changed {
+            background: #fefce8 !important;
+            color: #78350f;
+        }
+
+        .dark .pr-diff-changed {
+            background: rgba(251, 191, 36, 0.15) !important;
+            color: #fbbf24;
+        }
+
+        /* Badge naik (hijau) */
+        .pr-diff-badge-up {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 9999px;
+            margin-left: 0.25rem;
+            font-weight: 800;
+            vertical-align: middle;
+        }
+
+        .dark .pr-diff-badge-up {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        /* Badge turun (merah) */
+        .pr-diff-badge-down {
+            display: inline-block;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 9999px;
+            margin-left: 0.25rem;
+            font-weight: 800;
+            vertical-align: middle;
+        }
+
+        .dark .pr-diff-badge-down {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        /* Badge tidak berubah (abu) */
+        .pr-diff-badge-same {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 9999px;
+            margin-left: 0.25rem;
+            font-weight: 800;
+            vertical-align: middle;
+        }
+
+        .dark .pr-diff-badge-same {
+            background: rgba(148, 163, 184, 0.15);
+            color: #64748b;
+        }
+
+        .pr-diff-no-change {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .pr-history-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 1rem 1.75rem;
+            border-top: 2px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 0 0 1.25rem 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .dark .pr-history-modal-footer {
+            border-top-color: #334155;
+            background: #0f172a;
+        }
+
         /* Color classes for table cells */
         .pr-col-category {
             color: #1d4ed8;
@@ -1306,10 +1579,170 @@
                 <x-filament::button color="gray" wire:click="closeDetail">
                     Tutup
                 </x-filament::button>
+                <x-filament::button
+                    color="secondary"
+                    wire:click="showItemHistory"
+                    style="margin-left: 0.75rem; background: #ede9fe; color: #5b21b6; border: 2px solid #ddd6fe;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;display:inline;margin-right:0.3rem;vertical-align:-2px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Riwayat Perubahan Item
+                </x-filament::button>
             </div>
         </div>
     </div>
     @endif
 
-    {{-- Script manual dihapus karena sudah ditangani oleh Alpine x-init di atas --}}
+    {{-- ===== HISTORY MODAL ===== --}}
+    @if($showHistoryModal && $selectedPr)
+    <div class="pr-history-modal-overlay" wire:click.self="closeItemHistory">
+        <div class="pr-history-modal-container">
+
+            {{-- HEADER --}}
+            <div class="pr-history-modal-header">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div style="width:2.5rem;height:2.5rem;background:rgba(255,255,255,0.2);border-radius:0.625rem;display:flex;align-items:center;justify-content:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="white" style="width:1.25rem;height:1.25rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:1.125rem;font-weight:700;color:#ffffff;">Riwayat Perubahan Item</div>
+                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.75);">PR {{ $selectedPr->pr_number }} — sebelum &amp; sesudah approval</div>
+                    </div>
+                </div>
+                <button type="button" class="pr-modal-close" wire:click="closeItemHistory" title="Tutup">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1rem;height:1rem;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- BODY --}}
+            <div class="pr-history-modal-body">
+
+                @if(empty($itemSnapshots))
+                <div style="text-align:center; padding:4rem 2rem; color:#94a3b8;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:3rem;height:3rem;margin:0 auto 1rem;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p style="font-size:1.1rem;font-weight:700;">Belum ada riwayat perubahan item.</p>
+                </div>
+                @else
+                {{-- TIMELINE --}}
+                <div class="pr-snapshot-timeline">
+                    @foreach($itemSnapshots as $sIdx => $snapshot)
+                    <div class="pr-snapshot-node">
+                        <div class="pr-snapshot-dot {{ $sIdx === 0 ? 'first' : '' }}">{{ $sIdx + 1 }}</div>
+                        <span class="pr-snapshot-label {{ $sIdx === 0 ? 'first' : '' }}">{{ $snapshot['label'] }}</span>
+                        <span style="font-size:0.6rem;color:#94a3b8;text-align:center;">
+                            {{ \Carbon\Carbon::parse($snapshot['created_at'])->format('d/m/y H:i') }}
+                        </span>
+                    </div>
+                    @if(! $loop->last)
+                    <div class="pr-snapshot-line"></div>
+                    @endif
+                    @endforeach
+                </div>
+
+                {{-- DIFF TABLE --}}
+                @php
+                // Collect all unique item keys across all snapshots
+                $allKeys = collect($itemSnapshots)->flatMap(fn($s) => array_keys($s['items']))->unique()->values();
+                @endphp
+                <div style="overflow-x:auto;">
+                    <table class="pr-diff-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">#</th>
+                                <th>Kategori</th>
+                                <th>Nama Barang</th>
+                                <th>Ukuran</th>
+                                <th>Satuan</th>
+                                @foreach($itemSnapshots as $sIdx => $snapshot)
+                                <th class="snapshot-header {{ $sIdx === 0 ? 'first' : '' }}">
+                                    {{ $snapshot['label'] }}<br>
+                                    <span style="font-weight:500;font-size:0.65rem;">Jumlah</span>
+                                </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($allKeys as $rowIdx => $key)
+                            @php
+                            // Ambil referensi item dari snapshot pertama yang memiliki key ini
+                            $baseItem = null;
+                            foreach ($itemSnapshots as $s) {
+                            if (isset($s['items'][$key])) { $baseItem = $s['items'][$key]; break; }
+                            }
+                            @endphp
+                            <tr>
+                                <td style="text-align:center;color:#94a3b8;font-weight:700;">{{ $rowIdx + 1 }}</td>
+                                <td class="pr-col-category">{{ $baseItem['category'] ?? '—' }}</td>
+                                <td style="font-weight:700;">{{ $baseItem['type'] ?? '—' }}</td>
+                                <td>{{ $baseItem['size'] ?? '—' }}</td>
+                                <td style="color:#64748b;">{{ $baseItem['unit'] ?? '—' }}</td>
+                                @foreach($itemSnapshots as $sIdx => $snapshot)
+                                @php
+                                $cell = $snapshot['items'][$key] ?? null;
+                                $prevQty = null;
+                                $dir = null; // 'up' | 'down' | 'same' | null (first)
+                                if ($sIdx > 0) {
+                                $prevSnap = $itemSnapshots[$sIdx - 1];
+                                $prevQty = isset($prevSnap['items'][$key]) ? (float)$prevSnap['items'][$key]['quantity'] : null;
+                                if ($cell !== null && $prevQty !== null) {
+                                $curQty = (float)$cell['quantity'];
+                                $dir = $curQty > $prevQty ? 'up' : ($curQty < $prevQty ? 'down' : 'same' );
+                                    }
+                                    }
+                                    $changed=$dir==='up' || $dir==='down' ;
+                                    @endphp
+                                    <td class="snapshot-cell {{ $changed ? 'pr-diff-changed' : '' }}">
+                                    @if($cell)
+                                    {{ number_format((float)$cell['quantity'], 0, ',', '.') }}
+                                    @if($dir === 'up')
+                                    <span class="pr-diff-badge-up">▲</span>
+                                    @elseif($dir === 'down')
+                                    <span class="pr-diff-badge-down">▼</span>
+                                    @elseif($dir === 'same')
+                                    <span class="pr-diff-badge-same">＝</span>
+                                    @endif
+                                    @else
+                                    <span class="pr-diff-no-change">—</span>
+                                    @endif
+                                    </td>
+                                    @endforeach
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- LEGEND --}}
+                <div style="margin-top:1rem;display:flex;align-items:center;gap:1.25rem;font-size:0.78rem;color:#64748b;flex-wrap:wrap;">
+                    <span style="display:flex;align-items:center;gap:0.35rem;">
+                        <span class="pr-diff-badge-up">▲</span> Jumlah bertambah
+                    </span>
+                    <span style="display:flex;align-items:center;gap:0.35rem;">
+                        <span class="pr-diff-badge-down">▼</span> Jumlah berkurang
+                    </span>
+                    <span style="display:flex;align-items:center;gap:0.35rem;">
+                        <span class="pr-diff-badge-same">＝</span> Tidak ada perubahan
+                    </span>
+                </div>
+                @endif
+
+            </div>
+
+            {{-- FOOTER --}}
+            <div class="pr-history-modal-footer">
+                <x-filament::button color="gray" wire:click="closeItemHistory">
+                    Tutup
+                </x-filament::button>
+            </div>
+
+        </div>
+    </div>
+    @endif
+
 </x-filament-panels::page>

@@ -4,13 +4,13 @@ namespace App\Filament\Resources\App;
 
 use App\Constants\PrStatusConstant;
 use App\Filament\Resources\App\PrHeaderResource\Pages\ManagePrHeaders;
-use App\Models\ApprovalWorkflow;
 use App\Models\Item;
 use App\Models\ItemHistory;
 use App\Models\ItemLog;
 use App\Models\PrHeader;
 use App\Models\PrHistory;
 use App\Models\PrLog;
+use App\Service\ApprovalFlowService;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -210,41 +210,15 @@ class PrHeaderResource extends Resource
             return;
         }
 
-        // --- 2. Cari workflow aktif ---
-        $workflow = ApprovalWorkflow::query()
-            ->whereKey($header->approval_workflow_id)
-            ->where('status', 'active')
-            ->first();
-
-        if (! $workflow) {
-            Notification::make()->danger()->title('Workflow tidak aktif')->body('Approval workflow aktif untuk PR ini tidak ditemukan.')->send();
+        // --- 2-5. Validasi alur approval via service terpusat ---
+        $flowContext = app(ApprovalFlowService::class)->resolveApprovalContext($user, $header);
+        if (! $flowContext['ok']) {
+            Notification::make()->danger()->title($flowContext['title'])->body($flowContext['message'])->send();
             return;
         }
 
-        // --- 3. Pastikan current step ada di workflow ---
-        $currentStep = $workflow->steps()->whereKey($header->current_step_id)->first();
-
-        if (! $currentStep) {
-            Notification::make()->danger()->title('Current step tidak ditemukan')->body('Step approval saat ini tidak ditemukan pada workflow aktif.')->send();
-            return;
-        }
-
-        // --- 4. Otorisasi: role user harus sesuai current step ---
-        if (! $user->roles()->where('roles.id', $currentStep->role_id)->exists()) {
-            Notification::make()->danger()->title('Role tidak sesuai')->body('Role Anda tidak cocok dengan step approval saat ini.')->send();
-            return;
-        }
-
-        // --- 5. Cari next step (step_order lebih besar dari current) ---
-        $nextStep = $workflow->steps()
-            ->where('step_order', '>', $currentStep->step_order)
-            ->orderBy('step_order')
-            ->first();
-
-        if (! $nextStep) {
-            Notification::make()->danger()->title('Step berikutnya tidak ditemukan')->body('Step approval berikutnya tidak ditemukan di workflow aktif.')->send();
-            return;
-        }
+        $currentStep = $flowContext['currentStep'];
+        $nextStep = $flowContext['nextStep'];
 
         // Ambil semua item PR (sudah tersimpan via TextInputColumn sebelum tombol diklik)
         $items = $header->items()->orderBy('id')->get();
@@ -269,15 +243,18 @@ class PrHeaderResource extends Resource
         try {
             DB::transaction(function () use ($batchId, $currentStep, $header, $nextStep, $now, $user): void {
                 // 7a. Update pr_headers ke step berikutnya
+                // Jika nextStep null = step terakhir = PR selesai disetujui
+                $isFinalStep = $nextStep === null;
+
                 DB::table('pr_headers')
                     ->where('id', $header->id)
                     ->update([
-                        'pr_status'      => PrStatusConstant::APPROVED,
-                        'current_role_id' => $nextStep->role_id,
-                        'current_step_id' => $nextStep->id,
-                        'approver_id'    => $user->id,
-                        'approved_at'    => $now,
-                        'updated_at'     => $now,
+                        'pr_status'       => \App\Constants\PrStatusConstant::APPROVED,
+                        'current_role_id' => $isFinalStep ? null : $nextStep->role_id,
+                        'current_step_id' => $isFinalStep ? null : $nextStep->id,
+                        'approver_id'     => $user->id,
+                        'approved_at'     => $now,
+                        'updated_at'      => $now,
                     ]);
 
                 // Refresh agar data header & items yang dipakai di bawah sudah up-to-date

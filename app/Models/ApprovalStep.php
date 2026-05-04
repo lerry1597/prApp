@@ -18,6 +18,7 @@ class ApprovalStep extends Model
         'role_id',
         'name',
         'condition',
+        'pr_status',
         'status',
     ];
 

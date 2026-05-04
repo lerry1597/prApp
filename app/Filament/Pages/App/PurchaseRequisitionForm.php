@@ -9,14 +9,13 @@ use App\Models\PrDetail;
 use App\Models\Item;
 use App\Models\Department;
 use App\Models\ItemCategory;
-use App\Models\ApprovalWorkflow;
-use App\Models\ApprovalStep;
 use App\Models\PrLog;
 use App\Models\PrHistory;
 use App\Models\ItemLog;
 use App\Models\ItemHistory;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
+use App\Service\ApprovalFlowService;
 use App\Service\DateService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -176,38 +175,39 @@ class PurchaseRequisitionForm extends Page
         $user = auth()->user();
         $details = $user?->detailsUser;
 
-        // 1. Validasi Workflow Aktif
-        $workflow = ApprovalWorkflow::where('status', 'active')->first();
-        if (!$workflow) {
+        // 1-3. Validasi alur approval via service terpusat
+        $flowContext = app(ApprovalFlowService::class)->resolveSubmissionContext($user);
+        if (! $flowContext['ok']) {
             $this->showPreviewModal = false;
-            Log::error("PR Submission Failed: No active approval workflow found for User ID: " . ($user?->id ?? 'Unknown'));
+            Log::warning('PR Submission Blocked: ' . $flowContext['message'] . ' | User ID: ' . ($user?->id ?? 'Unknown'));
             Notification::make()
                 ->danger()
                 ->color('danger')
-                ->title('Error Workflow')
-                ->body('Alur persetujuan (approval workflow) aktif tidak ditemukan. Silakan hubungi admin.')
+                ->title($flowContext['title'])
+                ->body($flowContext['message'])
                 ->send();
             return;
         }
 
-        // 2. Identifikasi Step Pertama (Requester) Secara Dinamis
-        $currentStep = $workflow->steps()->orderBy('step_order', 'asc')->first();
-        if (!$currentStep || !$user->roles()->where('roles.id', $currentStep->role_id)->exists()) {
-            $this->showPreviewModal = false;
-            Notification::make()
-                ->danger()
-                ->color('danger')
-                ->title('Akses Ditolak')
-                ->body('Role Anda tidak memiliki otoritas untuk melakukan pengajuan pada alur ini.')
-                ->send();
-            return;
-        }
+        $workflow    = $flowContext['workflow'];
+        $currentStep = $flowContext['currentStep'];
 
-        // 3. Tentukan Step Berikutnya Secara Dinamis
+        // Tentukan step berikutnya — PR langsung di-assign ke step 2 agar approver bisa melihatnya
         $nextStep = $workflow->steps()
             ->where('step_order', '>', $currentStep->step_order)
             ->orderBy('step_order', 'asc')
             ->first();
+
+        if (! $nextStep) {
+            $this->showPreviewModal = false;
+            Notification::make()
+                ->danger()
+                ->color('danger')
+                ->title('Step berikutnya tidak ditemukan')
+                ->body('Step approval berikutnya tidak ditemukan di workflow aktif. Silakan hubungi admin.')
+                ->send();
+            return;
+        }
 
         // 4. Generate PR Number Unik 8 Digit
         do {
@@ -218,7 +218,7 @@ class PurchaseRequisitionForm extends Page
 
         try {
             DB::transaction(function () use ($user, $details, $workflow, $currentStep, $nextStep, $prNumber, $batchId) {
-                // A. Simpan PrHeader
+                // A. Simpan PrHeader — langsung di-assign ke nextStep (step 2) agar approver bisa lihat
                 $header = PrHeader::create([
                     'batch_id' => $batchId,
                     'pr_number' => $prNumber,
@@ -226,8 +226,8 @@ class PurchaseRequisitionForm extends Page
                     'requester_id' => $user?->id,
                     'department_id' => $details?->department_id ?? Department::firstOrCreate(['name' => 'Departemen Kru Kapal'])->id,
                     'approval_workflow_id' => $workflow->id,
-                    'current_role_id' => $nextStep?->role_id,
-                    'current_step_id' => $nextStep?->id,
+                    'current_role_id' => $nextStep->role_id,
+                    'current_step_id' => $nextStep->id,
                     'description' => null,
                 ]);
 
