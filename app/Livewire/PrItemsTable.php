@@ -56,7 +56,7 @@ class PrItemsTable extends Component implements HasTable, HasSchemas
                     ->inputMode('decimal')
                     ->step(1)
                     ->rules(['required', 'numeric', 'min:1'])
-                    ->alignRight(),
+                    ->alignCenter(),
 
                 TextColumn::make('unit')
                     ->label('Satuan')
