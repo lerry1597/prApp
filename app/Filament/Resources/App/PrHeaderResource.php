@@ -48,16 +48,22 @@ class PrHeaderResource extends Resource
     protected static ?string $pluralModelLabel = 'Daftar Pengajuan PR';
     protected static ?string $modelLabel = 'Pengajuan PR';
 
-    public static function canViewAny(): bool
-    {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
+    // public static function canViewAny(): bool
+    // {
+    //     /** @var \App\Models\User $user */
+    //     $user = auth()->user();
 
-        // Izinkan jika user memiliki role selain 'vessel_crew_requester'
-        return $user && $user->roles()
-            ->where('name', '!=', \App\Constants\RoleConstant::VESSEL_CREW_REQUESTER)
-            ->exists();
+    //     // Izinkan jika user memiliki role selain 'vessel_crew_requester'
+    //     return $user && $user->roles()
+    //         ->where('name', '!=', \App\Constants\RoleConstant::VESSEL_CREW_REQUESTER)
+    //         ->exists();
+    // }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->roles()->where('name', \App\Constants\RoleConstant::TECHNICAL_APPROVER)->exists() ?? false;
     }
+
 
     public static function getEloquentQuery(): Builder
     {

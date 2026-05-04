@@ -1559,6 +1559,284 @@
         }
 
         /* Brighter blue for dark mode */
+
+        .pr-overview-band {
+            position: relative;
+            overflow: hidden;
+            margin: 0.4rem 0 1rem;
+            padding: 1.1rem;
+            border-radius: 1.2rem;
+            border: 1px solid #dbe7f5;
+            background:
+                radial-gradient(circle at 7% -15%, rgba(251, 191, 36, 0.28) 0%, rgba(251, 191, 36, 0) 45%),
+                radial-gradient(circle at 100% 120%, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0) 50%),
+                linear-gradient(130deg, #ffffff 0%, #f8fbff 40%, #eff6ff 100%);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .dark .pr-overview-band {
+            border-color: #334155;
+            background:
+                radial-gradient(circle at 4% -18%, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0) 50%),
+                radial-gradient(circle at 100% 140%, rgba(14, 165, 233, 0.17) 0%, rgba(14, 165, 233, 0) 58%),
+                linear-gradient(130deg, #0f172a 0%, #111827 55%, #0b1220 100%);
+            box-shadow: 0 16px 30px rgba(2, 6, 23, 0.48);
+        }
+
+        .pr-overview-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.95rem;
+        }
+
+        .pr-overview-title {
+            margin: 0;
+            font-size: 1.07rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 0.01em;
+        }
+
+        .dark .pr-overview-title {
+            color: #f8fafc;
+        }
+
+        .pr-overview-subtitle {
+            margin-top: 0.2rem;
+            font-size: 0.87rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .dark .pr-overview-subtitle {
+            color: #94a3b8;
+        }
+
+        .pr-overview-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.4rem 0.72rem;
+            border-radius: 999px;
+            border: 1px solid #cbdff5;
+            background: rgba(255, 255, 255, 0.74);
+            color: #0f172a;
+            font-size: 0.74rem;
+            font-weight: 700;
+            white-space: nowrap;
+            backdrop-filter: blur(5px);
+        }
+
+        .dark .pr-overview-filter-chip {
+            border-color: #334155;
+            background: rgba(15, 23, 42, 0.7);
+            color: #e2e8f0;
+        }
+
+        .pr-overview-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .pr-overview-card {
+            position: relative;
+            overflow: hidden;
+            padding: 0.82rem 0.92rem;
+            border-radius: 0.95rem;
+            border: 1px solid #d7e5f5;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(3px);
+            animation: prPopIn 0.45s ease both;
+        }
+
+        .pr-overview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--pr-metric-accent, #2563eb);
+        }
+
+        .dark .pr-overview-card {
+            border-color: #334155;
+            background: rgba(15, 23, 42, 0.7);
+        }
+
+        .pr-overview-card:nth-child(1) {
+            --pr-metric-accent: #0ea5e9;
+            animation-delay: 0.03s;
+        }
+
+        .pr-overview-card:nth-child(2) {
+            --pr-metric-accent: #f59e0b;
+            animation-delay: 0.08s;
+        }
+
+        .pr-overview-card:nth-child(3) {
+            --pr-metric-accent: #3b82f6;
+            animation-delay: 0.13s;
+        }
+
+        .pr-overview-card:nth-child(4) {
+            --pr-metric-accent: #10b981;
+            animation-delay: 0.18s;
+        }
+
+        .pr-overview-label {
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.25rem;
+        }
+
+        .dark .pr-overview-label {
+            color: #94a3b8;
+        }
+
+        .pr-overview-value {
+            display: block;
+            font-size: 1.45rem;
+            line-height: 1.1;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .dark .pr-overview-value {
+            color: #f8fafc;
+        }
+
+        .pr-overview-note {
+            display: block;
+            margin-top: 0.16rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .dark .pr-overview-note {
+            color: #94a3b8;
+        }
+
+        .pr-list-surface {
+            border: 1px solid #dbe7f6;
+            background:
+                radial-gradient(circle at 10% -35%, rgba(14, 165, 233, 0.12) 0%, rgba(14, 165, 233, 0) 50%),
+                linear-gradient(180deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.98) 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 16px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .dark .pr-list-surface {
+            border-color: #334155;
+            background:
+                radial-gradient(circle at 9% -45%, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0) 55%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(15, 23, 42, 0.92) 100%);
+            box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08), 0 16px 26px rgba(2, 6, 23, 0.5);
+        }
+
+        .pr-list-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #d5e3f3;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+            animation: prPopIn 0.35s ease both;
+        }
+
+        .pr-list-card:nth-child(1) {
+            animation-delay: 0.03s;
+        }
+
+        .pr-list-card:nth-child(2) {
+            animation-delay: 0.07s;
+        }
+
+        .pr-list-card:nth-child(3) {
+            animation-delay: 0.11s;
+        }
+
+        .pr-list-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(14, 165, 233, 0.08), transparent 36%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .pr-list-card:hover::after {
+            opacity: 1;
+        }
+
+        .dark .pr-list-card {
+            border-color: #334155;
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.44);
+        }
+
+        .pr-action-btn {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-color: #bfdbfe;
+        }
+
+        .pr-action-btn:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+
+        .dark .pr-action-btn {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-color: #334155;
+        }
+
+        .dark .pr-action-btn:hover {
+            background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+            color: #0f172a;
+            border-color: transparent;
+        }
+
+        @keyframes prPopIn {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .pr-overview-metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .pr-overview-band {
+                padding: 0.82rem;
+            }
+
+            .pr-overview-head {
+                flex-direction: column;
+                margin-bottom: 0.72rem;
+                gap: 0.6rem;
+            }
+
+            .pr-overview-filter-chip {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .pr-overview-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
     {{-- Flatpickr Assets - Moved to @assets for SPA persistence --}}
@@ -1764,6 +2042,63 @@
                     </section>
                 </div>
             </div>
+
+            @php
+            $summary = $prSummary ?? [
+            'total' => $prList->total(),
+            'waiting' => 0,
+            'submitted' => 0,
+            'approved' => 0,
+            ];
+
+            $activeFilterCount = collect([
+            filled($search),
+            filled($startDate),
+            filled($endDate),
+            ])->filter()->count();
+            @endphp
+
+            <!-- <section class="pr-overview-band" aria-label="Ringkasan daftar pengajuan PR">
+                <div class="pr-overview-head">
+                    <div>
+                        <h3 class="pr-overview-title">Ringkasan Pengajuan PR</h3>
+                        <div class="pr-overview-subtitle">Menampilkan {{ $prList->count() }} dari {{ $prList->total() }} data berdasarkan filter aktif.</div>
+                    </div>
+                    <div class="pr-overview-filter-chip">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h18M6.75 12h10.5m-7.5 7.5h4.5" />
+                        </svg>
+                        {{ $activeFilterCount }} filter aktif
+                    </div>
+                </div>
+
+                <div class="pr-overview-metrics">
+                    <article class="pr-overview-card">
+                        <span class="pr-overview-label">Total Pengajuan</span>
+                        <span class="pr-overview-value">{{ $summary['total'] ?? 0 }}</span>
+                        <span class="pr-overview-note">Dalam rentang filter saat ini</span>
+                    </article>
+
+                    <article class="pr-overview-card">
+                        <span class="pr-overview-label">Menunggu Aksi</span>
+                        <span class="pr-overview-value">{{ $summary['waiting'] ?? 0 }}</span>
+                        <span class="pr-overview-note">Status menunggu / waiting approval</span>
+                    </article>
+
+                    <article class="pr-overview-card">
+                        <span class="pr-overview-label">Sudah Diajukan</span>
+                        <span class="pr-overview-value">{{ $summary['submitted'] ?? 0 }}</span>
+                        <span class="pr-overview-note">Sedang diproses sistem approval</span>
+                    </article>
+
+                    <article class="pr-overview-card">
+                        <span class="pr-overview-label">Disetujui</span>
+                        <span class="pr-overview-value">{{ $summary['approved'] ?? 0 }}</span>
+                        <span class="pr-overview-note">Siap lanjut ke tahapan berikutnya</span>
+                    </article>
+                </div>
+            </section> -->
+
             <div class="pr-list-surface">
                 @forelse($prList as $pr)
                 @php

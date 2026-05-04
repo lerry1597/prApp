@@ -17,6 +17,7 @@ class PrHeader extends Model
     protected $fillable = [
         'batch_id',
         'pr_number',
+        'po_number',
         'pr_status',
         'requester_id',
         'department_id',
@@ -26,6 +27,10 @@ class PrHeader extends Model
         'current_step_id',
         'approved_at',
         'description',
+    ];
+
+    protected $casts = [
+        'approved_at' => 'datetime',
     ];
 
     public function currentRole(): BelongsTo

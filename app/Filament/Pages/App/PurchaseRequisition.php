@@ -102,11 +102,24 @@ class PurchaseRequisition extends Page
             $query->where('created_at', '<=', $endAt);
         }
 
+        $statusCounts = (clone $query)
+            ->selectRaw('pr_status, COUNT(*) as total')
+            ->groupBy('pr_status')
+            ->pluck('total', 'pr_status');
+
+        $prSummary = [
+            'total' => (clone $query)->count(),
+            'waiting' => (int) ($statusCounts[PrStatusConstant::WAITING_APPROVAL] ?? 0) + (int) ($statusCounts[PrStatusConstant::PENDING] ?? 0),
+            'submitted' => (int) ($statusCounts[PrStatusConstant::SUBMITTED] ?? 0),
+            'approved' => (int) ($statusCounts[PrStatusConstant::APPROVED] ?? 0),
+        ];
+
         $prList = $query->latest()
             ->paginate(3);
 
         return [
             'prList' => $prList,
+            'prSummary' => $prSummary,
         ];
     }
 

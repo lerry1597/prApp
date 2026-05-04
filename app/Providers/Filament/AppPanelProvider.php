@@ -39,6 +39,10 @@ class AppPanelProvider extends PanelProvider
                     return route('filament.app.pages.purchase-requisition-form');
                 }
 
+                if ($user?->roles()->where('name', \App\Constants\RoleConstant::PROCUREMENT_OFFICER)->exists()) {
+                    return route('filament.app.pages.procurement-officer-pr-list');
+                }
+
                 return route('filament.app.pages.dashboard');
             })
             ->topNavigation(true)
@@ -52,6 +56,10 @@ class AppPanelProvider extends PanelProvider
                 \App\Filament\Pages\App\PurchaseRequisitionForm::class,
                 \App\Filament\Pages\App\PurchaseRequisition::class,
                 \App\Filament\Pages\App\PurchaseRequisitionHistory::class,
+                \App\Filament\Pages\App\ProcurementOfficerPrList::class,
+                \App\Filament\Pages\App\ProcessedPoList::class,
+                \App\Filament\Pages\App\VesselPrOverview::class,
+                \App\Filament\Pages\App\PrFlowHistory::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([

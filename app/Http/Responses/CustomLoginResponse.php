@@ -25,6 +25,10 @@ class CustomLoginResponse extends LoginResponse
                 return redirect('/approvals');
             }
 
+            if ($user->roles()->where('name', RoleConstant::PROCUREMENT_OFFICER)->exists()) {
+                return redirect('/procurement-officer-pr-list');
+            }
+
             return redirect('/');
         }
 
