@@ -22,6 +22,7 @@ class Item extends Model
         'quantity',
         'unit',
         'remaining',
+        'po_number',
     ];
 
     public function itemCategory(): BelongsTo

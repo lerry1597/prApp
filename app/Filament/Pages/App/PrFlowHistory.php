@@ -73,7 +73,7 @@ class PrFlowHistory extends Page
     {
         $terminalStatuses = self::TERMINAL_STATUSES;
 
-        $query = PrHeader::with(['detail', 'detail.vessel', 'requester'])
+        $query = PrHeader::with(['detail', 'detail.vessel', 'detail.items', 'items', 'requester'])
             ->whereIn('pr_status', $terminalStatuses);
 
         if ($this->statusFilter) {
@@ -85,6 +85,9 @@ class PrFlowHistory extends Page
             $query->where(function ($q) use ($search) {
                 $q->where('pr_number', 'like', "%{$search}%")
                     ->orWhere('po_number', 'like', "%{$search}%")
+                    ->orWhereHas('detail.items', function ($iq) use ($search) {
+                        $iq->where('po_number', 'like', "%{$search}%");
+                    })
                     ->orWhereHas('detail', function ($dq) use ($search) {
                         $dq->where('needs', 'like', "%{$search}%")
                             ->orWhere('title', 'like', "%{$search}%")

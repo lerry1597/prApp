@@ -45,7 +45,7 @@ class ProcessedPoList extends Page
     {
         $now = Carbon::now();
 
-        $query = PrHeader::with(['detail', 'detail.vessel', 'requester', 'approver'])
+        $query = PrHeader::with(['detail', 'detail.vessel', 'detail.items', 'items', 'requester', 'approver'])
             ->where('pr_status', PrStatusConstant::CONVERTED_TO_PO);
 
         if ($this->search) {
@@ -53,6 +53,9 @@ class ProcessedPoList extends Page
             $query->where(function ($q) use ($search) {
                 $q->where('pr_number', 'like', "%{$search}%")
                     ->orWhere('po_number', 'like', "%{$search}%")
+                    ->orWhereHas('detail.items', function ($iq) use ($search) {
+                        $iq->where('po_number', 'like', "%{$search}%");
+                    })
                     ->orWhereHas('detail', function ($dq) use ($search) {
                         $dq->where('needs', 'like', "%{$search}%")
                             ->orWhere('title', 'like', "%{$search}%")

@@ -60,7 +60,7 @@ class PurchaseRequisition extends Page
     {
         $user = auth()->user();
 
-        $query = PrHeader::with(['detail', 'detail.vessel', 'currentRole'])
+        $query = PrHeader::with(['detail', 'detail.vessel', 'items', 'currentRole'])
             ->where('requester_id', $user?->id)
             ->whereNotIn('pr_status', [
                 PrStatusConstant::REJECTED,

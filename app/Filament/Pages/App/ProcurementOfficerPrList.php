@@ -33,7 +33,9 @@ class ProcurementOfficerPrList extends Page
 
     public bool $showApproveModal = false;
     public ?int $approvalPrId = null;
-    public string $poNumber = '';
+    public array $poNumbers = [];
+    public string $bulkPoNumber = '';
+    public array $approvalItems = [];
     public string $approveError = '';
 
     protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
@@ -76,10 +78,25 @@ class ProcurementOfficerPrList extends Page
             ->whereNotIn('pr_status', [
                 PrStatusConstant::REJECTED,
                 PrStatusConstant::CLOSED,
+                PrStatusConstant::CONVERTED_TO_PO,
             ])
-            ->whereNotNull('current_role_id')
-            ->whereNotNull('current_step_id')
-            ->where('current_role_id', $procurementRole->id);
+            ->where(function ($q) use ($procurementRole) {
+                // PR yang masih di step procurement
+                $q->where(function ($sq) use ($procurementRole) {
+                    $sq->whereNotNull('current_role_id')
+                        ->whereNotNull('current_step_id')
+                        ->where('current_role_id', $procurementRole->id);
+                })
+                // ATAU PR approved yang masih punya item tanpa PO (partial assignment)
+                ->orWhere(function ($sq) {
+                    $sq->where('pr_status', PrStatusConstant::APPROVED)
+                        ->whereHas('items', function ($iq) {
+                            $iq->where(function ($nq) {
+                                $nq->whereNull('po_number')->orWhere('po_number', '');
+                            });
+                        });
+                });
+            });
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -296,8 +313,29 @@ class ProcurementOfficerPrList extends Page
     public function openApproveModal(int $id): void
     {
         $this->approvalPrId = $id;
-        $this->poNumber = '';
         $this->approveError = '';
+        $this->bulkPoNumber = '';
+
+        // Load items for this PR
+        $header = PrHeader::with('items.itemCategory')->find($id);
+        $items = $header ? $header->items()->orderBy('id')->get() : collect();
+
+        $this->approvalItems = $items->map(fn($item) => [
+            'id'        => $item->id,
+            'category'  => $item->itemCategory?->name ?? '—',
+            'type'      => $item->type,
+            'size'      => $item->size,
+            'qty'       => (float) $item->quantity,
+            'unit'      => $item->unit,
+            'po_number' => $item->po_number ?? '',
+        ])->toArray();
+
+        // Pre-fill poNumbers from existing data
+        $this->poNumbers = [];
+        foreach ($this->approvalItems as $item) {
+            $this->poNumbers[$item['id']] = $item['po_number'];
+        }
+
         $this->showApproveModal = true;
     }
 
@@ -305,22 +343,40 @@ class ProcurementOfficerPrList extends Page
     {
         $this->showApproveModal = false;
         $this->approvalPrId = null;
-        $this->poNumber = '';
+        $this->poNumbers = [];
+        $this->bulkPoNumber = '';
+        $this->approvalItems = [];
         $this->approveError = '';
+    }
+
+    public function applyBulkPo(): void
+    {
+        $bulk = trim($this->bulkPoNumber);
+        if ($bulk === '') return;
+
+        foreach ($this->approvalItems as $item) {
+            // Hanya isi yang belum punya PO
+            if (empty($this->poNumbers[$item['id']] ?? '')) {
+                $this->poNumbers[$item['id']] = $bulk;
+            }
+        }
     }
 
     public function confirmApprove(): void
     {
         $this->approveError = '';
 
-        $this->poNumber = trim($this->poNumber);
-        if ($this->poNumber === '') {
-            $this->approveError = 'Nomor PO wajib diisi.';
+        if (! $this->approvalPrId) {
+            $this->approveError = 'Data PR tidak valid.';
             return;
         }
 
-        if (! $this->approvalPrId) {
-            $this->approveError = 'Data PR tidak valid.';
+        // Filter hanya yang diisi
+        $filled = collect($this->poNumbers)
+            ->filter(fn($po) => is_string($po) && trim($po) !== '');
+
+        if ($filled->isEmpty()) {
+            $this->approveError = 'Minimal satu item harus diisi nomor PO.';
             return;
         }
 
@@ -333,20 +389,31 @@ class ProcurementOfficerPrList extends Page
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        $result = app(ConvertToPoService::class)->execute($header, $this->poNumber, $user);
+        $result = app(ConvertToPoService::class)->execute($header, $this->poNumbers, $user);
 
         if (! $result['ok']) {
             $this->approveError = $result['title'] . ': ' . $result['message'];
             return;
         }
 
-        $this->closeApproveModal();
-        $this->closeDetail();
+        $allAssigned = $result['all_assigned'] ?? false;
+        $poList = $filled->unique()->implode(', ');
 
-        Notification::make()
-            ->success()
-            ->title('Konversi ke PO Berhasil')
-            ->body('PR berhasil dikonversi ke PO dengan nomor: ' . $this->poNumber)
-            ->send();
+        $this->closeApproveModal();
+
+        if ($allAssigned) {
+            $this->closeDetail();
+            Notification::make()
+                ->success()
+                ->title('Konversi ke PO Selesai')
+                ->body('Semua item telah di-assign PO. PR selesai diproses.')
+                ->send();
+        } else {
+            Notification::make()
+                ->success()
+                ->title('PO Berhasil Disimpan')
+                ->body('Nomor PO berhasil disimpan untuk sebagian item. PR masih menunggu item lainnya.')
+                ->send();
+        }
     }
 }

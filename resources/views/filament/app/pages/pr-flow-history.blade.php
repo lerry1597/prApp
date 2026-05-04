@@ -287,8 +287,19 @@
                             <tr>
                                 <td>
                                     <span class="pfh-pr-number">{{ $pr->pr_number }}</span>
-                                    @if($pr->po_number)
-                                        <div style="font-size:.75rem;font-weight:700;color:#059669;margin-top:.15rem;">PO: {{ $pr->po_number }}</div>
+                                    @php
+                                        $uniquePos = $pr->items->pluck('po_number')->filter()->unique();
+                                    @endphp
+                                    @if($uniquePos->count() > 0)
+                                        <div style="display:flex; flex-wrap:wrap; gap:.25rem; margin-top:.15rem;">
+                                            @foreach($uniquePos as $uPo)
+                                                <div style="font-size:.72rem; font-weight:800; color:#059669; background:#ecfdf5; padding:.1rem .4rem; border-radius:.4rem; border:1px solid #a7f3d0;">
+                                                    PO: {{ $uPo }}
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @elseif($pr->po_number)
+                                        <div style="font-size:.72rem; font-weight:800; color:#059669; margin-top:.15rem;">PO: {{ $pr->po_number }}</div>
                                     @endif
                                 </td>
                                 <td><span class="pfh-vessel-name">{{ $pr->detail?->vessel?->name ?? '—' }}</span></td>
@@ -418,8 +429,23 @@
                                         </div>
                                         @php
                                             $poInPayload = $log->payload['po_number'] ?? null;
+                                            $poNumbersArr = $log->payload['po_numbers'] ?? null;
                                         @endphp
-                                        @if($poInPayload)
+                                        @if($poNumbersArr && is_array($poNumbersArr))
+                                            @php 
+                                                $uniqueNewPos = collect($poNumbersArr)->filter()->unique();
+                                            @endphp
+                                            @if($uniqueNewPos->count() > 0)
+                                                <div class="pfh-tl-row">
+                                                    <span class="pfh-tl-row-label">Nomor PO</span>
+                                                    <div style="display:flex; flex-wrap:wrap; gap:.3rem;">
+                                                        @foreach($uniqueNewPos as $pNum)
+                                                            <span class="pfh-tl-row-val" style="color:#059669; background:#ecfdf5; padding:0 .4rem; border-radius:.3rem;">{{ $pNum }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @elseif($poInPayload)
                                             <div class="pfh-tl-row">
                                                 <span class="pfh-tl-row-label">Nomor PO</span>
                                                 <span class="pfh-tl-row-val" style="color:#059669;">{{ $poInPayload }}</span>

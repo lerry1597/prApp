@@ -2029,12 +2029,13 @@
             </div>
 
             {{-- Status filter --}}
-            <select wire:model.live="statusFilter" class="poc-filter-select">
+            {{-- select wire:model.live="statusFilter" class="poc-filter-select">
                 <option value="">Semua Status</option>
                 @foreach($statuses as $key => $label)
                 <option value="{{ $key }}">{{ $label }}</option>
-                @endforeach
-            </select>
+            @endforeach
+            </select> --}}
+
 
             {{-- Reset --}}
             <button type="button" wire:click="resetFilters" class="poc-reset-btn">
@@ -2349,11 +2350,13 @@
                         </span>
                         @endif
                     </div>
-                    
+
                     @if(isset($itemDiffs) && count($itemDiffs) > 0)
                     <div style="margin-bottom: 1.2rem;">
                         <button type="button" wire:click="openDiffModal" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 0.85rem; font-size:0.75rem; font-weight:600; color:#6366f1; background:#eef2ff; border:1px solid #c7d2fe; border-radius:0.5rem; cursor:pointer; transition:all 0.2s ease;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                            </svg>
                             Lihat {{ count($itemDiffs) }} Perubahan oleh Approver
                         </button>
                     </div>
@@ -2402,9 +2405,9 @@
                                     </td>
                                     <td>
                                         @if($item->remaining !== null)
-                                            <span class="poc-item-remaining">{{ $item->remaining }}</span>
+                                        <span class="poc-item-remaining">{{ $item->remaining }}</span>
                                         @else
-                                            <span style="color:#94a3b8;font-size:.8rem;">—</span>
+                                        <span style="color:#94a3b8;font-size:.8rem;">—</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -2438,68 +2441,488 @@
     @endif
 
     {{-- ══════════════════════════════════════════
-         PO NUMBER MODAL
+         PO NUMBER MODAL (Per-Item)
          ══════════════════════════════════════════ --}}
     @if($showApproveModal)
     <div class="poc-modal-backdrop">
-        <div class="poc-modal" role="dialog" aria-modal="true">
+        <div style="width:100%; max-width:56rem; margin:auto; border-radius:1rem; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.35); display:flex; flex-direction:column; max-height:90vh; background:#fff;" role="dialog" aria-modal="true">
+            <style>
+                .pom-header {
+                    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0ea5e9 100%);
+                    padding: 1.15rem 1.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-shrink: 0;
+                }
 
-            {{-- Modal header --}}
-            <div class="poc-modal-header">
-                <div class="poc-modal-title">
-                    <div class="poc-modal-title-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                .pom-header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: .75rem;
+                }
+
+                .pom-header-icon {
+                    width: 2.2rem;
+                    height: 2.2rem;
+                    border-radius: .6rem;
+                    background: rgba(255, 255, 255, 0.15);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .pom-header-icon svg {
+                    width: 1.1rem;
+                    height: 1.1rem;
+                    color: #bae6fd;
+                }
+
+                .pom-header-title {
+                    font-size: 1.05rem;
+                    font-weight: 800;
+                    color: #fff;
+                }
+
+                .pom-header-sub {
+                    font-size: .78rem;
+                    color: rgba(186, 230, 253, 0.75);
+                    font-weight: 600;
+                    margin-top: .1rem;
+                }
+
+                .pom-close {
+                    width: 2rem;
+                    height: 2rem;
+                    border-radius: .5rem;
+                    border: none;
+                    background: rgba(255, 255, 255, 0.12);
+                    color: #bae6fd;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background .2s;
+                }
+
+                .pom-close:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                }
+
+                .pom-close svg {
+                    width: 1rem;
+                    height: 1rem;
+                }
+
+                .pom-body {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 1rem 1.25rem;
+                    background: #f8fafc;
+                }
+
+                .dark .pom-body {
+                    background: #0f172a;
+                }
+
+                .pom-bulk-bar {
+                    display: flex;
+                    align-items: flex-end;
+                    gap: .5rem;
+                    margin-bottom: 1rem;
+                    padding: .75rem;
+                    background: #eff6ff;
+                    border: 1px solid #bfdbfe;
+                    border-radius: .6rem;
+                }
+
+                .dark .pom-bulk-bar {
+                    background: rgba(30, 64, 175, 0.12);
+                    border-color: rgba(96, 165, 250, 0.3);
+                }
+
+                .pom-bulk-label {
+                    font-size: .72rem;
+                    font-weight: 700;
+                    color: #1e40af;
+                    margin-bottom: .25rem;
+                }
+
+                .dark .pom-bulk-label {
+                    color: #93c5fd;
+                }
+
+                .pom-bulk-input {
+                    flex: 1;
+                    min-height: 2.35rem;
+                    padding: .45rem .7rem;
+                    border-radius: .5rem;
+                    border: 1px solid #93c5fd;
+                    font-size: .82rem;
+                    font-weight: 700;
+                    color: #0f172a;
+                    background: #fff;
+                }
+
+                .dark .pom-bulk-input {
+                    background: #1e293b;
+                    border-color: #334155;
+                    color: #f8fafc;
+                }
+
+                .pom-bulk-input:focus {
+                    border-color: #2563eb;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+                    outline: none;
+                }
+
+                .pom-bulk-btn {
+                    min-height: 2.35rem;
+                    padding: 0 .85rem;
+                    border-radius: .5rem;
+                    border: none;
+                    background: #2563eb;
+                    color: #fff;
+                    font-size: .78rem;
+                    font-weight: 800;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    transition: background .2s;
+                }
+
+                .pom-bulk-btn:hover {
+                    background: #1d4ed8;
+                }
+
+                .pom-table-wrap {
+                    border-radius: .6rem;
+                    overflow: hidden;
+                    border: 1px solid #e2e8f0;
+                }
+
+                .dark .pom-table-wrap {
+                    border-color: #334155;
+                }
+
+                .pom-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: .78rem;
+                }
+
+                .pom-table thead th {
+                    padding: .55rem .6rem;
+                    font-weight: 800;
+                    text-align: left;
+                    background: #f1f5f9;
+                    color: #475569;
+                    border-bottom: 1px solid #e2e8f0;
+                    white-space: nowrap;
+                }
+
+                .dark .pom-table thead th {
+                    background: #1e293b;
+                    color: #94a3b8;
+                    border-bottom-color: #334155;
+                }
+
+                .pom-table tbody td {
+                    padding: .5rem .6rem;
+                    border-bottom: 1px solid #f1f5f9;
+                    color: #0f172a;
+                    font-weight: 600;
+                    vertical-align: middle;
+                }
+
+                .dark .pom-table tbody td {
+                    border-bottom-color: #1e293b;
+                    color: #e2e8f0;
+                }
+
+                .pom-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+                .pom-table tbody tr:hover td {
+                    background: rgba(14, 165, 233, 0.04);
+                }
+
+                .dark .pom-table tbody tr:hover td {
+                    background: rgba(14, 165, 233, 0.06);
+                }
+
+                .pom-po-input {
+                    width: 100%;
+                    min-height: 2.15rem;
+                    padding: .35rem .55rem;
+                    border-radius: .4rem;
+                    border: 1px solid #cbd5e1;
+                    font-size: .78rem;
+                    font-weight: 700;
+                    color: #0f172a;
+                    background: #fff;
+                    transition: border-color .2s;
+                }
+
+                .dark .pom-po-input {
+                    background: #0f172a;
+                    border-color: #334155;
+                    color: #f8fafc;
+                }
+
+                .pom-po-input:focus {
+                    border-color: #2563eb;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+                    outline: none;
+                }
+
+                .pom-po-input.pom-has-po {
+                    background: #ecfdf5;
+                    border-color: #86efac;
+                    color: #065f46;
+                }
+
+                .dark .pom-po-input.pom-has-po {
+                    background: rgba(6, 95, 70, 0.15);
+                    border-color: rgba(134, 239, 172, 0.4);
+                    color: #6ee7b7;
+                }
+
+                .pom-po-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: .25rem;
+                    padding: .15rem .4rem;
+                    border-radius: .3rem;
+                    font-size: .65rem;
+                    font-weight: 700;
+                    background: #d1fae5;
+                    color: #065f46;
+                }
+
+                .dark .pom-po-badge {
+                    background: rgba(6, 95, 70, 0.25);
+                    color: #6ee7b7;
+                }
+
+                .pom-footer {
+                    background: #fff;
+                    border-top: 1px solid #e2e8f0;
+                    padding: .85rem 1.25rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-shrink: 0;
+                    gap: .75rem;
+                }
+
+                .dark .pom-footer {
+                    background: #0f172a;
+                    border-top-color: #1e293b;
+                }
+
+                .pom-footer-info {
+                    font-size: .72rem;
+                    color: #64748b;
+                    font-weight: 600;
+                }
+
+                .dark .pom-footer-info {
+                    color: #94a3b8;
+                }
+
+                .pom-footer-actions {
+                    display: flex;
+                    gap: .5rem;
+                }
+
+                .pom-cancel-btn {
+                    padding: .5rem 1rem;
+                    border-radius: .6rem;
+                    border: 1px solid #e2e8f0;
+                    background: #fff;
+                    color: #475569;
+                    font-size: .82rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all .2s;
+                }
+
+                .pom-cancel-btn:hover {
+                    background: #f1f5f9;
+                }
+
+                .dark .pom-cancel-btn {
+                    background: #1e293b;
+                    border-color: #334155;
+                    color: #cbd5e1;
+                }
+
+                .dark .pom-cancel-btn:hover {
+                    background: #334155;
+                }
+
+                .pom-confirm-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: .35rem;
+                    padding: .5rem 1rem;
+                    border-radius: .6rem;
+                    border: none;
+                    background: #059669;
+                    color: #fff;
+                    font-size: .82rem;
+                    font-weight: 800;
+                    cursor: pointer;
+                    transition: background .2s;
+                }
+
+                .pom-confirm-btn:hover {
+                    background: #047857;
+                }
+
+                .pom-confirm-btn svg {
+                    width: .9rem;
+                    height: .9rem;
+                }
+
+                .pom-error {
+                    display: flex;
+                    align-items: center;
+                    gap: .4rem;
+                    padding: .5rem .75rem;
+                    border-radius: .5rem;
+                    background: #fff1f2;
+                    border: 1px solid #fecaca;
+                    color: #be123c;
+                    font-size: .78rem;
+                    font-weight: 700;
+                    margin-bottom: .75rem;
+                }
+
+                .dark .pom-error {
+                    background: rgba(190, 18, 60, 0.12);
+                    border-color: rgba(252, 165, 165, 0.3);
+                    color: #fda4af;
+                }
+
+                .pom-error svg {
+                    width: .9rem;
+                    height: .9rem;
+                    flex-shrink: 0;
+                }
+            </style>
+
+            {{-- Header --}}
+            <div class="pom-header">
+                <div class="pom-header-left">
+                    <div class="pom-header-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                         </svg>
                     </div>
-                    Konversi ke Purchase Order
+                    <div>
+                        <div class="pom-header-title">Konversi ke Purchase Order</div>
+                        <div class="pom-header-sub">Isi nomor PO untuk setiap item. Bisa sebagian atau semua sekaligus.</div>
+                    </div>
                 </div>
-                <button type="button" class="poc-modal-close-btn" wire:click="closeApproveModal">
+                <button type="button" class="pom-close" wire:click="closeApproveModal">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            {{-- Modal body --}}
-            <div class="poc-modal-body">
-                <p class="poc-modal-desc">
-                    Masukkan nomor PO untuk mengkonversi pengajuan PR ini. Status PR akan berubah menjadi
-                    <strong>Converted to PO</strong> dan tidak dapat dikembalikan.
-                </p>
-
-                <div class="poc-modal-field">
-                    <label for="poc-po-number">Nomor PO</label>
-                    <input
-                        id="poc-po-number"
-                        type="text"
-                        wire:model="poNumber"
-                        placeholder="Contoh: PO-2026-0001"
-                        class="poc-modal-input"
-                        autocomplete="off">
-                </div>
+            {{-- Body --}}
+            <div class="pom-body">
 
                 @if($approveError)
-                <div class="poc-modal-error">
+                <div class="pom-error">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
                     {{ $approveError }}
                 </div>
                 @endif
+
+                <!-- {{-- Bulk fill --}}
+                <div class="pom-bulk-bar">
+                    <div style="flex:1;">
+                        <div class="pom-bulk-label">Isi semua item yang belum punya PO</div>
+                        <input type="text" wire:model="bulkPoNumber" class="pom-bulk-input" placeholder="Contoh: PO-2026-0001" autocomplete="off">
+                    </div>
+                    <button type="button" class="pom-bulk-btn" wire:click="applyBulkPo">
+                        Terapkan
+                    </button>
+                </div> -->
+
+                {{-- Items table --}}
+                <div class="pom-table-wrap">
+                    <table class="pom-table">
+                        <thead>
+                            <tr>
+                                <th style="width:2rem;">#</th>
+                                <th>Kategori</th>
+                                <th>Nama Barang</th>
+                                <th>Ukuran</th>
+                                <th style="width:3.5rem;">Qty</th>
+                                <th style="width:3.5rem;">Satuan</th>
+                                <th style="min-width:10rem;">Nomor PO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($approvalItems as $idx => $item)
+                            <tr>
+                                <td>{{ $idx + 1 }}</td>
+                                <td>{{ $item['category'] }}</td>
+                                <td class="font-extrabold text-slate-900 dark:text-white">{{ $item['type'] }}</td>
+                                <td class="text-slate-600 dark:text-slate-400">{{ $item['size'] }}</td>
+                                <td style="text-align:center;">{{ $item['qty'] }}</td>
+                                <td>{{ $item['unit'] }}</td>
+                                <td>
+                                    @if(!empty($item['po_number']))
+                                    <span class="pom-po-badge">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:.7rem;height:.7rem;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ $item['po_number'] }}
+                                    </span>
+                                    @endif
+                                    <input
+                                        type="text"
+                                        wire:model="poNumbers.{{ $item['id'] }}"
+                                        class="pom-po-input {{ !empty($poNumbers[$item['id']] ?? '') ? 'pom-has-po' : '' }}"
+                                        placeholder="{{ !empty($item['po_number']) ? 'Ubah PO...' : 'Isi nomor PO' }}"
+                                        autocomplete="off">
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            {{-- Modal footer --}}
-            <div class="poc-modal-footer">
-                <button type="button" class="poc-modal-cancel-btn" wire:click="closeApproveModal">
-                    Batal
-                </button>
-                <button type="button" class="poc-modal-confirm-btn" wire:click="confirmApprove">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Konfirmasi & Konversi
-                </button>
+            {{-- Footer --}}
+            <div class="pom-footer">
+                @php
+                $filledCount = collect($poNumbers)->filter(fn($po) => is_string($po) && trim($po) !== '')->count();
+                $totalCount = count($approvalItems);
+                @endphp
+                <div class="pom-footer-info">
+                    {{ $filledCount }} / {{ $totalCount }} item sudah diisi PO
+                </div>
+                <div class="pom-footer-actions">
+                    <button type="button" class="pom-cancel-btn" wire:click="closeApproveModal">
+                        Batal
+                    </button>
+                    <button type="button" class="pom-confirm-btn" wire:click="confirmApprove">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Simpan & Konversi
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -2513,63 +2936,339 @@
     <div class="poc-modal-backdrop" style="z-index: 9999;">
         <div style="width:100%; max-width:52rem; margin:auto; border-radius:1rem; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.4); display:flex; flex-direction:column; max-height:90vh;" role="dialog" aria-modal="true">
             <style>
-                .rdm-header { background:linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#7c3aed 100%); padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-                .rdm-header-left { display:flex; align-items:center; gap:.75rem; }
-                .rdm-header-icon { width:2.2rem; height:2.2rem; border-radius:.6rem; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-                .rdm-header-icon svg { width:1.1rem; height:1.1rem; color:#e0e7ff; }
-                .rdm-header-title { font-size:1.05rem; font-weight:800; color:#fff; }
-                .rdm-header-sub { font-size:.78rem; color:rgba(224,231,255,0.75); font-weight:600; margin-top:.1rem; }
-                .rdm-close { width:2rem; height:2rem; border-radius:.5rem; border:none; background:rgba(255,255,255,0.12); color:#e0e7ff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; }
-                .rdm-close:hover { background:rgba(255,255,255,0.25); }
-                .rdm-close svg { width:1rem; height:1rem; }
-                .rdm-body { background:#0f172a; flex:1; overflow-y:auto; padding:1.25rem 1.5rem; }
-                .rdm-timeline { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.25rem; position:relative; padding:0 .5rem; }
-                .rdm-timeline::before { content:''; position:absolute; top:1rem; left:2.5rem; right:2.5rem; height:3px; background:linear-gradient(90deg,#6366f1,#a78bfa); border-radius:2px; }
-                .rdm-step { display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; }
-                .rdm-step-num { width:2rem; height:2rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:800; color:#fff; margin-bottom:.35rem; }
-                .rdm-step-1 .rdm-step-num { background:#2563eb; }
-                .rdm-step-2 .rdm-step-num { background:#059669; }
-                .rdm-step-label { font-size:.72rem; font-weight:700; text-align:center; }
-                .rdm-step-1 .rdm-step-label { color:#60a5fa; }
-                .rdm-step-2 .rdm-step-label { color:#34d399; }
-                .rdm-step-time { font-size:.65rem; color:#94a3b8; font-weight:600; margin-top:.1rem; }
-                .rdm-table-wrap { border-radius:.6rem; overflow:hidden; border:1px solid #334155; }
-                .rdm-table { width:100%; border-collapse:collapse; font-size:.78rem; }
-                .rdm-table thead th { padding:.6rem .65rem; font-weight:800; text-align:left; white-space:nowrap; }
-                .rdm-table thead th.rdm-th-base { background:#1e293b; color:#cbd5e1; border-bottom:1px solid #334155; }
-                .rdm-table thead th.rdm-th-init { background:rgba(37,99,235,0.2); color:#93c5fd; border-bottom:1px solid #334155; text-align:center; }
-                .rdm-table thead th.rdm-th-latest { background:rgba(124,58,237,0.25); color:#c4b5fd; border-bottom:1px solid #334155; text-align:center; }
-                .rdm-table thead th .rdm-th-sub { display:block; font-size:.65rem; font-weight:600; opacity:.7; margin-top:.1rem; }
-                .rdm-table tbody td { padding:.55rem .65rem; color:#e2e8f0; border-bottom:1px solid #1e293b; font-weight:600; }
-                .rdm-table tbody tr:last-child td { border-bottom:none; }
-                .rdm-table tbody tr:hover td { background:rgba(99,102,241,0.06); }
-                .rdm-td-center { text-align:center !important; }
-                .rdm-td-init { background:rgba(37,99,235,0.06); }
-                .rdm-td-latest { background:rgba(124,58,237,0.1); }
-                .rdm-qty-up { color:#fbbf24 !important; }
-                .rdm-qty-down { color:#fbbf24 !important; }
-                .rdm-qty-same { color:#64748b !important; }
-                .rdm-qty-added { color:#34d399 !important; }
-                .rdm-qty-removed { color:#f87171 !important; text-decoration:line-through; }
-                .rdm-arrow { font-size:.65rem; margin-left:.25rem; }
-                .rdm-arrow-up { color:#fbbf24; }
-                .rdm-arrow-down { color:#f87171; }
-                .rdm-legend { display:flex; gap:1.2rem; flex-wrap:wrap; margin-top:1rem; padding-top:.75rem; }
-                .rdm-legend-item { display:flex; align-items:center; gap:.35rem; font-size:.7rem; font-weight:700; color:#94a3b8; }
-                .rdm-legend-icon { width:.9rem; height:.9rem; border-radius:.2rem; display:flex; align-items:center; justify-content:center; font-size:.55rem; font-weight:900; }
-                .rdm-legend-up { background:#fef3c7; color:#92400e; }
-                .rdm-legend-down { background:#ffe4e6; color:#be123c; }
-                .rdm-legend-same { background:#334155; color:#94a3b8; }
-                .rdm-footer { background:#0f172a; border-top:1px solid #1e293b; padding:.85rem 1.5rem; display:flex; justify-content:flex-end; flex-shrink:0; }
-                .rdm-close-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1.2rem; border-radius:.6rem; border:1px solid #334155; background:#1e293b; color:#cbd5e1; font-size:.82rem; font-weight:700; cursor:pointer; transition:all .2s; }
-                .rdm-close-btn:hover { background:#334155; color:#fff; }
+                .rdm-header {
+                    background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #7c3aed 100%);
+                    padding: 1.25rem 1.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-shrink: 0;
+                }
+
+                .rdm-header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: .75rem;
+                }
+
+                .rdm-header-icon {
+                    width: 2.2rem;
+                    height: 2.2rem;
+                    border-radius: .6rem;
+                    background: rgba(255, 255, 255, 0.15);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .rdm-header-icon svg {
+                    width: 1.1rem;
+                    height: 1.1rem;
+                    color: #e0e7ff;
+                }
+
+                .rdm-header-title {
+                    font-size: 1.05rem;
+                    font-weight: 800;
+                    color: #fff;
+                }
+
+                .rdm-header-sub {
+                    font-size: .78rem;
+                    color: rgba(224, 231, 255, 0.75);
+                    font-weight: 600;
+                    margin-top: .1rem;
+                }
+
+                .rdm-close {
+                    width: 2rem;
+                    height: 2rem;
+                    border-radius: .5rem;
+                    border: none;
+                    background: rgba(255, 255, 255, 0.12);
+                    color: #e0e7ff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background .2s;
+                }
+
+                .rdm-close:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                }
+
+                .rdm-close svg {
+                    width: 1rem;
+                    height: 1rem;
+                }
+
+                .rdm-body {
+                    background: #0f172a;
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 1.25rem 1.5rem;
+                }
+
+                .rdm-timeline {
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    margin-bottom: 1.25rem;
+                    position: relative;
+                    padding: 0 .5rem;
+                }
+
+                .rdm-timeline::before {
+                    content: '';
+                    position: absolute;
+                    top: 1rem;
+                    left: 2.5rem;
+                    right: 2.5rem;
+                    height: 3px;
+                    background: linear-gradient(90deg, #6366f1, #a78bfa);
+                    border-radius: 2px;
+                }
+
+                .rdm-step {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .rdm-step-num {
+                    width: 2rem;
+                    height: 2rem;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: .75rem;
+                    font-weight: 800;
+                    color: #fff;
+                    margin-bottom: .35rem;
+                }
+
+                .rdm-step-1 .rdm-step-num {
+                    background: #2563eb;
+                }
+
+                .rdm-step-2 .rdm-step-num {
+                    background: #059669;
+                }
+
+                .rdm-step-label {
+                    font-size: .72rem;
+                    font-weight: 700;
+                    text-align: center;
+                }
+
+                .rdm-step-1 .rdm-step-label {
+                    color: #60a5fa;
+                }
+
+                .rdm-step-2 .rdm-step-label {
+                    color: #34d399;
+                }
+
+                .rdm-step-time {
+                    font-size: .65rem;
+                    color: #94a3b8;
+                    font-weight: 600;
+                    margin-top: .1rem;
+                }
+
+                .rdm-table-wrap {
+                    border-radius: .6rem;
+                    overflow: hidden;
+                    border: 1px solid #334155;
+                }
+
+                .rdm-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: .78rem;
+                }
+
+                .rdm-table thead th {
+                    padding: .6rem .65rem;
+                    font-weight: 800;
+                    text-align: left;
+                    white-space: nowrap;
+                }
+
+                .rdm-table thead th.rdm-th-base {
+                    background: #1e293b;
+                    color: #cbd5e1;
+                    border-bottom: 1px solid #334155;
+                }
+
+                .rdm-table thead th.rdm-th-init {
+                    background: rgba(37, 99, 235, 0.2);
+                    color: #93c5fd;
+                    border-bottom: 1px solid #334155;
+                    text-align: center;
+                }
+
+                .rdm-table thead th.rdm-th-latest {
+                    background: rgba(124, 58, 237, 0.25);
+                    color: #c4b5fd;
+                    border-bottom: 1px solid #334155;
+                    text-align: center;
+                }
+
+                .rdm-table thead th .rdm-th-sub {
+                    display: block;
+                    font-size: .65rem;
+                    font-weight: 600;
+                    opacity: .7;
+                    margin-top: .1rem;
+                }
+
+                .rdm-table tbody td {
+                    padding: .55rem .65rem;
+                    color: #e2e8f0;
+                    border-bottom: 1px solid #1e293b;
+                    font-weight: 600;
+                }
+
+                .rdm-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+                .rdm-table tbody tr:hover td {
+                    background: rgba(99, 102, 241, 0.06);
+                }
+
+                .rdm-td-center {
+                    text-align: center !important;
+                }
+
+                .rdm-td-init {
+                    background: rgba(37, 99, 235, 0.06);
+                }
+
+                .rdm-td-latest {
+                    background: rgba(124, 58, 237, 0.1);
+                }
+
+                .rdm-qty-up {
+                    color: #fbbf24 !important;
+                }
+
+                .rdm-qty-down {
+                    color: #fbbf24 !important;
+                }
+
+                .rdm-qty-same {
+                    color: #64748b !important;
+                }
+
+                .rdm-qty-added {
+                    color: #34d399 !important;
+                }
+
+                .rdm-qty-removed {
+                    color: #f87171 !important;
+                    text-decoration: line-through;
+                }
+
+                .rdm-arrow {
+                    font-size: .65rem;
+                    margin-left: .25rem;
+                }
+
+                .rdm-arrow-up {
+                    color: #fbbf24;
+                }
+
+                .rdm-arrow-down {
+                    color: #f87171;
+                }
+
+                .rdm-legend {
+                    display: flex;
+                    gap: 1.2rem;
+                    flex-wrap: wrap;
+                    margin-top: 1rem;
+                    padding-top: .75rem;
+                }
+
+                .rdm-legend-item {
+                    display: flex;
+                    align-items: center;
+                    gap: .35rem;
+                    font-size: .7rem;
+                    font-weight: 700;
+                    color: #94a3b8;
+                }
+
+                .rdm-legend-icon {
+                    width: .9rem;
+                    height: .9rem;
+                    border-radius: .2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: .55rem;
+                    font-weight: 900;
+                }
+
+                .rdm-legend-up {
+                    background: #fef3c7;
+                    color: #92400e;
+                }
+
+                .rdm-legend-down {
+                    background: #ffe4e6;
+                    color: #be123c;
+                }
+
+                .rdm-legend-same {
+                    background: #334155;
+                    color: #94a3b8;
+                }
+
+                .rdm-footer {
+                    background: #0f172a;
+                    border-top: 1px solid #1e293b;
+                    padding: .85rem 1.5rem;
+                    display: flex;
+                    justify-content: flex-end;
+                    flex-shrink: 0;
+                }
+
+                .rdm-close-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: .4rem;
+                    padding: .5rem 1.2rem;
+                    border-radius: .6rem;
+                    border: 1px solid #334155;
+                    background: #1e293b;
+                    color: #cbd5e1;
+                    font-size: .82rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all .2s;
+                }
+
+                .rdm-close-btn:hover {
+                    background: #334155;
+                    color: #fff;
+                }
             </style>
 
             {{-- Header --}}
             <div class="rdm-header">
                 <div class="rdm-header-left">
                     <div class="rdm-header-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
                     <div>
                         <div class="rdm-header-title">Riwayat Perubahan Item</div>
@@ -2577,7 +3276,9 @@
                     </div>
                 </div>
                 <button type="button" class="rdm-close" wire:click="closeDiffModal">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
 
@@ -2618,23 +3319,23 @@
                                 <td>{{ $row['unit'] }}</td>
                                 <td class="rdm-td-center rdm-td-init">
                                     @if($row['init_qty'] !== null)
-                                        <span style="font-weight:800;">{{ $row['init_qty'] }}</span>
+                                    <span style="font-weight:800;">{{ $row['init_qty'] }}</span>
                                     @else
-                                        <span style="color:#475569;">—</span>
+                                    <span style="color:#475569;">—</span>
                                     @endif
                                 </td>
                                 <td class="rdm-td-center rdm-td-latest">
                                     @if($row['latest_qty'] !== null)
-                                        <span class="rdm-qty-{{ $row['qty_status'] }}" style="font-weight:800;">
-                                            {{ $row['latest_qty'] }}
-                                            @if($row['qty_status'] === 'up')
-                                                <span class="rdm-arrow rdm-arrow-up">▲</span>
-                                            @elseif($row['qty_status'] === 'down')
-                                                <span class="rdm-arrow rdm-arrow-down">▼</span>
-                                            @endif
-                                        </span>
+                                    <span class="rdm-qty-{{ $row['qty_status'] }}" style="font-weight:800;">
+                                        {{ $row['latest_qty'] }}
+                                        @if($row['qty_status'] === 'up')
+                                        <span class="rdm-arrow rdm-arrow-up">▲</span>
+                                        @elseif($row['qty_status'] === 'down')
+                                        <span class="rdm-arrow rdm-arrow-down">▼</span>
+                                        @endif
+                                    </span>
                                     @else
-                                        <span style="color:#475569;">—</span>
+                                    <span style="color:#475569;">—</span>
                                     @endif
                                 </td>
                             </tr>

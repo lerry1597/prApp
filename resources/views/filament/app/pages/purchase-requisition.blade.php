@@ -2139,6 +2139,21 @@
                                     </svg>
                                     <span>{{ $pr->detail->needs ?? '-' }}</span>
                                 </div>
+
+                                @php
+                                    $uniquePos = $pr->items->pluck('po_number')->filter()->unique();
+                                @endphp
+                                @if($uniquePos->count() > 0)
+                                    <div class="pr-meta-item" style="color:#059669;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1.5rem;height:1.5rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span style="font-weight:800;">PO: {{ $uniquePos->implode(', ') }}</span>
+                                    </div>
+                                @elseif($pr->po_number)
+                                    <div class="pr-meta-item" style="color:#059669;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1.5rem;height:1.5rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span style="font-weight:800;">PO: {{ $pr->po_number }}</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -2388,6 +2403,15 @@
                             <span class="pr-preview-info-label">Total Item</span>
                             <span class="pr-preview-info-value">{{ $selectedPr->detail->items->count() }} item</span>
                         </div>
+                        @php
+                            $uniqueDetailPos = $selectedPr->items->pluck('po_number')->filter()->unique();
+                        @endphp
+                        @if($uniqueDetailPos->count() > 0)
+                            <div class="pr-preview-info-item">
+                                <span class="pr-preview-info-label">Nomor PO</span>
+                                <span class="pr-preview-info-value" style="color:#059669; font-weight:800;">{{ $uniqueDetailPos->implode(', ') }}</span>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -2403,6 +2427,7 @@
                                         <th>Kategori Item</th>
                                         <th>Jenis / Nama Barang</th>
                                         <th>Ukuran / Spesifikasi</th>
+                                        <th style="min-width:120px;">Nomor PO</th>
                                         <th style="text-align: right;">Jumlah</th>
                                         <th>Satuan</th>
                                         <th style="text-align: right;">Sisa</th>
@@ -2413,8 +2438,15 @@
                                     <tr>
                                         <td style="text-align: center; color: #94a3b8; font-weight: 700;">{{ $index + 1 }}</td>
                                         <td class="pr-col-category">{{ $item->itemCategory->name ?? '—' }}</td>
-                                        <td style="font-weight: 700;">{{ $item->type }}</td>
-                                        <td>{{ $item->size }}</td>
+                                        <td class="font-extrabold text-slate-900 dark:text-white">{{ $item->type }}</td>
+                                        <td class="text-slate-600 dark:text-slate-400">{{ $item->size }}</td>
+                                        <td>
+                                            @if($item->po_number)
+                                                <span style="background:#ecfdf5; color:#059669; padding:.1rem .5rem; border-radius:.4rem; border:1px solid #a7f3d0; font-size:.75rem; font-weight:800;">{{ $item->po_number }}</span>
+                                            @else
+                                                <span style="color:#94a3b8;">—</span>
+                                            @endif
+                                        </td>
                                         <td style="text-align: right; font-weight: 700;">{{ $item->quantity }}</td>
                                         <td style="color: #64748b;">{{ $item->unit }}</td>
                                         <td style="text-align: right; font-weight: 700;">{{ $item->remaining }}</td>
