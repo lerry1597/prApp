@@ -47,6 +47,14 @@ class UserResource extends Resource
         return UsersTable::configure($table);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereDoesntHave('roles', function (Builder $query) {
+                $query->where('name', \App\Constants\RoleConstant::SUPER_ADMIN);
+            });
+    }
+
     public static function getRelations(): array
     {
         return [

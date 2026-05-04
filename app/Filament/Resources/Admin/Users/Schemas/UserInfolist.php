@@ -35,6 +35,11 @@ class UserInfolist
                                 'inactive' => 'danger',
                                 default => 'gray',
                             }),
+                        TextEntry::make('roles.name')
+                            ->label('Peran')
+                            ->badge()
+                            ->formatStateUsing(fn (string $state): string => str($state)->headline())
+                            ->color('primary'),
                         TextEntry::make('email_verified_at')
                             ->dateTime()
                             ->placeholder('-'),

@@ -5,6 +5,7 @@ namespace App\Filament\Pages\App;
 use App\Constants\PrStatusConstant;
 use App\Models\ItemLog;
 use App\Models\PrHeader;
+use Carbon\Carbon;
 use Filament\Pages\Page;
 use Livewire\WithPagination;
 
@@ -47,6 +48,14 @@ class PurchaseRequisition extends Page
         $this->resetPage();
     }
 
+    public function resetDateFilters(): void
+    {
+        $this->startDate = null;
+        $this->endDate = null;
+        $this->resetPage();
+        $this->dispatch('pr-date-filters-reset');
+    }
+
     public function getViewData(): array
     {
         $user = auth()->user();
@@ -57,25 +66,8 @@ class PurchaseRequisition extends Page
                 PrStatusConstant::REJECTED,
                 PrStatusConstant::CLOSED,
             ])
-            ->where(function ($q) {
-                // Tampilkan PR yang belum mencapai step terakhir workflow.
-                // Jika current_step_id masih null, tetap dianggap masih proses.
-                $q->whereNull('current_step_id')
-                    ->orWhereRaw(
-                        "EXISTS (
-                            SELECT 1
-                            FROM approval_steps s
-                            WHERE s.id = pr_headers.current_step_id
-                              AND s.deleted_at IS NULL
-                              AND s.step_order < (
-                                  SELECT MAX(s2.step_order)
-                                  FROM approval_steps s2
-                                  WHERE s2.approval_workflow_id = pr_headers.approval_workflow_id
-                                    AND s2.deleted_at IS NULL
-                              )
-                        )"
-                    );
-            });
+            ->whereNotNull('current_step_id')
+            ->whereNotNull('current_role_id');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -89,11 +81,25 @@ class PurchaseRequisition extends Page
         }
 
         if ($this->startDate) {
-            $query->whereDate('created_at', '>=', $this->startDate);
+            $startAt = Carbon::parse($this->startDate);
+
+            // Backward compatible: date-only values are treated as start of day.
+            if (! str_contains((string) $this->startDate, ':')) {
+                $startAt = $startAt->startOfDay();
+            }
+
+            $query->where('created_at', '>=', $startAt);
         }
 
         if ($this->endDate) {
-            $query->whereDate('created_at', '<=', $this->endDate);
+            $endAt = Carbon::parse($this->endDate);
+
+            // Backward compatible: date-only values are treated as end of day.
+            if (! str_contains((string) $this->endDate, ':')) {
+                $endAt = $endAt->endOfDay();
+            }
+
+            $query->where('created_at', '<=', $endAt);
         }
 
         $prList = $query->latest()

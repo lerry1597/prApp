@@ -9,28 +9,29 @@
         /* ===== ELDERLY FRIENDLY TYPOGRAPHY ===== */
         .pr-list-card {
             background: #ffffff;
-            border-bottom: 1px solid #94a3b8;
-            /* Darker, more proper separator */
-            transition: background-color 0.2s;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+            transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
             display: flex;
             align-items: stretch;
         }
 
-        .pr-list-card:last-child {
-            border-bottom: none;
-        }
-
         .dark .pr-list-card {
             background: #1e293b;
-            border-color: #475569;
+            border-color: #334155;
+            box-shadow: none;
         }
 
         .pr-list-card:hover {
             background: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.09);
         }
 
         .dark .pr-list-card:hover {
             background: #334155;
+            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.55);
         }
 
         /* Status Stripe */
@@ -244,9 +245,9 @@
         .pr-empty-state {
             padding: 8rem 2rem;
             text-align: center;
-            background: #ffffff;
-            border: none;
-            border-radius: 0;
+            background: transparent;
+            border: 1px dashed #cbd5e1;
+            border-radius: 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -255,7 +256,7 @@
         }
 
         .dark .pr-empty-state {
-            background: #1e293b;
+            border-color: #475569;
         }
 
         .pr-empty-icon {
@@ -296,243 +297,350 @@
                 height: auto;
                 padding: 1rem;
             }
+
+            .pr-list-surface {
+                padding: 0.45rem;
+                gap: 0.45rem;
+            }
         }
 
-        /* Search Section */
-        .pr-search-container {
-            display: flex;
-            justify-content: flex-end;
+        .pr-toolbar {
+            margin-bottom: 1.35rem;
             width: 100%;
+        }
+
+        .pr-list-surface {
+            margin-top: 0.2rem;
+            padding: 0.5rem;
+            border-radius: 1.2rem;
+            border: 1px solid #e2e8f0;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.9) 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .dark .pr-list-surface {
+            border-color: #334155;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(17, 24, 39, 0.8) 100%);
+        }
+
+        .pr-toolbar-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr);
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .pr-toolbar-panel {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #dbe4f0;
+            border-radius: 1.25rem;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .dark .pr-toolbar-panel {
+            background: linear-gradient(180deg, #0f172a 0%, #111c31 100%);
+            border-color: #334155;
+            box-shadow: none;
+        }
+
+        .pr-toolbar-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .pr-toolbar-icon-shell {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #dbeafe;
+            color: #1d4ed8;
+            flex-shrink: 0;
+        }
+
+        .dark .pr-toolbar-icon-shell {
+            background: rgba(59, 130, 246, 0.16);
+            color: #93c5fd;
+        }
+
+        .pr-toolbar-icon {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        .pr-toolbar-heading {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .dark .pr-toolbar-heading {
+            color: #f8fafc;
+        }
+
+        .pr-toolbar-subheading {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.15rem;
+        }
+
+        .dark .pr-toolbar-subheading {
+            color: #94a3b8;
         }
 
         .pr-search-input-wrapper {
             position: relative;
-            width: 100%;
-            max-width: 450px;
         }
 
         .pr-search-input {
             width: 100%;
-            padding: 1rem 1.5rem 1rem 3.5rem;
-            border-radius: 1.25rem;
-            border: 3px solid #cbd5e1;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1e293b;
+            min-height: 3.35rem;
+            padding: 0.95rem 1.1rem 0.95rem 3rem;
+            border-radius: 1rem;
+            border: 1px solid #cbd5e1;
             background: #ffffff;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .dark .pr-search-input {
-            background: #1e293b;
-            border-color: #475569;
-            color: #f1f5f9;
+            color: #0f172a;
+            font-size: 0.98rem;
+            font-weight: 700;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+            transition: all 0.2s ease;
         }
 
         .pr-search-input:focus {
             outline: none;
-            border-color: #1e40af;
-            box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+        }
+
+        .dark .pr-search-input {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f8fafc;
         }
 
         .dark .pr-search-input:focus {
             border-color: #60a5fa;
-            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);
+        }
+
+        .pr-search-input::placeholder,
+        .pr-toolbar-input::placeholder {
+            color: #94a3b8;
         }
 
         .pr-search-icon {
             position: absolute;
-            left: 1.25rem;
+            left: 1rem;
             top: 50%;
             transform: translateY(-50%);
+            width: 1.15rem;
+            height: 1.15rem;
             color: #64748b;
-            width: 1.75rem;
-            height: 1.75rem;
+            pointer-events: none;
         }
 
         .dark .pr-search-icon {
             color: #94a3b8;
         }
 
-        /* Internal Header Styles */
-        /* Unified Toolbar Styles */
-        .pr-toolbar {
+        .pr-filter-layout {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 2.5rem;
-            padding-bottom: 2rem;
-            border-bottom: 2px solid #f1f5f9;
-            width: 100%;
+            align-items: flex-end;
+            gap: 0.9rem;
+            flex-wrap: wrap;
         }
 
-        .dark .pr-toolbar {
-            border-bottom-color: #334155;
-        }
-
-        .pr-toolbar-container {
+        .pr-filter-actions {
             display: flex;
             align-items: center;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 1.25rem;
-            padding: 0.5rem;
-            gap: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s;
+            gap: 0.45rem;
         }
 
-        .dark .pr-toolbar-container {
-            background: #0f172a;
-            border-color: #334155;
-        }
-
-        .pr-toolbar-container:focus-within {
-            border-color: #1e40af;
-            box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
-        }
-
-        .dark .pr-toolbar-container:focus-within {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
-        }
-
-        .pr-toolbar-section {
+        .pr-date-field {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.25rem 0.75rem;
+            flex-direction: column;
+            flex: 1 1 210px;
+            min-width: 0;
         }
 
-        .pr-toolbar-divider {
-            width: 2px;
-            height: 2rem;
-            background: #e2e8f0;
-            margin: 0 0.5rem;
-        }
-
-        .dark .pr-toolbar-divider {
-            background: #334155;
-        }
-
-        .pr-toolbar-icon {
-            width: 1.5rem;
-            height: 1.5rem;
+        .pr-filter-caption {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
             color: #64748b;
+            margin-bottom: 0.35rem;
         }
 
-        .dark .pr-toolbar-icon {
+        .dark .pr-filter-caption {
             color: #94a3b8;
         }
 
         .pr-toolbar-input {
             border: none !important;
             background: transparent !important;
-            padding: 0.5rem !important;
-            font-size: 1rem !important;
+            padding: 0 !important;
+            font-size: 0.95rem !important;
             font-weight: 700 !important;
-            color: #1e293b !important;
+            color: #0f172a !important;
             box-shadow: none !important;
             outline: none !important;
-            width: auto;
+            width: 100%;
         }
 
         .dark .pr-toolbar-input {
-            color: #f1f5f9 !important;
-        }
-
-        .pr-toolbar-input::placeholder {
-            color: #94a3b8;
+            color: #f8fafc !important;
         }
 
         .pr-date-input-unified {
-            width: 160px;
+            width: 100%;
+            min-height: 2.85rem;
             cursor: pointer;
             background: #eff6ff !important;
-            border: 2px solid #bfdbfe !important;
+            border: 1px solid #bfdbfe !important;
             border-radius: 0.8rem;
-            padding: 0.4rem 0.75rem !important;
+            padding: 0.62rem 0.85rem !important;
             font-weight: 800 !important;
             color: #1e40af !important;
             accent-color: #1e40af;
-            /* Matches calendar UI to button color */
-            transition: all 0.2s;
-            outline: none !important;
+            transition: all 0.2s ease;
         }
 
-        .pr-date-input-unified:hover {
+        .pr-date-input-unified:hover,
+        .pr-date-input-unified:focus {
             background: #dbeafe !important;
-            border-color: #1e40af !important;
+            border-color: #3b82f6 !important;
         }
 
         .dark .pr-date-input-unified {
-            background: rgba(30, 64, 175, 0.2) !important;
+            background: rgba(30, 64, 175, 0.18) !important;
             border-color: rgba(96, 165, 250, 0.3) !important;
-            color: #60a5fa !important;
+            color: #93c5fd !important;
             accent-color: #60a5fa;
         }
 
-        .pr-toolbar-dash {
+        .pr-filter-clear-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.85rem;
+            min-height: 2.85rem;
+            padding: 0 0.9rem;
+            border-radius: 0.8rem;
+            border: 1px solid #fecaca;
+            background: #fff1f2;
+            color: #be123c;
+            font-size: 0.82rem;
             font-weight: 800;
-            color: #94a3b8;
-            margin: 0 0.25rem;
+            transition: all 0.2s ease;
         }
 
-        @media (max-width: 768px) {
-            .pr-toolbar {
-                justify-content: center;
+        .pr-filter-clear-btn:hover {
+            background: #ffe4e6;
+            border-color: #fda4af;
+        }
+
+        .dark .pr-filter-clear-btn {
+            background: rgba(190, 24, 93, 0.12);
+            border-color: rgba(251, 113, 133, 0.35);
+            color: #fda4af;
+        }
+
+        .dark .pr-filter-clear-btn:hover {
+            background: rgba(190, 24, 93, 0.18);
+        }
+
+        @media (max-width: 900px) {
+            .pr-toolbar-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pr-toolbar-panel {
+                padding: 0.95rem;
             }
 
-            .pr-toolbar-container {
+            .pr-filter-layout {
                 flex-direction: column;
-                width: 100%;
-                gap: 1rem;
-                padding: 1rem;
+                align-items: stretch;
             }
 
-            .pr-toolbar-divider {
-                display: none;
+            .pr-date-field,
+            .pr-filter-actions,
+            .pr-filter-clear-btn {
+                width: 100%;
             }
 
-            .pr-toolbar-section {
-                width: 100%;
+            .pr-filter-actions {
+                gap: 0.6rem;
+            }
+
+            .pr-filter-clear-btn {
                 justify-content: center;
             }
         }
 
-        /* Flatpickr Custom Premium Theme */
+        /* Flatpickr Theme - Compact and Readable */
         .flatpickr-calendar {
             background: #ffffff !important;
-            border-radius: 1.25rem !important;
-            box-shadow: 0 20px 25px -5px rgba(30, 64, 175, 0.15), 0 10px 10px -5px rgba(30, 64, 175, 0.1) !important;
-            border: 2px solid #e2e8f0 !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16) !important;
+            border: 1px solid #cbd5e1 !important;
             font-family: inherit !important;
-            width: 315px !important;
-            /* Ukuran pas agar Sabtu tidak terpotong dan tidak terlalu lebar */
+            width: 272px !important;
+            font-size: 0.82rem !important;
         }
 
         .flatpickr-innerContainer {
-            padding: 0.5rem !important;
+            padding: 0.1rem !important;
+        }
+
+        .flatpickr-rContainer,
+        .flatpickr-days {
+            width: 100% !important;
+            min-width: 0 !important;
         }
 
         .dark .flatpickr-calendar {
-            background: #1e293b !important;
+            background: #0f172a !important;
             border-color: #334155 !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.52) !important;
         }
 
         .flatpickr-day {
             color: #0f172a !important;
-            /* Teks tanggal lebih gelap dan tajam */
             font-weight: 700 !important;
-            border-radius: 0.75rem !important;
+            border-radius: 0.45rem !important;
+            max-width: 34px !important;
+            height: 31px !important;
+            line-height: 31px !important;
         }
 
         .flatpickr-day.selected {
             background: #1e40af !important;
             border-color: #1e40af !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.4) !important;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.35) !important;
+        }
+
+        .flatpickr-day:hover {
+            background: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+
+        .flatpickr-day.today {
+            border-color: #3b82f6 !important;
+            color: #1d4ed8 !important;
         }
 
         .dark .flatpickr-day {
@@ -545,9 +653,40 @@
             color: #0f172a !important;
         }
 
+        .dark .flatpickr-day:hover {
+            background: rgba(59, 130, 246, 0.18) !important;
+            border-color: rgba(96, 165, 250, 0.36) !important;
+        }
+
+        .dark .flatpickr-day.today {
+            border-color: #60a5fa !important;
+            color: #93c5fd !important;
+        }
+
+        .flatpickr-day.flatpickr-disabled,
+        .flatpickr-day.prevMonthDay,
+        .flatpickr-day.nextMonthDay {
+            color: #94a3b8 !important;
+        }
+
+        .dark .flatpickr-day.flatpickr-disabled,
+        .dark .flatpickr-day.prevMonthDay,
+        .dark .flatpickr-day.nextMonthDay {
+            color: #64748b !important;
+        }
+
+        .flatpickr-months {
+            padding: 0.25rem 0.3rem 0 !important;
+            align-items: center;
+        }
+
         .flatpickr-months .flatpickr-month {
             color: #0f172a !important;
             fill: #0f172a !important;
+            height: 40px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .dark .flatpickr-months .flatpickr-month {
@@ -555,23 +694,28 @@
             fill: #f1f5f9 !important;
         }
 
-        .flatpickr-prev-month svg,
-        .flatpickr-next-month svg {
-            fill: #1e40af !important;
-            /* Warna panah navigasi biru tegas */
-            width: 14px !important;
-            height: 14px !important;
-        }
-
-        .dark .flatpickr-prev-month svg,
-        .dark .flatpickr-next-month svg {
-            fill: #60a5fa !important;
+        .flatpickr-current-month {
+            left: 1.95rem !important;
+            width: calc(100% - 3.9rem) !important;
+            height: 32px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            font-size: 0.82rem !important;
+            line-height: 1 !important;
         }
 
         .flatpickr-current-month .flatpickr-monthDropdown-months {
+            height: 1.7rem !important;
+            border: 1px solid #bfdbfe !important;
+            border-radius: 0.45rem !important;
+            padding: 0 0.45rem !important;
             font-weight: 800 !important;
             color: #0f172a !important;
-            background: transparent !important;
+            background: #eff6ff !important;
+            line-height: 1.7rem !important;
         }
 
         .flatpickr-current-month .flatpickr-monthDropdown-months option {
@@ -579,8 +723,113 @@
             color: #0f172a !important;
         }
 
+        .flatpickr-current-month .numInputWrapper {
+            position: relative;
+            width: 4.4rem;
+            height: 1.7rem;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.45rem;
+            background: #eff6ff;
+            overflow: hidden;
+        }
+
+        .flatpickr-current-month input.cur-year {
+            height: 100% !important;
+            color: #0f172a !important;
+            font-weight: 800 !important;
+            font-size: 0.78rem !important;
+            padding-right: 1.05rem !important;
+            padding-left: 0.35rem !important;
+        }
+
+        .flatpickr-current-month .numInputWrapper span {
+            opacity: 1 !important;
+            border: 0 !important;
+            width: 1.05rem !important;
+            right: 0 !important;
+            cursor: pointer;
+            border-radius: 0 !important;
+            transition: background-color 0.18s ease;
+            background: rgba(191, 219, 254, 0.45) !important;
+        }
+
+        .flatpickr-current-month .numInputWrapper span.arrowUp {
+            top: 0 !important;
+            border-left: 1px solid #93c5fd !important;
+            border-bottom: 1px solid #93c5fd !important;
+        }
+
+        .flatpickr-current-month .numInputWrapper span.arrowDown {
+            top: 50% !important;
+            border-left: 1px solid #93c5fd !important;
+        }
+
+        .flatpickr-current-month .numInputWrapper span:hover {
+            background: #dbeafe !important;
+        }
+
+        .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+            border-left-width: 3.5px !important;
+            border-right-width: 3.5px !important;
+            border-bottom-width: 5.5px !important;
+            border-bottom-color: #1e3a8a !important;
+            margin-top: -1px !important;
+        }
+
+        .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+            border-left-width: 3.5px !important;
+            border-right-width: 3.5px !important;
+            border-top-width: 5.5px !important;
+            border-top-color: #1e3a8a !important;
+            margin-top: 1px !important;
+        }
+
+        .flatpickr-prev-month,
+        .flatpickr-next-month {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+            border-radius: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            color: #1e3a8a !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            top: 5px !important;
+            transition: color 0.18s ease;
+        }
+
+        .flatpickr-prev-month:hover,
+        .flatpickr-next-month:hover {
+            background: transparent !important;
+            color: #1d4ed8 !important;
+        }
+
+        .flatpickr-prev-month svg,
+        .flatpickr-next-month svg {
+            fill: currentColor !important;
+            stroke: currentColor !important;
+            stroke-width: 1.4px !important;
+            width: 12px !important;
+            height: 12px !important;
+            opacity: 1 !important;
+            display: block !important;
+        }
+
+        .flatpickr-prev-month svg *,
+        .flatpickr-next-month svg * {
+            fill: currentColor !important;
+            stroke: currentColor !important;
+        }
+
         .dark .flatpickr-current-month .flatpickr-monthDropdown-months {
             color: #f1f5f9 !important;
+            background: rgba(59, 130, 246, 0.18) !important;
+            border-color: rgba(96, 165, 250, 0.42) !important;
+        }
+
+        .dark .flatpickr-current-month input.cur-year {
+            color: #f8fafc !important;
         }
 
         .dark .flatpickr-current-month .flatpickr-monthDropdown-months option {
@@ -588,21 +837,146 @@
             color: #f1f5f9 !important;
         }
 
-        .flatpickr-current-month .numInputWrapper span.arrowUp:after {
-            border-bottom-color: #1e40af !important;
+        .dark .flatpickr-current-month .numInputWrapper {
+            border-color: rgba(96, 165, 250, 0.42);
+            background: rgba(59, 130, 246, 0.18);
         }
 
-        .flatpickr-current-month .numInputWrapper span.arrowDown:after {
-            border-top-color: #1e40af !important;
+        .dark .flatpickr-current-month .numInputWrapper span {
+            background: rgba(96, 165, 250, 0.22) !important;
+        }
+
+        .dark .flatpickr-current-month .numInputWrapper span.arrowUp,
+        .dark .flatpickr-current-month .numInputWrapper span.arrowDown {
+            border-left-color: rgba(96, 165, 250, 0.5) !important;
+        }
+
+        .dark .flatpickr-current-month .numInputWrapper span.arrowUp {
+            border-bottom-color: rgba(96, 165, 250, 0.5) !important;
+        }
+
+        .dark .flatpickr-current-month .numInputWrapper span:hover {
+            background: rgba(96, 165, 250, 0.34) !important;
+        }
+
+        .dark .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+            border-bottom-color: #bfdbfe !important;
+        }
+
+        .dark .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+            border-top-color: #bfdbfe !important;
+        }
+
+        .dark .flatpickr-prev-month,
+        .dark .flatpickr-next-month {
+            border: 0 !important;
+            background: transparent !important;
+            color: #bfdbfe !important;
+        }
+
+        .dark .flatpickr-prev-month:hover,
+        .dark .flatpickr-next-month:hover {
+            background: transparent !important;
+            color: #dbeafe !important;
+        }
+
+        .dark .flatpickr-prev-month svg,
+        .dark .flatpickr-next-month svg {
+            fill: currentColor !important;
+            stroke: currentColor !important;
         }
 
         .flatpickr-weekday {
             color: #475569 !important;
             font-weight: 800 !important;
+            font-size: 0.67rem !important;
         }
 
         .dark .flatpickr-weekday {
             color: #94a3b8 !important;
+        }
+
+        .flatpickr-time input,
+        .flatpickr-time .flatpickr-am-pm {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            font-size: 0.82rem !important;
+        }
+
+        .flatpickr-time .numInputWrapper {
+            height: 34px !important;
+        }
+
+        .pr-flatpickr-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.45rem;
+            padding: 0.35rem 0.45rem 0.45rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 0.2rem;
+        }
+
+        .dark .pr-flatpickr-actions {
+            border-top-color: #334155;
+        }
+
+        .pr-flatpickr-btn {
+            height: 1.9rem;
+            min-width: 4.25rem;
+            border-radius: 0.55rem;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 0.74rem;
+            font-weight: 800;
+            padding: 0 0.65rem;
+            cursor: pointer;
+        }
+
+        .pr-flatpickr-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .pr-flatpickr-btn-apply {
+            border-color: #93c5fd;
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .pr-flatpickr-btn-apply:hover {
+            background: #1e40af;
+        }
+
+        .dark .pr-flatpickr-btn {
+            border-color: #475569;
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        .dark .pr-flatpickr-btn:hover {
+            background: #334155;
+        }
+
+        .dark .pr-flatpickr-btn-apply {
+            border-color: #60a5fa;
+            background: #3b82f6;
+            color: #0f172a;
+        }
+
+        .dark .pr-flatpickr-btn-apply:hover {
+            background: #60a5fa;
+        }
+
+        .dark .flatpickr-time input,
+        .dark .flatpickr-time .flatpickr-am-pm {
+            color: #f8fafc !important;
+            background: #0f172a !important;
+        }
+
+        @media (max-width: 480px) {
+            .flatpickr-calendar {
+                width: 258px !important;
+            }
         }
 
         /* ===== DETAIL MODAL STYLES (Reused from Form Preview) ===== */
@@ -1196,68 +1570,201 @@
     <div class="pr-history-container">
         <x-filament::section>
             <div class="pr-toolbar">
-                <div class="pr-toolbar-container">
-                    <!-- Date Section -->
-                    <div class="pr-toolbar-section">
-                        <svg class="pr-toolbar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                        </svg>
-                        <input
-                            type="text"
-                            wire:model.live="startDate"
-                            id="startDate"
-                            class="pr-toolbar-input pr-date-input-unified"
-                            placeholder="yyyy-mm-dd"
-                            readonly
-                            x-data="{
-                                init() {
-                                    flatpickr($el, {
-                                        dateFormat: 'Y-m-d',
-                                        disableMobile: true,
-                                        onChange: (selectedDates, dateStr) => {
-                                            $wire.set('startDate', dateStr);
-                                        }
-                                    });
-                                }
-                            }">
-                        <span class="pr-toolbar-dash">—</span>
-                        <input
-                            type="text"
-                            wire:model.live="endDate"
-                            id="endDate"
-                            class="pr-toolbar-input pr-date-input-unified"
-                            placeholder="yyyy-mm-dd"
-                            readonly
-                            x-data="{
-                                init() {
-                                    flatpickr($el, {
-                                        dateFormat: 'Y-m-d',
-                                        disableMobile: true,
-                                        onChange: (selectedDates, dateStr) => {
-                                            $wire.set('endDate', dateStr);
-                                        }
-                                    });
-                                }
-                            }">
-                    </div>
+                <div class="pr-toolbar-grid">
+                    <section class="pr-toolbar-panel">
+                        <div class="pr-toolbar-panel-header">
+                            <span class="pr-toolbar-icon-shell">
+                                <svg class="pr-toolbar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.35-5.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z" />
+                                </svg>
+                            </span>
+                            <div>
+                                <div class="pr-toolbar-heading">Pencarian PR</div>
+                                <div class="pr-toolbar-subheading">Cari berdasarkan nomor PR, judul, kebutuhan, atau nomor dokumen.</div>
+                            </div>
+                        </div>
 
-                    <div class="pr-toolbar-divider"></div>
+                        <div class="pr-search-input-wrapper">
+                            <svg class="pr-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.35-5.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                wire:model.live.debounce.500ms="search"
+                                placeholder="Cari PR..."
+                                class="pr-search-input">
+                        </div>
+                    </section>
 
-                    <!-- Search Section -->
-                    <div class="pr-toolbar-section">
-                        <svg class="pr-toolbar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                        <input
-                            type="text"
-                            wire:model.live.debounce.500ms="search"
-                            placeholder="Cari PR..."
-                            class="pr-toolbar-input"
-                            style="width: 250px;">
-                    </div>
+                    <section class="pr-toolbar-panel">
+                        <div class="pr-toolbar-panel-header">
+                            <span class="pr-toolbar-icon-shell">
+                                <svg class="pr-toolbar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M6 21h12a2.25 2.25 0 002.25-2.25V7.5A2.25 2.25 0 0018 5.25H6A2.25 2.25 0 003.75 7.5v11.25A2.25 2.25 0 006 21z" />
+                                </svg>
+                            </span>
+                            <div>
+                                <div class="pr-toolbar-heading">Filter Waktu Pengajuan</div>
+                                <div class="pr-toolbar-subheading">Pisahkan rentang tanggal dan waktu agar hasil daftar lebih presisi.</div>
+                            </div>
+                        </div>
+
+                        <div class="pr-filter-layout">
+                            <div class="pr-date-field" wire:ignore>
+                                <label for="startDate" class="pr-filter-caption">Tanggal Mulai</label>
+                                <input
+                                    type="text"
+                                    id="startDate"
+                                    class="pr-toolbar-input pr-date-input-unified"
+                                    placeholder="Pilih tanggal dan waktu awal"
+                                    readonly
+                                    value="{{ $startDate }}"
+                                    x-data="{
+                                        init() {
+                                            if ($el._flatpickr) {
+                                                $el._flatpickr.destroy();
+                                            }
+
+                                            const picker = flatpickr($el, {
+                                                dateFormat: 'Y-m-d H:i',
+                                                altInput: true,
+                                                altFormat: 'd M Y, H:i',
+                                                enableTime: true,
+                                                time_24hr: true,
+                                                minuteIncrement: 5,
+                                                disableMobile: true,
+                                                defaultDate: @js($startDate),
+                                                onReady: (selectedDates, dateStr, instance) => {
+                                                    if (instance.calendarContainer.querySelector('.pr-flatpickr-actions')) {
+                                                        return;
+                                                    }
+
+                                                    const actions = document.createElement('div');
+                                                    actions.className = 'pr-flatpickr-actions';
+
+                                                    const clearBtn = document.createElement('button');
+                                                    clearBtn.type = 'button';
+                                                    clearBtn.className = 'pr-flatpickr-btn';
+                                                    clearBtn.textContent = 'Bersihkan';
+                                                    clearBtn.addEventListener('click', () => {
+                                                        instance.clear();
+                                                        $wire.set('startDate', null);
+                                                    });
+
+                                                    const applyBtn = document.createElement('button');
+                                                    applyBtn.type = 'button';
+                                                    applyBtn.className = 'pr-flatpickr-btn pr-flatpickr-btn-apply';
+                                                    applyBtn.textContent = 'Pilih';
+                                                    applyBtn.addEventListener('click', () => {
+                                                        instance.close();
+                                                    });
+
+                                                    actions.appendChild(clearBtn);
+                                                    actions.appendChild(applyBtn);
+                                                    instance.calendarContainer.appendChild(actions);
+                                                },
+                                                onChange: (selectedDates, dateStr) => {
+                                                    $wire.set('startDate', dateStr);
+                                                },
+                                                onClose: (selectedDates, dateStr) => {
+                                                    if (!dateStr) {
+                                                        $wire.set('startDate', null);
+                                                    }
+                                                },
+                                            });
+
+                                            window.addEventListener('pr-date-filters-reset', () => {
+                                                picker.clear();
+                                            });
+                                        }
+                                    }">
+                            </div>
+
+                            <div class="pr-date-field" wire:ignore>
+                                <label for="endDate" class="pr-filter-caption">Tanggal Akhir</label>
+                                <input
+                                    type="text"
+                                    id="endDate"
+                                    class="pr-toolbar-input pr-date-input-unified"
+                                    placeholder="Pilih tanggal dan waktu akhir"
+                                    readonly
+                                    value="{{ $endDate }}"
+                                    x-data="{
+                                        init() {
+                                            if ($el._flatpickr) {
+                                                $el._flatpickr.destroy();
+                                            }
+
+                                            const picker = flatpickr($el, {
+                                                dateFormat: 'Y-m-d H:i',
+                                                altInput: true,
+                                                altFormat: 'd M Y, H:i',
+                                                enableTime: true,
+                                                time_24hr: true,
+                                                minuteIncrement: 5,
+                                                disableMobile: true,
+                                                defaultDate: @js($endDate),
+                                                onReady: (selectedDates, dateStr, instance) => {
+                                                    if (instance.calendarContainer.querySelector('.pr-flatpickr-actions')) {
+                                                        return;
+                                                    }
+
+                                                    const actions = document.createElement('div');
+                                                    actions.className = 'pr-flatpickr-actions';
+
+                                                    const clearBtn = document.createElement('button');
+                                                    clearBtn.type = 'button';
+                                                    clearBtn.className = 'pr-flatpickr-btn';
+                                                    clearBtn.textContent = 'Bersihkan';
+                                                    clearBtn.addEventListener('click', () => {
+                                                        instance.clear();
+                                                        $wire.set('endDate', null);
+                                                    });
+
+                                                    const applyBtn = document.createElement('button');
+                                                    applyBtn.type = 'button';
+                                                    applyBtn.className = 'pr-flatpickr-btn pr-flatpickr-btn-apply';
+                                                    applyBtn.textContent = 'Pilih';
+                                                    applyBtn.addEventListener('click', () => {
+                                                        instance.close();
+                                                    });
+
+                                                    actions.appendChild(clearBtn);
+                                                    actions.appendChild(applyBtn);
+                                                    instance.calendarContainer.appendChild(actions);
+                                                },
+                                                onChange: (selectedDates, dateStr) => {
+                                                    $wire.set('endDate', dateStr);
+                                                },
+                                                onClose: (selectedDates, dateStr) => {
+                                                    if (!dateStr) {
+                                                        $wire.set('endDate', null);
+                                                    }
+                                                },
+                                            });
+
+                                            window.addEventListener('pr-date-filters-reset', () => {
+                                                picker.clear();
+                                            });
+                                        }
+                                    }">
+                            </div>
+
+                            <div class="pr-filter-actions">
+                                <button
+                                    type="button"
+                                    class="pr-filter-clear-btn"
+                                    wire:click="resetDateFilters"
+                                    title="Reset rentang tanggal"
+                                    aria-label="Reset rentang tanggal">
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
-            <div class="mt-0 overflow-hidden border border-slate-300 dark:border-slate-600 rounded-xl">
+            <div class="pr-list-surface">
                 @forelse($prList as $pr)
                 @php
                 $statusColor = \App\Constants\PrStatusConstant::getColor($pr->pr_status ?? \App\Constants\PrStatusConstant::PENDING);
@@ -1374,13 +1881,12 @@
                     display: flex;
                     justify-content: center;
                     width: 100%;
-                    border-top: 2px solid #f1f5f9;
-                    padding-top: 2.5rem;
-                    margin-top: 2.5rem;
+                    padding-top: 0.65rem;
+                    margin-top: 1.35rem;
                 }
 
                 .dark .pr-pagination-wrapper {
-                    border-color: #334155;
+                    border-color: transparent;
                 }
 
                 .pr-pagination-nav {
@@ -1388,9 +1894,21 @@
                     align-items: center;
                     justify-content: center;
                     gap: 0.75rem;
-                    width: 100%;
+                    width: auto;
+                    max-width: 100%;
                     flex-wrap: nowrap;
                     white-space: nowrap;
+                    padding: 0.55rem 0.7rem;
+                    border-radius: 1rem;
+                    border: 1px solid #dbe4f0;
+                    background: #f8fafc;
+                    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+                }
+
+                .dark .pr-pagination-nav {
+                    border-color: #334155;
+                    background: #0f172a;
+                    box-shadow: none;
                 }
 
                 .pr-page-btn {

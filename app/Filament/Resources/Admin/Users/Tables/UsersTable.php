@@ -29,6 +29,11 @@ class UsersTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('roles.name')
+                    ->label('Peran')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => str($state)->headline())
+                    ->color('primary'),
                 TextColumn::make('email')
                     ->label('Email address')
                     ->searchable(),
