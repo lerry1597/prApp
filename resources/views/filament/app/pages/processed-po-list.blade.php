@@ -1158,7 +1158,8 @@
                                 <td>
                                     <div class="ppo-item-no">{{ $item->no ?? $loop->iteration }}</div>
                                 </td>
-                                <td><span class="ppo-item-cat">{{ $item->itemCategory?->name ?? '—' }}</span></td>
+                                <!-- <td><span class="ppo-item-cat">{{ $item->itemCategory?->name ?? '—' }}</span></td> -->
+                                <td><span>{{ $item->itemCategory?->name ?? '—' }}</span></td>
                                 <td class="font-extrabold text-slate-900 dark:text-white">{{ $item->type ?? '—' }}</td>
                                 <td class="text-slate-600 dark:text-slate-400">{{ $item->size ?? '—' }}</td>
                                 <td style="max-width:180px;" class="text-sm text-slate-600 dark:text-slate-400">{{ $item->description ?? '—' }}</td>

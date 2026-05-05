@@ -399,10 +399,11 @@ class ProcurementOfficerPrList extends Page
         $allAssigned = $result['all_assigned'] ?? false;
         $poList = $filled->unique()->implode(', ');
 
+        // Tutup kedua modal agar notifikasi terlihat jelas di halaman utama
         $this->closeApproveModal();
+        $this->closeDetail();
 
         if ($allAssigned) {
-            $this->closeDetail();
             Notification::make()
                 ->success()
                 ->title('Konversi ke PO Selesai')

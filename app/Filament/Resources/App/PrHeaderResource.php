@@ -88,8 +88,8 @@ class PrHeaderResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Informasi Pengajuan')
-                    ->icon('heroicon-o-information-circle')
+                // ── Ringkasan Status (selalu terlihat) ──
+                Section::make()
                     ->schema([
                         Grid::make(3)
                             ->schema([
@@ -102,10 +102,36 @@ class PrHeaderResource extends Resource
                                     ->copyable(),
 
                                 TextEntry::make('pr_status')
-                                    ->label('Status Saat Ini')
+                                    ->label('Status Pengajuan')
                                     ->badge()
                                     ->formatStateUsing(fn(string $state): string => PrStatusConstant::getStatuses()[$state] ?? $state)
                                     ->color(fn(string $state): string => PrStatusConstant::getColor($state)),
+
+                                TextEntry::make('currentStep.name')
+                                    ->label('Step Approval Aktif')
+                                    ->badge()
+                                    ->color('info')
+                                    ->icon('heroicon-m-arrow-right-circle')
+                                    ->placeholder('Selesai'),
+                            ]),
+                    ]),
+
+                // ── Detail Lengkap Pengajuan ──
+                Section::make('Informasi Pengajuan')
+                    ->icon('heroicon-o-information-circle')
+                    ->description('Rincian lengkap dari purchase requisition ini')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('requester.name')
+                                    ->label('Pemohon')
+                                    ->icon('heroicon-m-user-circle')
+                                    ->weight('medium'),
+
+                                TextEntry::make('department.name')
+                                    ->label('Departemen')
+                                    ->icon('heroicon-m-building-office-2')
+                                    ->placeholder('—'),
 
                                 TextEntry::make('detail.vessel.name')
                                     ->label('Nama Kapal')
@@ -115,21 +141,32 @@ class PrHeaderResource extends Resource
                                 TextEntry::make('detail.needs')
                                     ->label('Keperluan')
                                     ->icon('heroicon-m-wrench-screwdriver')
-                                    ->placeholder('-'),
+                                    ->placeholder('—'),
+
                                 TextEntry::make('detail.request_date')
-                                    ->label('Tgl Pengajuan (Server)')
+                                    ->label('Tgl Pengajuan')
                                     ->date('d M Y, H:i')
                                     ->icon('heroicon-m-calendar-days'),
 
-                                TextEntry::make('detail.request_date_client')
-                                    ->label('Tgl Pengajuan ()')
-                                    ->date('d M Y, H:i')
-                                    ->icon('heroicon-m-clock')
-                                    ->color('gray'),
+                                TextEntry::make('detail.required_date')
+                                    ->label('Tgl Dibutuhkan')
+                                    ->date('d M Y')
+                                    ->icon('heroicon-m-calendar')
+                                    ->color('warning')
+                                    ->placeholder('—'),
+                            ]),
+
+                        Grid::make(1)
+                            ->schema([
+                                TextEntry::make('description')
+                                    ->label('Keterangan')
+                                    ->icon('heroicon-m-chat-bubble-left-ellipsis')
+                                    ->placeholder('Tidak ada keterangan'),
                             ]),
                     ])
                     ->collapsible(),
 
+                // ── Daftar Barang ──
                 Livewire::make(\App\Livewire\PrItemsTable::class)
                     ->key(fn($record) => 'pr-items-' . ($record?->id ?? 'new')),
             ]);
@@ -144,18 +181,33 @@ class PrHeaderResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->color('primary')
+                    ->copyable()
+                    ->icon('heroicon-m-hashtag'),
+
                 \Filament\Tables\Columns\TextColumn::make('requester.name')
                     ->label('Pemohon')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-m-user')
+                    ->description(fn(PrHeader $record): ?string => $record->department?->name),
+
                 \Filament\Tables\Columns\TextColumn::make('detail.vessel.name')
                     ->label('Kapal')
-                    ->searchable(),
+                    ->searchable()
+                    ->icon('lucide-ship')
+                    ->description(fn(PrHeader $record): ?string => $record->detail?->needs),
+
                 \Filament\Tables\Columns\TextColumn::make('detail.request_date')
                     ->label('Tgl Pengajuan')
                     ->date('d M Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-m-calendar-days')
+                    ->description(fn(PrHeader $record): ?string => $record->detail?->required_date
+                        ? 'Dibutuhkan: ' . $record->detail->required_date->format('d M Y')
+                        : null
+                    ),
+
                 \Filament\Tables\Columns\TextColumn::make('pr_status')
                     ->label('Status')
                     ->badge()
@@ -163,6 +215,10 @@ class PrHeaderResource extends Resource
                     ->color(fn(string $state): string => PrStatusConstant::getColor($state)),
             ])
             ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->emptyStateHeading('Tidak ada pengajuan')
+            ->emptyStateDescription('Belum ada PR yang perlu disetujui saat ini.')
+            ->emptyStateIcon('heroicon-o-clipboard-document-check')
             ->filters([
                 \Filament\Tables\Filters\SelectFilter::make('pr_status')
                     ->label('Filter Status')
@@ -171,17 +227,19 @@ class PrHeaderResource extends Resource
             ->recordActions([
                 \Filament\Actions\EditAction::make()
                     ->label('Tinjau')
+                    ->color('warning')
+                    ->button()
                     ->modalHeading('Tinjau / Proses Pengajuan PR')
                     ->modalWidth('7xl')
                     ->modalSubmitAction(function (\Filament\Actions\Action $action): \Filament\Actions\Action {
                         return $action
-                            ->label('Approval')
+                            ->label('Setujui Pengajuan')
                             ->color('success')
-                            ->icon('heroicon-o-check-circle');
+                            ->icon('heroicon-o-check-badge');
                     })
                     ->action(fn(PrHeader $record) => static::handleApproval($record))
                     ->modalCancelActionLabel('Batal')
-                    ->icon('heroicon-o-pencil'),
+                    ->icon('heroicon-o-eye'),
             ]);
     }
 
