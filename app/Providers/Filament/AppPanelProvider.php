@@ -60,6 +60,7 @@ class AppPanelProvider extends PanelProvider
                 \App\Filament\Pages\App\ProcessedPoList::class,
                 \App\Filament\Pages\App\VesselPrOverview::class,
                 \App\Filament\Pages\App\PrFlowHistory::class,
+                \App\Filament\Pages\App\ApprovedPrList::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([

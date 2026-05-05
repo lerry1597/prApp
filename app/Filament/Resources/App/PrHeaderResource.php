@@ -12,6 +12,7 @@ use App\Models\PrHistory;
 use App\Models\PrLog;
 use App\Service\ApprovalFlowService;
 use BackedEnum;
+use UnitEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -45,6 +46,7 @@ class PrHeaderResource extends Resource
 
 
     protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
+    protected static ?int $navigationSort = 2;
     protected static ?string $pluralModelLabel = 'Daftar Pengajuan PR';
     protected static ?string $modelLabel = 'Pengajuan PR';
 
@@ -203,9 +205,10 @@ class PrHeaderResource extends Resource
                     ->date('d M Y')
                     ->sortable()
                     ->icon('heroicon-m-calendar-days')
-                    ->description(fn(PrHeader $record): ?string => $record->detail?->required_date
-                        ? 'Dibutuhkan: ' . $record->detail->required_date->format('d M Y')
-                        : null
+                    ->description(
+                        fn(PrHeader $record): ?string => $record->detail?->required_date
+                            ? 'Dibutuhkan: ' . $record->detail->required_date->format('d M Y')
+                            : null
                     ),
 
                 \Filament\Tables\Columns\TextColumn::make('pr_status')
