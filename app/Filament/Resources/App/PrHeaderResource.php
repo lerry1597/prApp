@@ -45,10 +45,10 @@ class PrHeaderResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
 
-    protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
+    protected static ?string $navigationLabel = 'Daftar Pengajuan Barang';
     protected static ?int $navigationSort = 2;
-    protected static ?string $pluralModelLabel = 'Daftar Pengajuan PR';
-    protected static ?string $modelLabel = 'Pengajuan PR';
+    protected static ?string $pluralModelLabel = 'Daftar Pengajuan Barang';
+    protected static ?string $modelLabel = 'Pengajuan Barang';
 
     // public static function canViewAny(): bool
     // {

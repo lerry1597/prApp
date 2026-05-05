@@ -31,7 +31,9 @@ class PurchaseRequisitionHistory extends Page
     /** @var array<int, array<string, mixed>> */
     public array $flowItemChanges = [];
 
-    protected static ?string $navigationLabel = 'Riwayat Pengajuan PR';
+    protected static ?string $navigationLabel = 'Riwayat Pengajuan Barang';
+    protected static ?int $navigationSort = 3;
+
     protected static ?string $title = 'Riwayat Pengajuan Barang';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';
     protected string $view = 'filament.app.pages.purchase-requisition-history';

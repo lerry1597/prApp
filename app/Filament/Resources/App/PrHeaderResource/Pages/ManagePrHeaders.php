@@ -181,6 +181,22 @@ class ManagePrHeaders extends Page
                 $detail      = $header->detail;
                 $latestItems = $header->items()->orderBy('id')->get();
 
+                $requestedItemsPayload = [
+                    'items' => $latestItems->values()->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'item_category_id' => $item->item_category_id,
+                            'type' => $item->type,
+                            'size' => $item->size,
+                            'quantity' => (float) $item->quantity,
+                            'unit' => $item->unit,
+                            'remaining' => (float) $item->remaining,
+                        ];
+                    })->toArray(),
+                    'next_step_id'      => $header->current_step_id,
+                    'next_role_id'      => $header->current_role_id,
+                ];
+
                 PrLog::create([
                     'batch_id'             => $batchId,
                     'action'               => 'APPROVE',
@@ -212,11 +228,7 @@ class ManagePrHeaders extends Page
                     'required_date'        => $detail?->required_date,
                     'expired_date'         => $detail?->expired_date,
                     'detail_description'   => $detail?->description,
-                    'payload'              => [
-                        'edited_quantities' => $latestItems->mapWithKeys(fn(Item $item) => [$item->id => $item->quantity])->all(),
-                        'next_step_id'      => $header->current_step_id,
-                        'next_role_id'      => $header->current_role_id,
-                    ],
+                    'payload'              => $requestedItemsPayload,
                 ]);
 
                 PrHistory::create([
@@ -245,6 +257,7 @@ class ManagePrHeaders extends Page
                     'required_date'        => $detail?->required_date,
                     'expired_date'         => $detail?->expired_date,
                     'detail_description'   => $detail?->description,
+                    'payload'              => $requestedItemsPayload,
                 ]);
 
                 foreach ($latestItems as $item) {
@@ -260,6 +273,7 @@ class ManagePrHeaders extends Page
                         'quantity'         => $item->quantity,
                         'unit'             => $item->unit,
                         'remaining'        => $item->remaining,
+                        'step_order'       => $currentStep->step_order,
                     ];
                     ItemLog::create($snap);
                     ItemHistory::create($snap);

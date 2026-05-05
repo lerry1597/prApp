@@ -8,6 +8,7 @@ use App\Models\PrHeader;
 use Carbon\Carbon;
 use Filament\Pages\Page;
 use Livewire\WithPagination;
+use UnitEnum;
 
 class PurchaseRequisition extends Page
 {
@@ -23,9 +24,10 @@ class PurchaseRequisition extends Page
     public $showHistoryModal = false;
     public array $itemSnapshots = [];  // [ ['label'=>'...','created_at'=>'...', 'items'=>[no=>row]] ]
 
-    protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
+    protected static ?string $navigationLabel = 'Daftar Pengajuan Barang';
     protected static ?string $title = 'Daftar Pengajuan Barang';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?int $navigationSort = 2;
     protected string $view = 'filament.app.pages.purchase-requisition';
 
     public static function canAccess(): bool
@@ -140,8 +142,8 @@ class PurchaseRequisition extends Page
     }
 
     /**
-     * Muat riwayat perubahan item berdasarkan batch_id PR,
-     * lalu kelompokkan per snapshot (setiap approval = satu set insert baru).
+     * Muat riwayat perubahan item berdasarkan batch_id PR dengan mengambil
+     * snapshot data barang langsung dari field 'payload' di tabel pr_logs.
      */
     public function showItemHistory(): void
     {
@@ -151,41 +153,56 @@ class PurchaseRequisition extends Page
 
         $batchId = $this->selectedPr->batch_id;
 
-        // Ambil semua item log untuk batch ini, urutkan dari yang paling lama
-        $rows = ItemLog::where('batch_id', $batchId)
-            ->with('itemCategory')
+        // Ambil semua log PR untuk batch ini, urutkan dari yang terlama
+        $logs = \App\Models\PrLog::where('batch_id', $batchId)
+            ->whereNotNull('payload')
             ->orderBy('id')
             ->get();
 
-        if ($rows->isEmpty()) {
+        if ($logs->isEmpty()) {
             $this->itemSnapshots = [];
             $this->showHistoryModal = true;
             return;
         }
 
-        // Kelompokkan per snapshot berdasarkan created_at (dibulatkan per detik).
-        // Semua insert dalam satu transaksi akan punya created_at yang sama/sangat dekat.
-        $grouped = $rows->groupBy(fn($r) => $r->created_at?->format('Y-m-d H:i:s') ?? 'unknown');
+        // Ambil mapping kategori untuk menamai item_category_id
+        $categories = \App\Models\ItemCategory::pluck('name', 'id')->toArray();
 
         $snapshots = [];
         $index = 0;
-        foreach ($grouped as $timestamp => $items) {
+        foreach ($logs as $log) {
+            $payload = $log->payload;
+
+            // Kita fokus pada data 'items' yang direkam di dalam payload
+            if (!isset($payload['items']) || !is_array($payload['items'])) {
+                continue;
+            }
+
             $itemsMap = [];
-            foreach ($items as $item) {
-                $key = $item->no ?? ($item->type . '|' . $item->size);
+            foreach ($payload['items'] as $item) {
+                // Di dalam payload bentuknya adalah array asosiatif
+                $type = $item['type'] ?? '';
+                $size = $item['size'] ?? '';
+                $no = $item['no'] ?? null;
+                $categoryId = $item['item_category_id'] ?? null;
+
+                $key = $no ?? ($type . '|' . $size);
+
                 $itemsMap[$key] = [
-                    'no'           => $item->no,
-                    'category'     => $item->itemCategory?->name ?? '—',
-                    'type'         => $item->type,
-                    'size'         => $item->size,
-                    'quantity'     => $item->quantity,
-                    'unit'         => $item->unit,
-                    'remaining'    => $item->remaining,
+                    'no'           => $no,
+                    'category'     => $categories[$categoryId] ?? '—',
+                    'type'         => $type,
+                    'size'         => $size,
+                    'quantity'     => $item['quantity'] ?? 0,
+                    'unit'         => $item['unit'] ?? '—',
+                    'remaining'    => $item['remaining'] ?? 0,
+                    'po_number'    => $item['po_number'] ?? null,
                 ];
             }
+
             $snapshots[] = [
                 'label'      => $index === 0 ? 'Pengajuan Awal' : 'Persetujuan ke-' . $index,
-                'created_at' => $timestamp,
+                'created_at' => $log->created_at?->format('Y-m-d H:i:s') ?? 'unknown',
                 'items'      => $itemsMap,
             ];
             $index++;

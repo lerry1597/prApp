@@ -20,13 +20,15 @@ use App\Service\DateService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 class PurchaseRequisitionForm extends Page
 {
 
-    protected static ?string $navigationLabel = 'Form Pengajuan PR';
+    protected static ?string $navigationLabel = 'Form Pengajuan Barang';
     protected static ?string $title = 'Formulir Permintaan';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-pencil-square';
+    protected static ?int $navigationSort = 1;
     protected string $view = 'filament.app.pages.purchase-requisition-form';
 
     public static function canAccess(): bool

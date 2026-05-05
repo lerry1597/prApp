@@ -38,8 +38,8 @@ class ProcurementOfficerPrList extends Page
     public array $approvalItems = [];
     public string $approveError = '';
 
-    protected static ?string $navigationLabel = 'Daftar Pengajuan PR';
-    protected static ?string $title = 'Daftar Pengajuan PR';
+    protected static ?string $navigationLabel = 'Daftar Pengajuan Barang';
+    protected static ?string $title = 'Daftar Pengajuan Barang';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static string|\UnitEnum|null $navigationGroup = 'Procurement Officer';
     protected static ?int $navigationSort = 1;
@@ -87,15 +87,15 @@ class ProcurementOfficerPrList extends Page
                         ->whereNotNull('current_step_id')
                         ->where('current_role_id', $procurementRole->id);
                 })
-                // ATAU PR approved yang masih punya item tanpa PO (partial assignment)
-                ->orWhere(function ($sq) {
-                    $sq->where('pr_status', PrStatusConstant::APPROVED)
-                        ->whereHas('items', function ($iq) {
-                            $iq->where(function ($nq) {
-                                $nq->whereNull('po_number')->orWhere('po_number', '');
+                    // ATAU PR approved yang masih punya item tanpa PO (partial assignment)
+                    ->orWhere(function ($sq) {
+                        $sq->where('pr_status', PrStatusConstant::APPROVED)
+                            ->whereHas('items', function ($iq) {
+                                $iq->where(function ($nq) {
+                                    $nq->whereNull('po_number')->orWhere('po_number', '');
+                                });
                             });
-                        });
-                });
+                    });
             });
 
         if ($this->search) {

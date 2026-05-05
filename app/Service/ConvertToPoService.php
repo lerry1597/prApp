@@ -176,6 +176,8 @@ class ConvertToPoService
                 if ($allAssigned) {
                     $poNumberList = $validPoNumbers->values()->unique()->implode(', ');
 
+                    $freshItems = $header->items()->orderBy('id')->get();
+
                     // 1. Snapshot ke pr_logs
                     PrLog::create([
                         'batch_id'            => $batchId,
@@ -209,6 +211,16 @@ class ConvertToPoService
                         'expired_date'        => $detail?->expired_date,
                         'detail_description'  => $detail?->description,
                         'payload'             => [
+                            'items'        => $freshItems->values()->map(fn($item): array => [
+                                'id'               => $item->id,
+                                'item_category_id' => $item->item_category_id,
+                                'type'             => $item->type,
+                                'size'             => $item->size,
+                                'quantity'         => (float) $item->quantity,
+                                'unit'             => $item->unit,
+                                'remaining'        => (float) $item->remaining,
+                                'po_number'        => $item->po_number,
+                            ])->all(),
                             'po_numbers'   => $validPoNumbers->toArray(),
                             'all_assigned' => true,
                             'next_step_id' => null,
@@ -219,6 +231,18 @@ class ConvertToPoService
                     // 2. Snapshot ke pr_histories
                     PrHistory::create([
                         'batch_id'            => $batchId,
+                        'payload'             => [
+                            'items' => $freshItems->values()->map(fn($item): array => [
+                                'id'               => $item->id,
+                                'item_category_id' => $item->item_category_id,
+                                'type'             => $item->type,
+                                'size'             => $item->size,
+                                'quantity'         => (float) $item->quantity,
+                                'unit'             => $item->unit,
+                                'remaining'        => (float) $item->remaining,
+                                'po_number'        => $item->po_number,
+                            ])->all(),
+                        ],
                         'pr_header_id'        => $header->id,
                         'pr_number'           => $header->pr_number,
                         'pr_status'           => PrStatusConstant::CONVERTED_TO_PO,
@@ -250,7 +274,6 @@ class ConvertToPoService
                     ItemLog::where('batch_id', $batchId)->whereIn('pr_detail_id', $header->items()->pluck('pr_detail_id'))->delete();
                     ItemHistory::where('batch_id', $batchId)->whereIn('pr_detail_id', $header->items()->pluck('pr_detail_id'))->delete();
 
-                    $freshItems = $header->items()->orderBy('id')->get();
                     foreach ($freshItems as $item) {
                         $itemSnapshot = [
                             'batch_id'         => $batchId,
@@ -265,6 +288,7 @@ class ConvertToPoService
                             'unit'             => $item->unit,
                             'remaining'        => $item->remaining,
                             'po_number'        => $item->po_number,
+                            'step_order'       => $currentStep?->step_order,
                         ];
                         ItemLog::create($itemSnapshot);
                         ItemHistory::create($itemSnapshot);
