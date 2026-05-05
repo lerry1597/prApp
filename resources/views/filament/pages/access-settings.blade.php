@@ -1,38 +1,6 @@
 <x-filament-panels::page>
-    <style>
-        .custom-grid-2 {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 2rem;
-        }
-
-        @media (min-width: 1024px) {
-            .custom-grid-2 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-        
-        .custom-nav {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (min-width: 640px) {
-            .custom-nav {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .custom-nav {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/access-settings.css') }}">
+    
 
     <div name="access-settings" x-data="{ tab: null }" class="space-y-8">
         <nav class="custom-nav">

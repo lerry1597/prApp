@@ -3,26 +3,21 @@
 namespace App\Filament\Pages\App;
 
 use App\Constants\PrStatusConstant;
-use App\Models\ItemLog;
-use App\Models\PrHeader;
-use Carbon\Carbon;
+use App\Models\Item;
+use App\Models\PrLog;
 use Filament\Pages\Page;
-use Livewire\WithPagination;
 use UnitEnum;
 
 class PurchaseRequisition extends Page
 {
-    use WithPagination;
+    public string $search = '';
+    public ?string $submittedDate = null;
+    public string $sortColumn = 'submitted_at';
+    public string $sortDirection = 'desc';
 
-    public $search = '';
-    public $startDate = null;
-    public $endDate = null;
-
-    public $showDetailModal = false;
-    public $selectedPr = null;
-
-    public $showHistoryModal = false;
-    public array $itemSnapshots = [];  // [ ['label'=>'...','created_at'=>'...', 'items'=>[no=>row]] ]
+    public ?int $expandedItemId = null;
+    public bool $showItemHistoryModal = false;
+    public array $selectedItemHistory = [];
 
     protected static ?string $navigationLabel = 'Daftar Pengajuan Barang';
     protected static ?string $title = 'Daftar Pengajuan Barang';
@@ -37,184 +32,179 @@ class PurchaseRequisition extends Page
 
     public function updatedSearch()
     {
-        $this->resetPage();
+        // No pagination state to reset.
     }
 
-    public function updatedStartDate()
+    public function updatedSubmittedDate()
     {
-        $this->resetPage();
+        // No pagination state to reset.
     }
 
-    public function updatedEndDate()
+    public function sortBy(string $column): void
     {
-        $this->resetPage();
+        if ($this->sortColumn === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortColumn = $column;
+            $this->sortDirection = $column === 'submitted_at' ? 'desc' : 'asc';
+        }
+
+        // No pagination state to reset.
     }
 
     public function resetDateFilters(): void
     {
-        $this->startDate = null;
-        $this->endDate = null;
-        $this->resetPage();
-        $this->dispatch('pr-date-filters-reset');
+        $this->submittedDate = null;
+        $this->sortColumn = 'submitted_at';
+        $this->sortDirection = 'desc';
     }
 
     public function getViewData(): array
     {
         $user = auth()->user();
 
-        $query = PrHeader::with(['detail', 'detail.vessel', 'items', 'currentRole'])
-            ->where('requester_id', $user?->id)
-            ->whereNotIn('pr_status', [
+        $query = Item::query()
+            ->select('items.*')
+            ->join('pr_details', 'pr_details.id', '=', 'items.pr_detail_id')
+            ->join('pr_headers', 'pr_headers.id', '=', 'pr_details.pr_header_id')
+            ->leftJoin('item_categories', 'item_categories.id', '=', 'items.item_category_id')
+            ->leftJoin('vessels', 'vessels.id', '=', 'pr_details.vessel_id')
+            ->with(['itemCategory', 'detail.vessel', 'detail.header.currentRole'])
+            ->where('pr_headers.requester_id', $user?->id)
+            ->whereNotIn('pr_headers.pr_status', [
                 PrStatusConstant::REJECTED,
                 PrStatusConstant::CLOSED,
             ])
-            ->whereNotNull('current_step_id')
-            ->whereNotNull('current_role_id');
+            ->whereNotNull('pr_headers.current_step_id')
+            ->whereNotNull('pr_headers.current_role_id');
 
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('pr_number', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('detail', function ($dq) {
-                        $dq->where('title', 'like', '%' . $this->search . '%')
-                            ->orWhere('needs', 'like', '%' . $this->search . '%')
-                            ->orWhere('document_no', 'like', '%' . $this->search . '%');
-                    });
+            $keyword = '%' . $this->search . '%';
+            $query->where(function ($q) use ($keyword) {
+                $q->where('items.type', 'like', $keyword)
+                    ->orWhere('pr_details.document_no', 'like', $keyword)
+                    ->orWhere('item_categories.name', 'like', $keyword);
             });
         }
 
-        if ($this->startDate) {
-            $startAt = Carbon::parse($this->startDate);
-
-            // Backward compatible: date-only values are treated as start of day.
-            if (! str_contains((string) $this->startDate, ':')) {
-                $startAt = $startAt->startOfDay();
-            }
-
-            $query->where('created_at', '>=', $startAt);
+        if ($this->submittedDate) {
+            $query->whereDate('pr_headers.created_at', $this->submittedDate);
         }
 
-        if ($this->endDate) {
-            $endAt = Carbon::parse($this->endDate);
-
-            // Backward compatible: date-only values are treated as end of day.
-            if (! str_contains((string) $this->endDate, ':')) {
-                $endAt = $endAt->endOfDay();
-            }
-
-            $query->where('created_at', '<=', $endAt);
-        }
-
-        $statusCounts = (clone $query)
-            ->selectRaw('pr_status, COUNT(*) as total')
-            ->groupBy('pr_status')
-            ->pluck('total', 'pr_status');
-
-        $prSummary = [
-            'total' => (clone $query)->count(),
-            'waiting' => (int) ($statusCounts[PrStatusConstant::WAITING_APPROVAL] ?? 0) + (int) ($statusCounts[PrStatusConstant::PENDING] ?? 0),
-            'submitted' => (int) ($statusCounts[PrStatusConstant::SUBMITTED] ?? 0),
-            'approved' => (int) ($statusCounts[PrStatusConstant::APPROVED] ?? 0),
+        $sortableColumns = [
+            'document_no' => 'pr_details.document_no',
+            'category' => 'item_categories.name',
+            'type' => 'items.type',
+            'vessel' => 'vessels.name',
+            'status' => 'pr_headers.pr_status',
+            'po_status' => 'items.po_number',
+            'submitted_at' => 'pr_headers.created_at',
         ];
 
-        $prList = $query->latest()
-            ->paginate(3);
+        $sortColumn = $sortableColumns[$this->sortColumn] ?? 'pr_headers.created_at';
+        $sortDirection = $this->sortDirection === 'asc' ? 'asc' : 'desc';
+
+        if ($this->sortColumn === 'po_status') {
+            $query->orderByRaw("CASE WHEN items.po_number IS NULL OR items.po_number = '' THEN 1 ELSE 0 END {$sortDirection}");
+            $query->orderBy('pr_headers.created_at', 'desc');
+        } else {
+            $query->orderBy($sortColumn, $sortDirection);
+        }
+
+        $totalItems = (clone $query)->count();
+        $poProgress = (clone $query)->whereNotNull('items.po_number')->where('items.po_number', '!=', '')->count();
+
+        $itemList = $query->get();
+
+        $summary = [
+            'total_items' => $totalItems,
+            'po_progress' => $poProgress,
+        ];
 
         return [
-            'prList' => $prList,
-            'prSummary' => $prSummary,
+            'itemList' => $itemList,
+            'summary' => $summary,
         ];
     }
 
-    public function showDetail($id)
+    public function toggleExpand(int $itemId): void
     {
-        $this->selectedPr = PrHeader::with(['detail', 'detail.vessel', 'detail.items', 'detail.items.itemCategory', 'currentRole'])
-            ->find($id);
-
-        if ($this->selectedPr) {
-            $this->showDetailModal = true;
-        }
+        $this->expandedItemId = $this->expandedItemId === $itemId ? null : $itemId;
     }
 
-    public function closeDetail()
+    public function openItemHistory(int $itemId): void
     {
-        $this->showDetailModal = false;
-        $this->selectedPr = null;
-    }
-
-    /**
-     * Muat riwayat perubahan item berdasarkan batch_id PR dengan mengambil
-     * snapshot data barang langsung dari field 'payload' di tabel pr_logs.
-     */
-    public function showItemHistory(): void
-    {
-        if (! $this->selectedPr) {
+        $item = Item::with(['itemCategory', 'detail.header'])->find($itemId);
+        if (! $item || ! $item->detail?->header) {
             return;
         }
 
-        $batchId = $this->selectedPr->batch_id;
-
-        // Ambil semua log PR untuk batch ini, urutkan dari yang terlama
-        $logs = \App\Models\PrLog::where('batch_id', $batchId)
+        $header = $item->detail->header;
+        $logs = PrLog::where('batch_id', $header->batch_id)
             ->whereNotNull('payload')
             ->orderBy('id')
             ->get();
 
-        if ($logs->isEmpty()) {
-            $this->itemSnapshots = [];
-            $this->showHistoryModal = true;
-            return;
-        }
+        $initialQty = null;
+        $approvedQty = null;
 
-        // Ambil mapping kategori untuk menamai item_category_id
-        $categories = \App\Models\ItemCategory::pluck('name', 'id')->toArray();
-
-        $snapshots = [];
-        $index = 0;
         foreach ($logs as $log) {
-            $payload = $log->payload;
-
-            // Kita fokus pada data 'items' yang direkam di dalam payload
-            if (!isset($payload['items']) || !is_array($payload['items'])) {
+            $payloadItems = $log->payload['items'] ?? null;
+            if (! is_array($payloadItems)) {
                 continue;
             }
 
-            $itemsMap = [];
-            foreach ($payload['items'] as $item) {
-                // Di dalam payload bentuknya adalah array asosiatif
-                $type = $item['type'] ?? '';
-                $size = $item['size'] ?? '';
-                $no = $item['no'] ?? null;
-                $categoryId = $item['item_category_id'] ?? null;
+            foreach ($payloadItems as $payloadItem) {
+                $isSameItem = isset($payloadItem['id']) && (int) $payloadItem['id'] === (int) $item->id;
 
-                $key = $no ?? ($type . '|' . $size);
+                if (! $isSameItem) {
+                    $isSameItem = ($payloadItem['type'] ?? null) === $item->type
+                        && ($payloadItem['size'] ?? null) === $item->size;
+                }
 
-                $itemsMap[$key] = [
-                    'no'           => $no,
-                    'category'     => $categories[$categoryId] ?? '—',
-                    'type'         => $type,
-                    'size'         => $size,
-                    'quantity'     => $item['quantity'] ?? 0,
-                    'unit'         => $item['unit'] ?? '—',
-                    'remaining'    => $item['remaining'] ?? 0,
-                    'po_number'    => $item['po_number'] ?? null,
-                ];
+                if (! $isSameItem) {
+                    continue;
+                }
+
+                $qty = isset($payloadItem['quantity']) ? (float) $payloadItem['quantity'] : null;
+                if ($qty === null) {
+                    continue;
+                }
+
+                if ($initialQty === null) {
+                    $initialQty = $qty;
+                }
+
+                $approvedQty = $qty;
             }
-
-            $snapshots[] = [
-                'label'      => $index === 0 ? 'Pengajuan Awal' : 'Persetujuan ke-' . $index,
-                'created_at' => $log->created_at?->format('Y-m-d H:i:s') ?? 'unknown',
-                'items'      => $itemsMap,
-            ];
-            $index++;
         }
 
-        $this->itemSnapshots = $snapshots;
-        $this->showHistoryModal = true;
+        if ($initialQty === null) {
+            $initialQty = (float) $item->quantity;
+        }
+
+        if ($approvedQty === null) {
+            $approvedQty = (float) $item->quantity;
+        }
+
+        $this->selectedItemHistory = [
+            'pr_number' => $header->pr_number,
+            'document_no' => $item->detail?->document_no,
+            'type' => $item->type,
+            'size' => $item->size,
+            'category' => $item->itemCategory?->name ?? '—',
+            'unit' => $item->unit,
+            'initial_qty' => $initialQty,
+            'approved_qty' => $approvedQty,
+            'difference' => $approvedQty - $initialQty,
+        ];
+
+        $this->showItemHistoryModal = true;
     }
 
-    public function closeItemHistory(): void
+    public function closeItemHistoryModal(): void
     {
-        $this->showHistoryModal = false;
-        $this->itemSnapshots = [];
+        $this->showItemHistoryModal = false;
+        $this->selectedItemHistory = [];
     }
 }

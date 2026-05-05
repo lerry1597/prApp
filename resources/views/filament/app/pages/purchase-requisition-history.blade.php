@@ -241,7 +241,7 @@
                                 @endif
 
                                 @if(!empty($itemChanges['added']) || !empty($itemChanges['updated']) || !empty($itemChanges['removed']))
-                                <div class="prh-changes-title" style="margin-top:{{ !empty($fieldChanges) ? '0.6rem' : '0' }};">Perubahan Item</div>
+                                <div class="prh-changes-title" @if(!empty($fieldChanges)) style="margin-top: 0.6rem;" @endif>Perubahan Item</div>
                                 <div class="prh-item-changes">
                                     @if(!empty($itemChanges['added']))
                                     <span class="prh-item-pill prh-item-pill-added">+ {{ count($itemChanges['added']) }} ditambahkan</span>
