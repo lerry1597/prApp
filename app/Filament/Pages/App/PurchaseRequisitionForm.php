@@ -218,6 +218,19 @@ class PurchaseRequisitionForm extends Page
 
         try {
             DB::transaction(function () use ($user, $details, $workflow, $currentStep, $nextStep, $prNumber, $batchId) {
+                $requestedItemsPayload = [
+                    'items' => collect($this->items)->values()->map(function ($item) {
+                        return [
+                            'item_category_id' => $item['item_category_id'] ?? null,
+                            'type' => $item['type'] ?? null,
+                            'size' => $item['size'] ?? null,
+                            'quantity' => isset($item['quantity']) ? (float) $item['quantity'] : null,
+                            'unit' => $item['unit'] ?? null,
+                            'remaining' => isset($item['remaining']) ? (float) $item['remaining'] : null,
+                        ];
+                    })->toArray(),
+                ];
+
                 // A. Simpan PrHeader — langsung di-assign ke nextStep (step 2) agar approver bisa lihat
                 $header = PrHeader::create([
                     'batch_id' => $batchId,
@@ -258,6 +271,7 @@ class PurchaseRequisitionForm extends Page
                     'action' => 'SUBMIT',
                     'status' => 'SUCCESS',
                     'notes' => 'Initial PR Submission',
+                    'payload' => $requestedItemsPayload,
                     'user_id' => $user?->id,
                     'role_id' => $currentStep->role_id,
                     'pr_header_id' => $header->id,
@@ -288,6 +302,7 @@ class PurchaseRequisitionForm extends Page
                 // D. Simpan Snapshot ke PrHistory
                 PrHistory::create([
                     'batch_id' => $batchId,
+                    'payload' => $requestedItemsPayload,
                     'pr_header_id' => $header->id,
                     'pr_number' => $header->pr_number,
                     'pr_status' => $header->pr_status,
@@ -340,6 +355,7 @@ class PurchaseRequisitionForm extends Page
                         'quantity' => $itemData['quantity'],
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
+                        'step_order' => $currentStep->step_order,
                     ]);
 
                     // Snapshot ke items_history
@@ -355,6 +371,7 @@ class PurchaseRequisitionForm extends Page
                         'quantity' => $itemData['quantity'],
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
+                        'step_order' => $currentStep->step_order,
                     ]);
                 }
             });

@@ -26,6 +26,7 @@ class ItemLog extends Model
         'quantity',
         'unit',
         'remaining',
+        'step_order',
     ];
 
     public function itemCategory(): BelongsTo

@@ -14,6 +14,7 @@ class PrHistory extends Model
 
     protected $fillable = [
         'batch_id',
+        'payload',
         'pr_header_id',
         'pr_number',
         'pr_status',
@@ -38,6 +39,10 @@ class PrHistory extends Model
         'required_date',
         'expired_date',
         'detail_description',
+    ];
+
+    protected $casts = [
+        'payload' => 'array',
     ];
 
     public function prHeader(): BelongsTo

@@ -203,9 +203,10 @@ class PrHeaderResource extends Resource
                     ->date('d M Y')
                     ->sortable()
                     ->icon('heroicon-m-calendar-days')
-                    ->description(fn(PrHeader $record): ?string => $record->detail?->required_date
-                        ? 'Dibutuhkan: ' . $record->detail->required_date->format('d M Y')
-                        : null
+                    ->description(
+                        fn(PrHeader $record): ?string => $record->detail?->required_date
+                            ? 'Dibutuhkan: ' . $record->detail->required_date->format('d M Y')
+                            : null
                     ),
 
                 \Filament\Tables\Columns\TextColumn::make('pr_status')
@@ -359,10 +360,15 @@ class PrHeaderResource extends Resource
                     'expired_date' => $detail?->expired_date,
                     'detail_description' => $detail?->description,
                     'payload' => [
-                        // Snapshot quantity setiap item pada saat approval
-                        'edited_quantities' => $latestItems
-                            ->mapWithKeys(fn(Item $item): array => [$item->id => $item->quantity])
-                            ->all(),
+                        'items' => $latestItems->values()->map(fn(Item $item): array => [
+                            'id'               => $item->id,
+                            'item_category_id' => $item->item_category_id,
+                            'type'             => $item->type,
+                            'size'             => $item->size,
+                            'quantity'         => (float) $item->quantity,
+                            'unit'             => $item->unit,
+                            'remaining'        => (float) $item->remaining,
+                        ])->all(),
                         'next_step_id' => $header->current_step_id,
                         'next_role_id' => $header->current_role_id,
                     ],
@@ -371,6 +377,17 @@ class PrHeaderResource extends Resource
                 // 7c. Buat riwayat header ke pr_histories (snapshot status header)
                 PrHistory::create([
                     'batch_id' => $batchId,
+                    'payload' => [
+                        'items' => $latestItems->values()->map(fn(Item $item): array => [
+                            'id'               => $item->id,
+                            'item_category_id' => $item->item_category_id,
+                            'type'             => $item->type,
+                            'size'             => $item->size,
+                            'quantity'         => (float) $item->quantity,
+                            'unit'             => $item->unit,
+                            'remaining'        => (float) $item->remaining,
+                        ])->all(),
+                    ],
                     'pr_header_id' => $header->id,
                     'pr_number' => $header->pr_number,
                     'pr_status' => $header->pr_status,
@@ -411,6 +428,7 @@ class PrHeaderResource extends Resource
                         'quantity' => $item->quantity,
                         'unit' => $item->unit,
                         'remaining' => $item->remaining,
+                        'step_order' => $currentStep->step_order,
                     ];
                     ItemLog::create($itemSnapshot);
                     ItemHistory::create($itemSnapshot);
