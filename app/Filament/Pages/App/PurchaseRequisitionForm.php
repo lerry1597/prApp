@@ -122,22 +122,27 @@ class PurchaseRequisitionForm extends Page
      */
     public function previewSubmit(): void
     {
-        $this->validate([
-            'items.*.item_category_id' => 'required',
-            'items.*.type' => 'required|string',
-            'items.*.size' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit' => 'required|string',
-            'items.*.remaining' => 'required|numeric',
-        ], [
-            'items.*.item_category_id.required' => 'Kategori wajib dipilih',
-            'items.*.type.required' => 'Nama barang wajib diisi',
-            'items.*.size.required' => 'Ukuran wajib diisi',
-            'items.*.quantity.required' => 'Jumlah wajib diisi',
-            'items.*.quantity.min' => 'Minimal 1',
-            'items.*.unit.required' => 'Satuan wajib diisi',
-            'items.*.remaining.required' => 'Sisa wajib diisi',
-        ]);
+        try {
+            $this->validate([
+                'items.*.item_category_id' => 'required',
+                'items.*.type' => 'required|string',
+                'items.*.size' => 'required|string',
+                'items.*.quantity' => 'required|numeric|min:1',
+                'items.*.unit' => 'required|string',
+                'items.*.remaining' => 'required|numeric',
+            ], [
+                'items.*.item_category_id.required' => 'Kategori wajib dipilih',
+                'items.*.type.required' => 'Nama barang wajib diisi',
+                'items.*.size.required' => 'Ukuran wajib diisi',
+                'items.*.quantity.required' => 'Jumlah wajib diisi',
+                'items.*.quantity.min' => 'Minimal 1',
+                'items.*.unit.required' => 'Satuan wajib diisi',
+                'items.*.remaining.required' => 'Sisa wajib diisi',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('validation-failed');
+            throw $e;
+        }
 
         // Urutkan items berdasarkan item_category_id agar grouping di UI benar
         $itemsCollection = collect($this->items);
@@ -158,15 +163,20 @@ class PurchaseRequisitionForm extends Page
      */
     public function updatedItems($value, $name): void
     {
-        // $name akan berisi format seperti 'items.0.type'
-        $this->validateOnly($name, [
-            'items.*.item_category_id' => 'required',
-            'items.*.type' => 'required|string',
-            'items.*.size' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit' => 'required|string',
-            'items.*.remaining' => 'required|numeric',
-        ]);
+        try {
+            // $name akan berisi format seperti 'items.0.type'
+            $this->validateOnly($name, [
+                'items.*.item_category_id' => 'required',
+                'items.*.type' => 'required|string',
+                'items.*.size' => 'required|string',
+                'items.*.quantity' => 'required|numeric|min:1',
+                'items.*.unit' => 'required|string',
+                'items.*.remaining' => 'required|numeric',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('validation-failed');
+            throw $e;
+        }
     }
 
     /**

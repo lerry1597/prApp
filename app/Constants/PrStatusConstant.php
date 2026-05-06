@@ -13,6 +13,11 @@ class PrStatusConstant
     public const CLOSED = 'closed';
     public const PENDING = 'pending';
 
+    //Status tambahan untuk kebutuhan internal, logistik, status barang, dll. yang tidak memengaruhi flow approval. 
+    public const PICKED_UP = 'picked_up';
+    public const DELIVERED = 'delivered';
+    public const ONBOARD = 'onboard';
+
     public static function getStatuses(): array
     {
         return [
@@ -24,6 +29,9 @@ class PrStatusConstant
             self::CONVERTED_TO_PO => 'Dikonversi ke PO',
             self::CLOSED => 'Ditutup',
             self::PENDING => 'Menunggu',
+            self::PICKED_UP => 'Diambil',
+            self::DELIVERED => 'Dikirim',
+            self::ONBOARD => 'Di Kapal',
         ];
     }
 
@@ -38,6 +46,7 @@ class PrStatusConstant
             self::REJECTED                                  => 'danger',
             self::APPROVED                                  => 'success',
             self::SUBMITTED                                 => 'info',
+            self::PICKED_UP, self::DELIVERED, self::ONBOARD => 'info',
             default                                         => 'gray',
         };
     }

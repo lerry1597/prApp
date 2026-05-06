@@ -4,32 +4,37 @@ namespace App\Filament\Pages\App;
 
 use App\Constants\PrStatusConstant;
 use App\Constants\RoleConstant;
-use App\Models\ItemLog;
+use App\Models\Department;
+use App\Models\Item;
+use App\Models\ItemCategory;
 use App\Models\PrHistory;
+use App\Models\Vessel;
 use Filament\Pages\Page;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Livewire\WithPagination;
 
 class PurchaseRequisitionHistory extends Page
 {
-    use WithPagination;
-
     public string $search = '';
-    public ?string $startDate = null;
-    public ?string $endDate = null;
+    public ?string $requestDate = null;
+    public int $initialTake = 10;
+    public int $loadStep = 10;
+    public int $visibleCount = 10;
+    public bool $hasMoreRows = false;
 
     public bool $showFlowModal = false;
+    public bool $showItemChangesModal = false;
 
     public ?array $selectedFlowHeader = null;
 
-    /** @var array<int, array<string, mixed>> */
-    public array $flowSteps = [];
-
-    /** @var array<int, array<int, array<string, string>>> */
-    public array $flowFieldChanges = [];
+    /** @var array<int, array<string, string>> */
+    public array $latestItems = [];
 
     /** @var array<int, array<string, mixed>> */
-    public array $flowItemChanges = [];
+    public array $itemChangeSteps = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $itemSnapshots = [];
 
     protected static ?string $navigationLabel = 'Riwayat Pengajuan Barang';
     protected static ?int $navigationSort = 3;
@@ -45,31 +50,35 @@ class PurchaseRequisitionHistory extends Page
 
     public function updatedSearch(): void
     {
-        $this->resetPage();
+        $this->visibleCount = $this->initialTake;
     }
 
-    public function updatedStartDate(): void
+    public function updatedRequestDate(): void
     {
-        $this->resetPage();
-    }
-
-    public function updatedEndDate(): void
-    {
-        $this->resetPage();
+        $this->visibleCount = $this->initialTake;
     }
 
     public function resetDateFilters(): void
     {
-        $this->startDate = null;
-        $this->endDate = null;
-        $this->resetPage();
+        $this->search = '';
+        $this->requestDate = null;
+        $this->visibleCount = $this->initialTake;
         $this->dispatch('pr-history-date-filters-reset');
+    }
+
+    public function loadMore(): void
+    {
+        if (! $this->hasMoreRows) {
+            return;
+        }
+
+        $this->visibleCount += $this->loadStep;
     }
 
     public function getViewData(): array
     {
-        $user = auth()->user();
-        $userId = $user?->id;
+        $userId = auth()->id();
+        $matchedItemHints = [];
 
         $latestIdsPerBatch = PrHistory::query()
             ->selectRaw('MAX(id)')
@@ -77,7 +86,6 @@ class PurchaseRequisitionHistory extends Page
             ->groupBy('batch_id');
 
         $query = PrHistory::query()
-            ->with(['approver'])
             ->whereIn('id', $latestIdsPerBatch)
             ->where('requester_id', $userId)
             ->whereNull('current_step_id');
@@ -86,28 +94,69 @@ class PurchaseRequisitionHistory extends Page
             $search = '%' . $this->search . '%';
 
             $query->where(function ($q) use ($search): void {
-                $q->where('pr_number', 'like', $search)
-                    ->orWhere('title', 'like', $search)
+                $q->where('document_no', 'like', $search)
                     ->orWhere('needs', 'like', $search)
-                    ->orWhere('document_no', 'like', $search);
+                    ->orWhere('title', 'like', $search)
+                    ->orWhere('pr_number', 'like', $search)
+                    ->orWhereExists(function ($itemQuery) use ($search): void {
+                        $itemQuery->selectRaw('1')
+                            ->from('pr_details')
+                            ->join('items', 'items.pr_detail_id', '=', 'pr_details.id')
+                            ->whereColumn('pr_details.pr_header_id', 'pr_histories.pr_header_id')
+                            ->where('items.type', 'like', $search);
+                    });
             });
         }
 
-        if ($this->startDate) {
-            $query->whereDate('created_at', '>=', $this->startDate);
+        if ($this->requestDate) {
+            $query->whereDate('request_date', '=', Carbon::parse($this->requestDate)->toDateString());
         }
 
-        if ($this->endDate) {
-            $query->whereDate('created_at', '<=', $this->endDate);
-        }
-
-        $historyList = $query
+        $rows = $query
             ->latest('id')
-            ->paginate(8);
+            ->limit($this->visibleCount + 1)
+            ->get();
+
+        $this->hasMoreRows = $rows->count() > $this->visibleCount;
+        $historyList = $rows->take($this->visibleCount)->values();
+
+        if ($this->search !== '') {
+            $search = '%' . $this->search . '%';
+
+            $headerIds = $historyList
+                ->pluck('pr_header_id')
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($headerIds->isNotEmpty()) {
+                $matchedItemHints = Item::query()
+                    ->withTrashed()
+                    ->select('pr_details.pr_header_id', 'items.type')
+                    ->join('pr_details', 'pr_details.id', '=', 'items.pr_detail_id')
+                    ->whereIn('pr_details.pr_header_id', $headerIds)
+                    ->where('items.type', 'like', $search)
+                    ->orderBy('items.type')
+                    ->get()
+                    ->groupBy('pr_header_id')
+                    ->map(function (Collection $rows): array {
+                        return $rows->pluck('type')
+                            ->map(fn ($type) => $this->stringValue($type))
+                            ->filter(fn ($type) => $type !== '-')
+                            ->unique()
+                            ->take(3)
+                            ->values()
+                            ->all();
+                    })
+                    ->all();
+            }
+        }
 
         return [
             'historyList' => $historyList,
             'statusLabels' => PrStatusConstant::getStatuses(),
+            'matchedItemHints' => $matchedItemHints,
+            'hasMoreRows' => $this->hasMoreRows,
         ];
     }
 
@@ -116,7 +165,6 @@ class PurchaseRequisitionHistory extends Page
         $userId = auth()->id();
 
         $steps = PrHistory::query()
-            ->with(['approver', 'currentRole', 'currentStep'])
             ->where('batch_id', $batchId)
             ->where('requester_id', $userId)
             ->orderBy('id')
@@ -128,180 +176,418 @@ class PurchaseRequisitionHistory extends Page
 
         $latest = $steps->last();
 
+        $vesselNameMap = Vessel::query()
+            ->whereIn('id', $steps->pluck('vessel_id')->filter()->unique())
+            ->pluck('name', 'id');
+
+        $departmentNameMap = Department::query()
+            ->whereIn('id', $steps->pluck('department_id')->filter()->unique())
+            ->pluck('name', 'id');
+
+        $latestPayload = is_array($latest->payload ?? null) ? $latest->payload : [];
+
+        $vesselName = $this->stringValue($latestPayload['vessel_name'] ?? null);
+        if ($vesselName === '-' && $latest->vessel_id) {
+            $vesselName = $this->stringValue($vesselNameMap[$latest->vessel_id] ?? null);
+        }
+
+        $departmentName = $this->stringValue($latestPayload['department_name'] ?? null);
+        if ($departmentName === '-' && $latest->department_id) {
+            $departmentName = $this->stringValue($departmentNameMap[$latest->department_id] ?? null);
+        }
+
+        $itemData = $this->buildPayloadItemChanges($steps);
+
         $this->selectedFlowHeader = [
             'batch_id' => $batchId,
-            'pr_number' => $latest->pr_number,
-            'title' => $latest->title,
-            'needs' => $latest->needs,
+            'document_no' => $this->stringValue($latest->document_no),
+            'pr_number' => $this->stringValue($latest->pr_number),
+            'title' => $this->stringValue($latest->title),
+            'needs' => $this->stringValue($latest->needs),
             'status' => $latest->pr_status,
             'status_label' => PrStatusConstant::getStatuses()[$latest->pr_status] ?? ($latest->pr_status ?: '-'),
-            'document_no' => $latest->document_no,
-            'request_date' => optional($latest->request_date)->format('d M Y'),
-            'updated_at' => optional($latest->updated_at)->format('d M Y H:i'),
+            'request_date' => $this->formatDate($latest->request_date),
+            'client_request_date' => $this->formatDate($latestPayload['request_date'] ?? $latest->request_date),
+            'vessel_name' => $vesselName,
+            'department_name' => $departmentName,
         ];
 
-        $this->flowSteps = $steps->values()->map(function (PrHistory $row, int $index): array {
-            return [
-                'index' => $index,
-                'status' => $row->pr_status,
-                'status_label' => PrStatusConstant::getStatuses()[$row->pr_status] ?? ($row->pr_status ?: '-'),
-                'approver' => $row->approver?->name ?? 'System / Belum ada',
-                'role' => $row->currentRole?->name ?? '-',
-                'step' => $row->currentStep?->step_order,
-                'created_at' => optional($row->created_at)->format('d M Y H:i:s'),
-            ];
-        })->all();
+        $this->latestItems = $itemData['latest_items'];
+        $this->itemChangeSteps = $itemData['changes'];
+        $this->itemSnapshots = $itemData['snapshots'];
 
-        $this->flowFieldChanges = $this->buildFlowFieldChanges($steps);
-        $this->flowItemChanges = $this->buildFlowItemChanges($batchId);
-
+        $this->showItemChangesModal = false;
         $this->showFlowModal = true;
+    }
+
+    public function openItemChangesModal(): void
+    {
+        $this->showItemChangesModal = true;
+    }
+
+    public function closeItemChangesModal(): void
+    {
+        $this->showItemChangesModal = false;
     }
 
     public function closeFlowDetails(): void
     {
         $this->showFlowModal = false;
+        $this->showItemChangesModal = false;
         $this->selectedFlowHeader = null;
-        $this->flowSteps = [];
-        $this->flowFieldChanges = [];
-        $this->flowItemChanges = [];
+        $this->latestItems = [];
+        $this->itemChangeSteps = [];
+        $this->itemSnapshots = [];
     }
 
     /**
-     * @return array<int, array<int, array<string, string>>>
+     * @return array{latest_items: array<int, array<string, string>>, changes: array<int, array<string, mixed>>, snapshots: array<int, array<string, mixed>>}
      */
-    private function buildFlowFieldChanges(Collection $steps): array
+    private function buildPayloadItemChanges(Collection $steps): array
     {
-        $fields = [
-            'pr_status' => 'Status',
-            'approver_id' => 'Approver',
-            'current_role_id' => 'Role Saat Ini',
-            'current_step_id' => 'Step Saat Ini',
-            'title' => 'Judul',
-            'needs' => 'Kebutuhan',
-            'document_no' => 'No. Dokumen',
-            'required_date' => 'Tanggal Dibutuhkan',
-            'expired_date' => 'Tanggal Kedaluwarsa',
-        ];
+        $categoryMap = $this->resolveItemCategoryMap($steps);
 
-        $changes = [];
-
-        foreach ($steps->values() as $index => $current) {
-            $previous = $index > 0 ? $steps[$index - 1] : null;
-
-            if ($previous === null) {
-                $changes[$index] = [[
-                    'field' => 'Tahap Awal',
-                    'from' => '-',
-                    'to' => 'Pengajuan awal dicatat ke riwayat',
-                ]];
-                continue;
-            }
-
-            $rowChanges = [];
-
-            foreach ($fields as $field => $label) {
-                $before = (string) ($previous->{$field} ?? '-');
-                $after = (string) ($current->{$field} ?? '-');
-
-                if ($before !== $after) {
-                    $rowChanges[] = [
-                        'field' => $label,
-                        'from' => $before,
-                        'to' => $after,
-                    ];
-                }
-            }
-
-            $changes[$index] = $rowChanges;
-        }
-
-        return $changes;
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function buildFlowItemChanges(string $batchId): array
-    {
-        $rows = ItemLog::query()
-            ->with('itemCategory')
-            ->where('batch_id', $batchId)
-            ->orderBy('id')
-            ->get();
-
-        if ($rows->isEmpty()) {
-            return [];
-        }
-
-        // Snapshot item dicatat berkelompok pada timestamp yang sama/sangat dekat.
-        $snapshots = $rows->groupBy(fn($r) => $r->created_at?->format('Y-m-d H:i:s') ?? 'unknown')
-            ->values();
-
-        $result = [];
         $previous = [];
+        $latestItems = [];
+        $changesByStep = [];
+        $snapshots = [];
 
-        foreach ($snapshots as $index => $snapshotRows) {
+        foreach ($steps->values() as $index => $step) {
+            $payload = is_array($step->payload ?? null) ? $step->payload : [];
+            $items = $this->normalizePayloadItems($payload['items'] ?? [], $categoryMap);
+
             $current = [];
+            foreach ($items as $item) {
+                $current[$item['key']] = $item;
+            }
 
-            foreach ($snapshotRows as $row) {
-                $key = ($row->no ?? '') . '|' . ($row->type ?? '') . '|' . ($row->size ?? '');
+            $snapshots[] = [
+                'step_no' => $index + 1,
+                'status_label' => PrStatusConstant::getStatuses()[$step->pr_status] ?? ($step->pr_status ?: '-'),
+                'changed_at' => $this->formatDateTime($step->created_at),
+                'rows' => array_values($items),
+            ];
 
-                $current[$key] = [
-                    'item' => trim(($row->type ?? '-') . ' ' . ($row->size ?? '')),
-                    'category' => $row->itemCategory?->name ?? '-',
-                    'quantity' => (string) ($row->quantity ?? '-'),
-                    'unit' => (string) ($row->unit ?? '-'),
-                    'remaining' => (string) ($row->remaining ?? '-'),
+            $rowsForStep = [];
+            $usedPreviousKeys = [];
+            foreach ($current as $key => $after) {
+                $beforeKey = null;
+                if (isset($previous[$key])) {
+                    $beforeKey = $key;
+                } else {
+                    $beforeKey = $this->findBestPreviousKey($previous, $after, $usedPreviousKeys);
+                }
+
+                if ($beforeKey !== null) {
+                    $usedPreviousKeys[$beforeKey] = true;
+                }
+
+                $before = $beforeKey !== null ? ($previous[$beforeKey] ?? null) : null;
+                $changedFields = $index === 0 ? [] : $this->diffChangedFields($before, $after);
+
+                $changeLabel = 'Tetap';
+                if ($index === 0) {
+                    $changeLabel = 'Awal';
+                } elseif ($before === null) {
+                    $changeLabel = 'Ditambahkan';
+                } elseif ($changedFields !== []) {
+                    $changeLabel = 'Diubah';
+                }
+
+                $rowsForStep[] = [
+                    'change' => $changeLabel,
+                    'before' => $before,
+                    'after' => $after,
+                    'changed_fields' => $changedFields,
+                    'is_deleted_current' => (bool) ($after['is_deleted'] ?? false),
                 ];
             }
 
-            $added = [];
-            $updated = [];
-            $removed = [];
-
-            foreach ($current as $key => $item) {
-                if (! isset($previous[$key])) {
-                    $added[] = $item;
-                    continue;
-                }
-
-                $before = $previous[$key];
-                $changes = [];
-
-                foreach (['quantity', 'unit', 'remaining'] as $prop) {
-                    if (($before[$prop] ?? '') !== ($item[$prop] ?? '')) {
-                        $changes[] = [
-                            'field' => $prop,
-                            'from' => $before[$prop] ?? '-',
-                            'to' => $item[$prop] ?? '-',
-                        ];
-                    }
-                }
-
-                if ($changes !== []) {
-                    $updated[] = [
-                        'item' => $item['item'],
-                        'changes' => $changes,
-                    ];
-                }
-            }
-
-            foreach ($previous as $key => $item) {
-                if (! isset($current[$key])) {
-                    $removed[] = $item;
-                }
-            }
-
-            $result[$index] = [
-                'added' => $added,
-                'updated' => $updated,
-                'removed' => $removed,
+            $changesByStep[] = [
+                'step_no' => $index + 1,
+                'status_label' => PrStatusConstant::getStatuses()[$step->pr_status] ?? ($step->pr_status ?: '-'),
+                'changed_at' => $this->formatDateTime($step->created_at),
+                'rows' => array_values($rowsForStep),
             ];
 
             $previous = $current;
+            $latestItems = array_values(array_filter($current, fn (array $row): bool => empty($row['is_deleted'])));
+        }
+
+        return [
+            'latest_items' => $latestItems,
+            'changes' => $changesByStep,
+            'snapshots' => $snapshots,
+        ];
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $previousRows
+     * @param array<string, mixed> $after
+     * @param array<string, bool> $usedPreviousKeys
+     */
+    private function findBestPreviousKey(array $previousRows, array $after, array $usedPreviousKeys): ?string
+    {
+        $category = $after['category'] ?? '-';
+        $item = $after['item'] ?? '-';
+        $size = $after['size'] ?? '-';
+        $unit = $after['unit'] ?? '-';
+
+        $tier1 = [];
+        $tier2 = [];
+
+        foreach ($previousRows as $prevKey => $prevRow) {
+            if (($usedPreviousKeys[$prevKey] ?? false) === true) {
+                continue;
+            }
+
+            $prevCategory = $prevRow['category'] ?? '-';
+            $prevItem = $prevRow['item'] ?? '-';
+            $prevSize = $prevRow['size'] ?? '-';
+            $prevUnit = $prevRow['unit'] ?? '-';
+
+            // Strong match: category + item + unit (quantity edits will still match here)
+            if ($prevCategory === $category && $prevItem === $item && $prevUnit === $unit) {
+                $tier1[] = $prevKey;
+                continue;
+            }
+
+            // Fallback match: category + item
+            if ($prevCategory === $category && $prevItem === $item) {
+                $tier2[] = $prevKey;
+            }
+        }
+
+        if (count($tier1) === 1) {
+            return $tier1[0];
+        }
+
+        // If multiple strong candidates, prefer same size.
+        foreach ($tier1 as $candidate) {
+            if (($previousRows[$candidate]['size'] ?? '-') === $size) {
+                return $candidate;
+            }
+        }
+
+        if ($tier1 !== []) {
+            return $tier1[0];
+        }
+
+        if (count($tier2) === 1) {
+            return $tier2[0];
+        }
+
+        return $tier2[0] ?? null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function resolveItemCategoryMap(Collection $steps): array
+    {
+        $categoryIds = [];
+
+        foreach ($steps as $step) {
+            $payload = is_array($step->payload ?? null) ? $step->payload : [];
+            $items = $payload['items'] ?? [];
+
+            if (! is_array($items)) {
+                continue;
+            }
+
+            foreach ($items as $item) {
+                if (! is_array($item)) {
+                    continue;
+                }
+
+                $categoryId = $item['item_category_id'] ?? null;
+                if ($categoryId !== null && $categoryId !== '') {
+                    $categoryIds[] = (int) $categoryId;
+                }
+            }
+        }
+
+        if ($categoryIds === []) {
+            return [];
+        }
+
+        return ItemCategory::query()
+            ->whereIn('id', array_values(array_unique($categoryIds)))
+            ->pluck('name', 'id')
+            ->map(fn ($name) => $this->stringValue($name))
+            ->all();
+    }
+
+    /**
+     * @param mixed $items
+     * @param array<int, string> $categoryMap
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizePayloadItems(mixed $items, array $categoryMap): array
+    {
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+                $categoryId = $item['item_category_id'] ?? null;
+
+                $category = $this->stringValue(
+                $item['category']
+                    ?? $item['item_category_name']
+                    ?? $item['item_category']
+                    ?? (($categoryId !== null && $categoryId !== '') ? ($categoryMap[(int) $categoryId] ?? null) : null)
+                    ?? null
+            );
+
+            $itemName = $this->stringValue(
+                $item['item']
+                    ?? $item['type']
+                    ?? $item['name']
+                    ?? null
+            );
+
+            $size = $this->stringValue(
+                $item['size']
+                    ?? $item['specification']
+                    ?? $item['spesifikasi']
+                    ?? '-'
+            );
+
+            $rowNo = $this->stringValue($item['no'] ?? $item['line_no'] ?? null);
+            $quantity = $this->stringValue($item['quantity'] ?? $item['qty'] ?? null);
+            $unit = $this->stringValue($item['unit'] ?? null);
+            $remaining = $this->stringValue($item['remaining'] ?? $item['sisa'] ?? null);
+            $notes = $this->stringValue($item['keterangan'] ?? $item['Keterangan'] ?? null);
+
+            $rawDeletedAt = $item['deleted_at'] ?? null;
+            $isDeleted = $this->hasDeletedAtValue($rawDeletedAt);
+            $deletedAt = $isDeleted ? $this->stringValue($rawDeletedAt) : '-';
+
+            $identity = $this->stringValue($item['id'] ?? null);
+            if ($identity !== '-') {
+                $key = 'id:' . $identity;
+            } elseif ($rowNo !== '-') {
+                $key = 'no:' . $rowNo;
+            } else {
+                $key = 'sig:' . md5($category . '|' . $itemName . '|' . $size . '|' . $unit);
+            }
+
+            $result[] = [
+                'key' => $key,
+                'category' => $category,
+                'item' => $itemName,
+                'size' => $size,
+                'quantity' => $quantity,
+                'unit' => $unit,
+                'remaining' => $remaining,
+                'notes' => $notes,
+                'deleted_at' => $deletedAt,
+                'is_deleted' => $isDeleted,
+            ];
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, string> $before
+     * @param array<string, string> $after
+     */
+    private function rowChanged(array $before, array $after): bool
+    {
+        return $this->diffChangedFields($before, $after) !== [];
+    }
+
+    /**
+     * @param array<string, mixed>|null $before
+     * @param array<string, mixed>|null $after
+     * @return array<int, string>
+     */
+    private function diffChangedFields(?array $before, ?array $after): array
+    {
+        $fields = ['category', 'item', 'size', 'quantity', 'unit', 'remaining', 'deleted_at'];
+        $changed = [];
+
+        foreach ($fields as $field) {
+            $beforeValue = $before[$field] ?? '-';
+            $afterValue = $after[$field] ?? '-';
+
+            if ($before === null && ($afterValue ?? '-') !== '-') {
+                $changed[] = $field;
+                continue;
+            }
+
+            if ($beforeValue !== $afterValue) {
+                $changed[] = $field;
+            }
+        }
+
+        return $changed;
+    }
+
+    private function stringValue(mixed $value): string
+    {
+        if ($value === null) {
+            return '-';
+        }
+
+        $text = trim((string) $value);
+        return $text === '' ? '-' : $text;
+    }
+
+    private function hasDeletedAtValue(mixed $value): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+
+        $text = trim((string) $value);
+        if ($text === '') {
+            return false;
+        }
+
+        $normalized = strtolower($text);
+        return ! in_array($normalized, ['-', 'null', '0000-00-00', '0000-00-00 00:00:00'], true);
+    }
+
+    private function formatDate(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->format('d M Y');
+        }
+
+        try {
+            return Carbon::parse((string) $value)->format('d M Y');
+        } catch (\Throwable) {
+            return $this->stringValue($value);
+        }
+    }
+
+    private function formatDateTime(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->format('d M Y H:i:s');
+        }
+
+        try {
+            return Carbon::parse((string) $value)->format('d M Y H:i:s');
+        } catch (\Throwable) {
+            return $this->stringValue($value);
+        }
     }
 }

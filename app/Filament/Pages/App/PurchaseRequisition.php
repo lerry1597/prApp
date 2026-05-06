@@ -16,6 +16,8 @@ class PurchaseRequisition extends Page
     public string $sortDirection = 'desc';
 
     public ?int $expandedItemId = null;
+    public bool $showDetailModal = false;
+    public ?int $selectedDetailItemId = null;
     public bool $showItemHistoryModal = false;
     public array $selectedItemHistory = [];
 
@@ -54,9 +56,11 @@ class PurchaseRequisition extends Page
 
     public function resetDateFilters(): void
     {
+        $this->search = '';
         $this->submittedDate = null;
         $this->sortColumn = 'submitted_at';
         $this->sortDirection = 'desc';
+        $this->dispatch('pr-date-filters-reset');
     }
 
     public function getViewData(): array
@@ -116,6 +120,12 @@ class PurchaseRequisition extends Page
 
         $itemList = $query->get();
 
+        $selectedDetailItem = null;
+        if ($this->selectedDetailItemId) {
+            $selectedDetailItem = Item::with(['itemCategory', 'detail.vessel', 'detail.header.currentRole'])
+                ->find($this->selectedDetailItemId);
+        }
+
         $summary = [
             'total_items' => $totalItems,
             'po_progress' => $poProgress,
@@ -124,7 +134,20 @@ class PurchaseRequisition extends Page
         return [
             'itemList' => $itemList,
             'summary' => $summary,
+            'selectedDetailItem' => $selectedDetailItem,
         ];
+    }
+
+    public function openDetailModal(int $itemId): void
+    {
+        $this->selectedDetailItemId = $itemId;
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->selectedDetailItemId = null;
     }
 
     public function toggleExpand(int $itemId): void

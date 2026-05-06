@@ -191,6 +191,8 @@ class ManagePrHeaders extends Page
                             'quantity' => (float) $item->quantity,
                             'unit' => $item->unit,
                             'remaining' => (float) $item->remaining,
+                            'deleted_at' => $item->deleted_at,
+                            'keterangan' => $item->description,
                         ];
                     })->toArray(),
                     'next_step_id'      => $header->current_step_id,

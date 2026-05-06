@@ -252,13 +252,10 @@
         </form>
         <script>
             document.addEventListener('livewire:initialized', () => {
-                Livewire.hook('morph.updated', ({
-                    el,
-                    component
-                }) => {
-                    const firstError = document.querySelector('.pr-field-invalid, .pr-field-error');
-                    if (firstError && !firstError.dataset.scrolled) {
-                        setTimeout(() => {
+                Livewire.on('validation-failed', () => {
+                    setTimeout(() => {
+                        const firstError = document.querySelector('.pr-field-invalid, .pr-field-error');
+                        if (firstError) {
                             firstError.scrollIntoView({
                                 behavior: 'smooth',
                                 block: 'center',
@@ -267,12 +264,8 @@
                             const input = firstError.tagName === 'INPUT' || firstError.tagName === 'SELECT' ?
                                 firstError : firstError.closest('td')?.querySelector('input, select');
                             if (input) input.focus();
-                            firstError.dataset.scrolled = "true";
-                        }, 150);
-                    }
-                });
-                Livewire.hook('request', () => {
-                    document.querySelectorAll('[data-scrolled]').forEach(el => delete el.dataset.scrolled);
+                        }
+                    }, 100);
                 });
             });
         </script>
