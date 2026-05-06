@@ -1829,5 +1829,23 @@
                 min-width: 940px;
             }
         }
+
+        /* Spinner for buttons */
+        .prh-spinner-sm {
+            display: inline-block;
+            width: 0.875rem;
+            height: 0.875rem;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            vertical-align: text-bottom;
+            animation: prh-spin 0.75s linear infinite;
+            margin-right: 0.35rem;
+        }
+
+        @keyframes prh-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     
 

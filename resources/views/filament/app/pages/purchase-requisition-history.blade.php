@@ -33,7 +33,11 @@
                     :show-icon="false" />
 
 
-                <button type="button" class="prh-date-reset" wire:click="resetDateFilters" title="Reset filter tanggal">Reset</button>
+                <button type="button" class="prh-date-reset" wire:click="resetDateFilters" title="Reset filter tanggal">
+                    <span wire:loading wire:target="resetDateFilters" class="prh-spinner-sm"></span>
+                    <span wire:loading.remove wire:target="resetDateFilters">Reset</span>
+                    <span wire:loading wire:target="resetDateFilters">Mereset...</span>
+                </button>
 
             </div>
 
@@ -62,7 +66,11 @@
                             <td>{{ $row->needs ?: '-' }}</td>
                             <td>{{ $row->request_date ? \Illuminate\Support\Carbon::parse($row->request_date)->format('d M Y') : '-' }}</td>
                             <td class="prh-action-col">
-                                <button class="prh-detail-btn" wire:click="showFlowDetails('{{ $row->batch_id }}')">Selengkapnya</button>
+                                <button class="prh-detail-btn" wire:click="showFlowDetails('{{ $row->batch_id }}')">
+                                    <span wire:loading wire:target="showFlowDetails('{{ $row->batch_id }}')" class="prh-spinner-sm"></span>
+                                    <span wire:loading.remove wire:target="showFlowDetails('{{ $row->batch_id }}')">Selengkapnya</span>
+                                    <span wire:loading wire:target="showFlowDetails('{{ $row->batch_id }}')">Memuat...</span>
+                                </button>
                             </td>
                         </tr>
                         @empty
@@ -98,13 +106,17 @@
                     <div class="prh-modal-subtitle">Status terakhir: {{ $selectedFlowHeader['status_label'] ?? '-' }}</div>
                 </div>
                 <div class="prh-modal-header-actions">
-                    <button class="prh-modal-full-toggle" type="button" @click="full = !full" :aria-label="full ? 'Keluar fullscreen' : 'Fullscreen'" :title="full ? 'Keluar fullscreen' : 'Fullscreen'">
-                        <svg x-show="!full" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9V5.25A1.5 1.5 0 015.25 3.75H9M14.999 3.75H18.75a1.5 1.5 0 011.5 1.5V9M20.25 15v3.75a1.5 1.5 0 01-1.5 1.5h-3.75M9 20.25H5.25a1.5 1.5 0 01-1.5-1.5V15" />
-                        </svg>
-                        <svg x-show="full" x-cloak xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.25a1.5 1.5 0 00-1.5 1.5v3M15.75 3.75h3a1.5 1.5 0 011.5 1.5v3M20.25 15.75v3a1.5 1.5 0 01-1.5 1.5h-3M8.25 20.25h-3a1.5 1.5 0 01-1.5-1.5v-3" />
-                        </svg>
+                    <button class="prh-modal-full-toggle" type="button" @click="full = !full" :aria-label="full ? 'Keluar fullscreen' : 'Layar Penuh'" :title="full ? 'Keluar fullscreen' : 'Layar Penuh'">
+                        <template x-if="!full">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </template>
+                        <template x-if="full">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5" />
+                            </svg>
+                        </template>
                     </button>
                     <button class="prh-close" type="button" wire:click="closeFlowDetails" aria-label="Tutup">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -161,7 +173,9 @@
                         <div class="prh-items-count">Jumlah Barang: {{ count($latestItems) }}</div>
                     </div>
                     <button type="button" class="prh-change-toggle" wire:click="openItemChangesModal">
-                        Lihat Perubahan Data
+                        <span wire:loading wire:target="openItemChangesModal" class="prh-spinner-sm"></span>
+                        <span wire:loading.remove wire:target="openItemChangesModal">Lihat Perubahan Data</span>
+                        <span wire:loading wire:target="openItemChangesModal">Memuat...</span>
                     </button>
                 </div>
 
@@ -214,13 +228,17 @@
                     <div class="prh-modal-subtitle"></div>
                 </div>
                 <div class="prh-modal-header-actions">
-                    <button class="prh-modal-full-toggle" type="button" @click="full = !full" :aria-label="full ? 'Keluar fullscreen' : 'Fullscreen'" :title="full ? 'Keluar fullscreen' : 'Fullscreen'">
-                        <svg x-show="!full" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9V5.25A1.5 1.5 0 015.25 3.75H9M14.999 3.75H18.75a1.5 1.5 0 011.5 1.5V9M20.25 15v3.75a1.5 1.5 0 01-1.5 1.5h-3.75M9 20.25H5.25a1.5 1.5 0 01-1.5-1.5V15" />
-                        </svg>
-                        <svg x-show="full" x-cloak xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.25a1.5 1.5 0 00-1.5 1.5v3M15.75 3.75h3a1.5 1.5 0 011.5 1.5v3M20.25 15.75v3a1.5 1.5 0 01-1.5 1.5h-3M8.25 20.25h-3a1.5 1.5 0 01-1.5-1.5v-3" />
-                        </svg>
+                    <button class="prh-modal-full-toggle" type="button" @click="full = !full" :aria-label="full ? 'Keluar fullscreen' : 'Layar Penuh'" :title="full ? 'Keluar fullscreen' : 'Layar Penuh'">
+                        <template x-if="!full">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </template>
+                        <template x-if="full">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5" />
+                            </svg>
+                        </template>
                     </button>
                     <button class="prh-close" type="button" wire:click="closeItemChangesModal" aria-label="Tutup modal perubahan">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">

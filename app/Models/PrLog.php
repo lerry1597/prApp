@@ -43,6 +43,9 @@ class PrLog extends Model
         'request_date',
         'required_date',
         'expired_date',
+        'latitude',
+        'longitude',
+        'delivery_address',
         'detail_description',
     ];
 

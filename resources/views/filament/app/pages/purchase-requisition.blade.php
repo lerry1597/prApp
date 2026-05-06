@@ -29,7 +29,11 @@
                 :show-icon="false"
             />
 
-            <button type="button" wire:click="resetDateFilters" class="prx-reset">Reset</button>
+            <button type="button" wire:click="resetDateFilters" class="prx-reset" title="Reset filter tanggal">
+                <span wire:loading wire:target="resetDateFilters" class="prx-spinner-sm"></span>
+                <span wire:loading.remove wire:target="resetDateFilters">Reset</span>
+                <span wire:loading wire:target="resetDateFilters">Mereset...</span>
+            </button>
         </div>
 
         <!-- <div class="prx-summary">
@@ -133,7 +137,9 @@
                         <td>{{ $header?->created_at?->timezone('Asia/Jakarta')->format('d M Y') ?? '—' }}</td>
                         <td>
                             <button type="button" class="prx-detail-btn" wire:click="openDetailModal({{ $item->id }})" title="Lihat detail item">
-                                Selengkapnya
+                                <span wire:loading wire:target="openDetailModal({{ $item->id }})" class="prx-spinner-sm"></span>
+                                <span wire:loading.remove wire:target="openDetailModal({{ $item->id }})">Selengkapnya</span>
+                                <span wire:loading wire:target="openDetailModal({{ $item->id }})">Memuat...</span>
                             </button>
 
                             @php
@@ -249,7 +255,18 @@
             <div class="prx-modal-head">
                 <span>Detail Barang: {{ $modalItem->type ?? '-' }}</span>
                 <div class="prx-modal-head-actions">
-                    <button type="button" class="prx-head-btn" x-on:click="toggleFull()" x-text="full ? 'Kecilkan' : 'Layar Penuh'"></button>
+                    <button type="button" class="prx-head-btn prx-head-btn-icon" x-on:click="toggleFull()" :title="full ? 'Kecilkan' : 'Layar Penuh'">
+                        <template x-if="!full">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </template>
+                        <template x-if="full">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5" />
+                            </svg>
+                        </template>
+                    </button>
                     <!-- <button type="button" class="prx-head-btn" x-on:click="close()">Tutup</button> -->
                 </div>
             </div>
@@ -272,9 +289,38 @@
                         <div class="prx-field-label">Nama Kapal</div>
                         <div class="prx-field-value">{{ $modalDetail?->vessel?->name ?? '—' }}</div>
                     </div>
+                    @php
+                        $modalStatusColor = \App\Constants\PrStatusConstant::getColor($modalStatusCode ?? \App\Constants\PrStatusConstant::PENDING);
+                        $modalStatusClass = match($modalStatusColor) {
+                            'warning' => 'warning',
+                            'info' => 'info',
+                            'success' => 'success',
+                            default => 'gray',
+                        };
+                    @endphp
                     <div class="prx-field">
                         <div class="prx-field-label">Status</div>
-                        <div class="prx-field-value">{{ $modalStatusLabel }}</div>
+                        <div class="prx-field-value">
+                            <span class="prx-status {{ $modalStatusClass }}">{{ $modalStatusLabel }}</span>
+                        </div>
+                    </div>
+                    <div class="prx-field">
+                        <div class="prx-field-label">Tujuan Pengiriman</div>
+                        <div class="prx-field-value">{{ $modalDetail?->delivery_address ?? '—' }}</div>
+                    </div>
+                    <div class="prx-field">
+                        <div class="prx-field-label">Klasifikasi Urgensi</div>
+                        @php
+                            $urgency = $modalItem->item_priority ?? 'Rutin';
+                            $urgencyColor = match($urgency) {
+                                'Kritis' => '#ef4444',
+                                'Menengah' => '#f59e0b',
+                                default => '#10b981'
+                            };
+                        @endphp
+                        <div class="prx-field-value" style="color: {{ $urgencyColor }}; font-weight: 700;">
+                            {{ $urgency }}
+                        </div>
                     </div>
                     <div class="prx-field">
                         <div class="prx-field-label">Status PO</div>
@@ -306,7 +352,9 @@
 
             <div class="prx-modal-foot">
                 <button type="button" class="prx-history-btn" wire:click="openItemHistory({{ $modalItem->id }})">
-                    Lihat Penyesuaian Jumlah Barang
+                    <span wire:loading wire:target="openItemHistory({{ $modalItem->id }})" class="prx-spinner-sm"></span>
+                    <span wire:loading.remove wire:target="openItemHistory({{ $modalItem->id }})">Lihat Penyesuaian Jumlah Barang</span>
+                    <span wire:loading wire:target="openItemHistory({{ $modalItem->id }})">Memproses...</span>
                 </button>
                 <x-filament::button color="gray" x-on:click="close()">Tutup</x-filament::button>
             </div>

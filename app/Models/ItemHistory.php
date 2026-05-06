@@ -26,6 +26,7 @@ class ItemHistory extends Model
         'quantity',
         'unit',
         'remaining',
+        'item_priority',
         'step_order',
     ];
 

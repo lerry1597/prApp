@@ -28,6 +28,9 @@ class PrDetail extends Model
         'request_date_client',
         'required_date',
         'expired_date',
+        'latitude',
+        'longitude',
+        'delivery_address',
         'description',
     ];
 

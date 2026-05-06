@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <link rel="stylesheet" href="{{ asset('css/purchase-requisition-form.css') }}">
-    
+
 
     <div class="pr-document-wrapper">
         <form wire:submit.prevent="previewSubmit">
@@ -93,6 +93,21 @@
                             <span class="pr-info-value" x-text="clientTime || '{{ $clientDateTime }}'"></span>
                         </div>
 
+                        <div class="pr-info-row" style="margin-top: 0.75rem;">
+                            <span class="pr-info-label">Tujuan Pengiriman</span>
+                            <span class="pr-info-colon">:</span>
+                            <div style="flex: 1;">
+                                <input type="text"
+                                    wire:model.blur="deliveryAddress"
+                                    placeholder="Masukkan alamat/lokasi tujuan..."
+                                    style="width: 100%; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.4rem 0.75rem; font-size: 0.875rem;"
+                                    @class(['pr-field-invalid'=> $errors->has('deliveryAddress')])>
+                                @error('deliveryAddress')
+                                <div style="color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -110,6 +125,7 @@
                                     <th class="col-qty">Jumlah</th>
                                     <th class="col-unit">Satuan</th>
                                     <th class="col-rem">Sisa</th>
+                                    <th class="col-priority">Klasifikasi Urgensi</th>
                                     <th class="col-act">Aksi</th>
                                 </tr>
                             </thead>
@@ -195,6 +211,19 @@
                                         @enderror
                                     </td>
 
+                                    <td class="col-priority">
+                                        <select wire:model.blur="items.{{ $index }}.item_priority"
+                                            @class(['pr-field', 'pr-field-select' , 'pr-field-invalid'=> $errors->has("items.{$index}.item_priority")])>
+                                            <option value="">— Pilih —</option>
+                                            <option value="Kritis">Kritis</option>
+                                            <option value="Menengah">Menengah</option>
+                                            <option value="Rutin">Rutin</option>
+                                        </select>
+                                        @error("items.{$index}.item_priority")
+                                        <span class="pr-field-error">{{ $message }}</span>
+                                        @enderror
+                                    </td>
+
                                     {{-- Aksi --}}
                                     <td class="col-act">
                                         <button type="button"
@@ -269,7 +298,7 @@
                 });
             });
         </script>
-        
+
 
         {{-- ===== PREVIEW MODAL ===== --}}
         @if($showPreviewModal)
@@ -329,6 +358,10 @@
                                 <span class="pr-preview-info-value" style="font-size:0.8rem;">{{ $clientDateTime }}</span>
                             </div>
                             <div class="pr-preview-info-item">
+                                <span class="pr-preview-info-label">Tujuan Pengiriman</span>
+                                <span class="pr-preview-info-value" style="color:#d97706; font-weight:600;">{{ $deliveryAddress }}</span>
+                            </div>
+                            <div class="pr-preview-info-item">
                                 <span class="pr-preview-info-label">Total Item</span>
                                 <span class="pr-preview-info-value">{{ count($items) }} item</span>
                             </div>
@@ -354,6 +387,7 @@
                                             <th class="col-qty">Jumlah</th>
                                             <th class="col-unit">Satuan</th>
                                             <th class="col-rem">Sisa</th>
+                                            <th class="col-priority">Klasifikasi Urgensi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -369,7 +403,7 @@
                                         @if($catName !== $currentCat)
                                         @php $currentCat = $catName; @endphp
                                         <tr class="pr-cat-divider">
-                                            <td colspan="7">
+                                            <td colspan="8">
                                                 <span class="pr-cat-divider-label">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:0.75rem;height:0.75rem;">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
@@ -388,6 +422,18 @@
                                             <td class="col-qty">{{ $item['quantity'] ?: '—' }}</td>
                                             <td class="col-unit">{{ $item['unit'] ?: '—' }}</td>
                                             <td class="col-rem">{{ $item['remaining'] !== '' ? $item['remaining'] : '—' }}</td>
+                                            <td class="col-priority">
+                                                @php
+                                                $priorityColor = match($item['item_priority']) {
+                                                'Kritis' => '#ef4444',
+                                                'Menengah' => '#f59e0b',
+                                                default => '#10b981'
+                                                };
+                                                @endphp
+                                                <span style="color: {{ $priorityColor }}; font-weight: 700;">
+                                                    {{ $item['item_priority'] ?? 'Rutin' }}
+                                                </span>
+                                            </td>
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -413,13 +459,33 @@
                             Kembali Edit
                         </x-filament::button>
 
-                        <x-filament::button
-                            type="button"
-                            icon="heroicon-m-check"
-                            wire:click="confirmSubmit"
-                            wire:target="confirmSubmit">
-                            Konfirmasi &amp; Kirim
-                        </x-filament::button>
+                        <div x-data="{ loadingLoc: false }">
+                            <x-filament::button
+                                type="button"
+                                icon="heroicon-m-check"
+                                x-bind:disabled="loadingLoc"
+                                x-on:click="
+                                    loadingLoc = true;
+                                    if (navigator.geolocation) {
+                                        navigator.geolocation.getCurrentPosition(
+                                            (position) => {
+                                                $wire.confirmSubmit(position.coords.latitude, position.coords.longitude).then(() => loadingLoc = false);
+                                            },
+                                            (error) => {
+                                                console.warn('Gagal ambil lokasi realtime, gunakan session:', error);
+                                                $wire.confirmSubmit().then(() => loadingLoc = false);
+                                            },
+                                            { timeout: 8000, enableHighAccuracy: true }
+                                        );
+                                    } else {
+                                        $wire.confirmSubmit().then(() => loadingLoc = false);
+                                    }
+                                "
+                                wire:target="confirmSubmit">
+                                <span x-show="!loadingLoc">Konfirmasi &amp; Kirim</span>
+                                <span x-show="loadingLoc">Menangkap Lokasi...</span>
+                            </x-filament::button>
+                        </div>
                     </div>
                 </div>
 

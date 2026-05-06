@@ -23,8 +23,14 @@ class CustomLogin extends BaseAuth
                 $this->getLoginFormComponent(),
                 $this->getPasswordFormComponent(),
                 $this->getRememberFormComponent(),
-                Hidden::make('latitude')->default(''),
-                Hidden::make('longitude')->default(''),
+                Hidden::make('latitude')
+                    ->extraAttributes([
+                        'x-on:location-captured.window' => '$wire.set(\'data.latitude\', $event.detail.lat)',
+                    ]),
+                Hidden::make('longitude')
+                    ->extraAttributes([
+                        'x-on:location-captured.window' => '$wire.set(\'data.longitude\', $event.detail.lng)',
+                    ]),
             ]);
     }
 
@@ -35,10 +41,7 @@ class CustomLogin extends BaseAuth
             ->required()
             ->autocomplete()
             ->autofocus()
-            ->extraInputAttributes(['tabindex' => 1])
-            ->extraAttributes([
-                'x-init' => 'if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(position => { $wire.data.latitude = position.coords.latitude; $wire.data.longitude = position.coords.longitude; }); }',
-            ]);
+            ->extraInputAttributes(['tabindex' => 1]);
     }
 
     public function authenticate(): ?LoginResponse
@@ -47,14 +50,27 @@ class CustomLogin extends BaseAuth
             $data = $this->form->getState();
             $login = $data['login'];
 
+            $lat = $data['latitude'] ?? null;
+            $lng = $data['longitude'] ?? null;
+
+            if (empty($lat) || empty($lng)) {
+                \Filament\Notifications\Notification::make()
+                    ->warning()
+                    ->color('warning')
+                    ->title('Izin Lokasi Wajib')
+                    ->body('Mohon izinkan akses lokasi terlebih dahulu melalui jendela yang muncul sebelum login.')
+                    ->persistent()
+                    ->send();
+                
+                return null;
+            }
+
             $logData = [
                 'identifier' => $login,
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
             ];
 
-            $lat = $data['latitude'] ?? null;
-            $lng = $data['longitude'] ?? null;
             $googleLocation = null;
             $location = null;
 
@@ -62,8 +78,6 @@ class CustomLogin extends BaseAuth
                 $googleLocation = "https://google.com/maps?q={$lat},{$lng}";
                 $location = "Browser Geolocation ({$lat}, {$lng})";
             }
-
-            $logData['location'] = $location;
 
             $logData['location'] = $location;
 

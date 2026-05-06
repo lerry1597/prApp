@@ -22,6 +22,7 @@ class Item extends Model
         'quantity',
         'unit',
         'remaining',
+        'item_priority',
         'po_number',
     ];
 

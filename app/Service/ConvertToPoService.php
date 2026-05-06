@@ -209,6 +209,9 @@ class ConvertToPoService
                         'request_date'        => $detail?->request_date,
                         'required_date'       => $detail?->required_date,
                         'expired_date'        => $detail?->expired_date,
+                        'latitude'            => $detail?->latitude,
+                        'longitude'           => $detail?->longitude,
+                        'delivery_address'    => $detail?->delivery_address,
                         'detail_description'  => $detail?->description,
                         'payload'             => [
                             'items'        => $freshItems->values()->map(fn($item): array => [
@@ -219,6 +222,7 @@ class ConvertToPoService
                                 'quantity'         => (float) $item->quantity,
                                 'unit'             => $item->unit,
                                 'remaining'        => (float) $item->remaining,
+                                'item_priority'    => $item->item_priority,
                                 'po_number'        => $item->po_number,
                             ])->all(),
                             'po_numbers'   => $validPoNumbers->toArray(),
@@ -240,6 +244,7 @@ class ConvertToPoService
                                 'quantity'         => (float) $item->quantity,
                                 'unit'             => $item->unit,
                                 'remaining'        => (float) $item->remaining,
+                                'item_priority'    => $item->item_priority,
                                 'po_number'        => $item->po_number,
                             ])->all(),
                         ],
@@ -266,6 +271,9 @@ class ConvertToPoService
                         'request_date'        => $detail?->request_date,
                         'required_date'       => $detail?->required_date,
                         'expired_date'        => $detail?->expired_date,
+                        'latitude'            => $detail?->latitude,
+                        'longitude'           => $detail?->longitude,
+                        'delivery_address'    => $detail?->delivery_address,
                         'detail_description'  => $detail?->description,
                     ]);
 
@@ -287,6 +295,7 @@ class ConvertToPoService
                             'quantity'         => $item->quantity,
                             'unit'             => $item->unit,
                             'remaining'        => $item->remaining,
+                            'item_priority'    => $item->item_priority,
                             'po_number'        => $item->po_number,
                             'step_order'       => $currentStep?->step_order,
                         ];

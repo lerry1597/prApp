@@ -44,6 +44,7 @@ class PurchaseRequisitionForm extends Page
     public string $documentNo = '';
     public string $clientDateTime = '';
     public string $needs = 'Mesin';
+    public string $deliveryAddress = '';
 
     public array $items = [];
     public array $itemCategories = [];
@@ -74,7 +75,7 @@ class PurchaseRequisitionForm extends Page
 
         $this->itemCategories = ItemCategory::pluck('name', 'id')->toArray();
         $this->items = [
-            ['item_category_id' => '', 'type' => '', 'size' => '', 'quantity' => '', 'unit' => '', 'remaining' => '']
+            ['item_category_id' => '', 'type' => '', 'size' => '', 'quantity' => '', 'unit' => '', 'remaining' => '', 'item_priority' => '']
         ];
     }
 
@@ -87,6 +88,7 @@ class PurchaseRequisitionForm extends Page
             'quantity' => '',
             'unit' => '',
             'remaining' => '',
+            'item_priority' => '',
         ];
 
         $this->js("
@@ -124,12 +126,14 @@ class PurchaseRequisitionForm extends Page
     {
         try {
             $this->validate([
+                'deliveryAddress' => 'required|string',
                 'items.*.item_category_id' => 'required',
                 'items.*.type' => 'required|string',
                 'items.*.size' => 'required|string',
                 'items.*.quantity' => 'required|numeric|min:1',
                 'items.*.unit' => 'required|string',
                 'items.*.remaining' => 'required|numeric',
+                'items.*.item_priority' => 'required|string',
             ], [
                 'items.*.item_category_id.required' => 'Kategori wajib dipilih',
                 'items.*.type.required' => 'Nama barang wajib diisi',
@@ -138,6 +142,8 @@ class PurchaseRequisitionForm extends Page
                 'items.*.quantity.min' => 'Minimal 1',
                 'items.*.unit.required' => 'Satuan wajib diisi',
                 'items.*.remaining.required' => 'Sisa wajib diisi',
+                'items.*.item_priority.required' => 'Prioritas wajib dipilih',
+                'deliveryAddress.required' => 'Tujuan pengiriman wajib diisi',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('validation-failed');
@@ -172,6 +178,7 @@ class PurchaseRequisitionForm extends Page
                 'items.*.quantity' => 'required|numeric|min:1',
                 'items.*.unit' => 'required|string',
                 'items.*.remaining' => 'required|numeric',
+                'items.*.item_priority' => 'required|string',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('validation-failed');
@@ -182,8 +189,16 @@ class PurchaseRequisitionForm extends Page
     /**
      * Langkah 2: Konfirmasi dari modal preview, simpan ke database.
      */
-    public function confirmSubmit(): void
+    public function confirmSubmit($lat = null, $lng = null): void
     {
+        // Simpan ke session jika dikirim dari client untuk cadangan
+        if ($lat && $lng) {
+            session([
+                'user_latitude' => $lat,
+                'user_longitude' => $lng
+            ]);
+        }
+
         $user = auth()->user();
         $details = $user?->detailsUser;
 
@@ -239,6 +254,7 @@ class PurchaseRequisitionForm extends Page
                             'quantity' => isset($item['quantity']) ? (float) $item['quantity'] : null,
                             'unit' => $item['unit'] ?? null,
                             'remaining' => isset($item['remaining']) ? (float) $item['remaining'] : null,
+                            'item_priority' => $item['item_priority'] ?? null,
                         ];
                     })->toArray(),
                 ];
@@ -274,6 +290,9 @@ class PurchaseRequisitionForm extends Page
                     'request_date_client' => $dateService->parseLocalizedDate($this->clientDateTime), // Parsing string Indonesia ke DateTime
                     'required_date' => null,
                     'expired_date' => null,
+                    'latitude' => session('user_latitude'),
+                    'longitude' => session('user_longitude'),
+                    'delivery_address' => $this->deliveryAddress,
                     'description' => null,
                 ]);
 
@@ -308,6 +327,9 @@ class PurchaseRequisitionForm extends Page
                     'request_date' => $detail->request_date,
                     'required_date' => $detail->required_date,
                     'expired_date' => $detail->expired_date,
+                    'latitude' => $detail->latitude,
+                    'longitude' => $detail->longitude,
+                    'delivery_address' => $detail->delivery_address,
                     'detail_description' => $detail->description,
                 ]);
 
@@ -337,6 +359,9 @@ class PurchaseRequisitionForm extends Page
                     'request_date' => $detail->request_date,
                     'required_date' => $detail->required_date,
                     'expired_date' => $detail->expired_date,
+                    'latitude' => $detail->latitude,
+                    'longitude' => $detail->longitude,
+                    'delivery_address' => $detail->delivery_address,
                     'detail_description' => $detail->description,
                 ]);
 
@@ -351,6 +376,7 @@ class PurchaseRequisitionForm extends Page
                         'quantity' => $itemData['quantity'],
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
+                        'item_priority' => $itemData['item_priority'],
                         'description' => $itemData['type'],
                     ]);
 
@@ -367,6 +393,7 @@ class PurchaseRequisitionForm extends Page
                         'quantity' => $itemData['quantity'],
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
+                        'item_priority' => $itemData['item_priority'],
                         'step_order' => $currentStep->step_order,
                     ]);
 
@@ -383,6 +410,7 @@ class PurchaseRequisitionForm extends Page
                         'quantity' => $itemData['quantity'],
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
+                        'item_priority' => $itemData['item_priority'],
                         'step_order' => $currentStep->step_order,
                     ]);
                 }
@@ -395,7 +423,7 @@ class PurchaseRequisitionForm extends Page
                 ->body("Pengajuan PR dengan nomor {$prNumber} telah berhasil dikirim dan menunggu persetujuan.")
                 ->send();
 
-            $this->reset(['items', 'needs']);
+            $this->reset(['items', 'needs', 'deliveryAddress']);
             $this->showPreviewModal = false;
             $this->mount(); // Refresh document number and sequence
 

@@ -684,6 +684,18 @@
     background: rgba(255, 255, 255, .24);
 }
 
+.prx-head-btn-icon {
+    padding: .35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prx-head-btn-icon svg {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
 .prx-modal-fullscreen {
     width: calc(100vw - 1.25rem);
     max-width: calc(100vw - 1.25rem);
@@ -849,4 +861,22 @@
     .prx-table {
         min-width: 980px;
     }
+}
+
+/* Spinner for buttons */
+.prx-spinner-sm {
+    display: inline-block;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: text-bottom;
+    animation: prx-spin 0.75s linear infinite;
+    margin-right: 0.35rem;
+}
+
+@keyframes prx-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

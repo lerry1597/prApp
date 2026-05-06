@@ -8,6 +8,8 @@ use CraftForge\FilamentLanguageSwitcher\FilamentLanguageSwitcherPlugin;
 use DragonCode\Support\Helpers\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,5 +30,10 @@ class AppServiceProvider extends ServiceProvider
         if (request()->header('X-Forwarded-Proto') === 'https') {
             URL::forceScheme('https');
         }
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_START,
+            fn (): string => \Illuminate\Support\Facades\Blade::render('<x-app.location-guard />'),
+        );
     }
 }

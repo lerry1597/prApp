@@ -191,6 +191,7 @@ class ManagePrHeaders extends Page
                             'quantity' => (float) $item->quantity,
                             'unit' => $item->unit,
                             'remaining' => (float) $item->remaining,
+                            'item_priority' => $item->item_priority,
                             'deleted_at' => $item->deleted_at,
                             'keterangan' => $item->description,
                         ];
@@ -229,6 +230,9 @@ class ManagePrHeaders extends Page
                     'request_date'         => $detail?->request_date,
                     'required_date'        => $detail?->required_date,
                     'expired_date'         => $detail?->expired_date,
+                    'latitude'             => $detail?->latitude,
+                    'longitude'            => $detail?->longitude,
+                    'delivery_address'     => $detail?->delivery_address,
                     'detail_description'   => $detail?->description,
                     'payload'              => $requestedItemsPayload,
                 ]);
@@ -258,6 +262,9 @@ class ManagePrHeaders extends Page
                     'request_date'         => $detail?->request_date,
                     'required_date'        => $detail?->required_date,
                     'expired_date'         => $detail?->expired_date,
+                    'latitude'             => $detail?->latitude,
+                    'longitude'            => $detail?->longitude,
+                    'delivery_address'     => $detail?->delivery_address,
                     'detail_description'   => $detail?->description,
                     'payload'              => $requestedItemsPayload,
                 ]);
@@ -275,6 +282,7 @@ class ManagePrHeaders extends Page
                         'quantity'         => $item->quantity,
                         'unit'             => $item->unit,
                         'remaining'        => $item->remaining,
+                        'item_priority'    => $item->item_priority,
                         'step_order'       => $currentStep->step_order,
                     ];
                     ItemLog::create($snap);
