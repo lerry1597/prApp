@@ -657,10 +657,10 @@
             backdrop-filter: blur(4px);
             z-index: 10000;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             padding: 1.5rem 1rem;
-            overflow-y: auto;
+            overflow: hidden;
             overscroll-behavior: contain;
         }
         .prh-modal-overlay-full {
@@ -799,6 +799,7 @@
             border-radius: 0;
             margin: 0;
             box-shadow: none;
+            overflow: hidden;
         }
         .prh-modal-fullscreen .prh-modal-body {
             max-height: calc(100vh - 132px);
@@ -1381,8 +1382,12 @@
         }
 
         html:has(.prh-modal-overlay),
-        body:has(.prh-modal-overlay) {
-            overflow: hidden;
+        body:has(.prh-modal-overlay),
+        html:has(.prh-modal-overlay-top),
+        body:has(.prh-modal-overlay-top),
+        html:has(.prh-modal-fullscreen),
+        body:has(.prh-modal-fullscreen) {
+            overflow: hidden !important;
             overscroll-behavior: none;
         }
         .prh-change-modal {
@@ -1610,12 +1615,26 @@
             background: rgba(239, 68, 68, 0.2);
         }
         .prh-cell-warning {
-            background: #fef3c7;
-            box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.24);
+            background: #fde68a !important;
+            box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.45);
         }
         .dark .prh-cell-warning {
-            background: rgba(217, 119, 6, 0.22);
-            box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.28);
+            background: rgba(245, 158, 11, 0.36) !important;
+            box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.65);
+        }
+
+        /* Ensure warning cells look fully orange, not mixed with blue tag styles */
+        .prh-cell-warning .prh-cell-new {
+            background: transparent !important;
+            color: #7c2d12 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            margin-top: 0 !important;
+            display: inline !important;
+            font-weight: 800;
+        }
+        .dark .prh-cell-warning .prh-cell-new {
+            color: #fde68a !important;
         }
         .prh-change-modal .prh-modal-header {
             position: sticky;

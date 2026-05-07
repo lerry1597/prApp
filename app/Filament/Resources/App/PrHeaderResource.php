@@ -74,11 +74,7 @@ class PrHeaderResource extends Resource
         $userRoleIds = $user->roles()->pluck('roles.id')->toArray();
 
         return parent::getEloquentQuery()
-            ->whereIn('current_role_id', $userRoleIds)
-            ->whereIn('pr_status', [
-                \App\Constants\PrStatusConstant::WAITING_APPROVAL,
-                \App\Constants\PrStatusConstant::APPROVED
-            ]);
+            ->visibleToUser(auth()->user());
     }
 
     public static function canCreate(): bool

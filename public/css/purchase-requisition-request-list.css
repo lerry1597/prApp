@@ -236,14 +236,36 @@
     position: fixed;
     inset: 0;
     background: rgba(2, 6, 23, 0.6);
-    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
+    z-index: 10000;
+    overflow: hidden;
+}
+
+/* Layer-3 overlay (Riwayat Perubahan) follows same fullscreen takeover behavior */
+.prh-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 10010;
+    overflow: hidden;
+}
+
+.prh-modal-overlay-top {
+    z-index: 10010 !important;
 }
 
 .prq-modal-overlay-full {
+    padding: 0 !important;
+}
+
+.prh-modal-overlay-full {
     padding: 0 !important;
 }
 
@@ -258,16 +280,48 @@
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
-
 .dark .prq-modal {
     background: #1e293b;
 }
 
 .prq-modal-fullscreen {
-    max-width: 100%;
-    height: 100%;
-    max-height: 100%;
-    border-radius: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.prh-modal-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    overflow: hidden;
+}
+
+.prq-hide-scrollbar {
+    overflow: hidden !important;
+}
+
+/* Freeze background layer when any modal is opened/fullscreened. */
+html:has(.prq-modal-overlay),
+body:has(.prq-modal-overlay),
+html:has(.prh-modal-overlay),
+body:has(.prh-modal-overlay),
+html:has(.prq-modal-fullscreen),
+body:has(.prq-modal-fullscreen),
+html:has(.prh-modal-fullscreen),
+body:has(.prh-modal-fullscreen) {
+    overflow: hidden !important;
 }
 
 .prq-modal-header {

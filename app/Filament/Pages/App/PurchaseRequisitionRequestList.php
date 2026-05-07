@@ -5,6 +5,7 @@ namespace App\Filament\Pages\App;
 use App\Constants\PrStatusConstant;
 use App\Constants\RoleConstant;
 use App\Models\Department;
+use App\Models\Item;
 use App\Models\ItemCategory;
 use App\Models\PrHeader;
 use App\Models\PrLog;
@@ -74,11 +75,7 @@ class PurchaseRequisitionRequestList extends Page
 
         $query = PrHeader::query()
             ->with(['detail.vessel', 'items.itemCategory'])
-            ->where('requester_id', $userId)
-            ->whereNotIn('pr_status', [
-                PrStatusConstant::REJECTED,
-                PrStatusConstant::CLOSED,
-            ]);
+            ->visibleToUser(auth()->user());
 
         if ($this->search !== '') {
             $search = '%' . $this->search . '%';

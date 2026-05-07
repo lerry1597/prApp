@@ -75,28 +75,7 @@ class ProcurementOfficerPrList extends Page
         $procurementRole = Role::where('name', RoleConstant::PROCUREMENT_OFFICER)->firstOrFail();
 
         $query = PrHeader::with(['detail', 'detail.vessel', 'detail.items', 'currentRole', 'requester'])
-            ->whereNotIn('pr_status', [
-                PrStatusConstant::REJECTED,
-                PrStatusConstant::CLOSED,
-                PrStatusConstant::CONVERTED_TO_PO,
-            ])
-            ->where(function ($q) use ($procurementRole) {
-                // PR yang masih di step procurement
-                $q->where(function ($sq) use ($procurementRole) {
-                    $sq->whereNotNull('current_role_id')
-                        ->whereNotNull('current_step_id')
-                        ->where('current_role_id', $procurementRole->id);
-                })
-                    // ATAU PR approved yang masih punya item tanpa PO (partial assignment)
-                    ->orWhere(function ($sq) {
-                        $sq->where('pr_status', PrStatusConstant::APPROVED)
-                            ->whereHas('items', function ($iq) {
-                                $iq->where(function ($nq) {
-                                    $nq->whereNull('po_number')->orWhere('po_number', '');
-                                });
-                            });
-                    });
-            });
+            ->visibleToUser(auth()->user());
 
         if ($this->search) {
             $query->where(function ($q) {

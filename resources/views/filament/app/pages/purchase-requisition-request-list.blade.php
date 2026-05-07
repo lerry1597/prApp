@@ -105,9 +105,7 @@
     <div class="prq-modal-overlay"
         :class="{ 'prq-modal-overlay-full': full }"
         wire:click.self="closeFlowDetails"
-        x-data="{ full: false }"
-        x-init="document.body.style.overflow = 'hidden'; $nextTick(() => $el.focus());"
-        x-on:destroy="document.body.style.overflow = ''">
+        x-data="{ full: false }">
         <div class="prq-modal" :class="{ 'prq-modal-fullscreen': full }" role="dialog" aria-modal="true">
             <div class="prq-modal-header">
                 <div>
@@ -186,9 +184,11 @@
                             <div class="prq-section-title" style="border:none; margin-bottom: 0.2rem; font-size: 0.9rem;">Daftar Barang</div>
                             <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Jumlah Barang: {{ count($latestItems) }}</div>
                         </div>
+                        {{--
                         <x-filament::button color="info" size="sm" icon="heroicon-m-document-text" class="rounded-xl" wire:click="showItemChanges">
                             Lihat Perubahan Data
                         </x-filament::button>
+                        --}}
                     </div>
 
                     <div class="prq-table-wrap-modal">
@@ -230,7 +230,10 @@
     @endif
 
     @if($showFlowModal && $showItemChangesModal)
-    <div class="prh-modal-overlay prh-modal-overlay-top" :class="{ 'prh-modal-overlay-full': full }" wire:click.self="closeItemChanges" x-data="{ full: false }">
+    <div class="prh-modal-overlay prh-modal-overlay-top"
+        :class="{ 'prh-modal-overlay-full': full }"
+        wire:click.self="closeItemChanges"
+        x-data="{ full: false }">
         <div class="prh-modal prh-change-modal" :class="{ 'prh-modal-fullscreen': full }" role="dialog" aria-modal="true">
             <div class="prh-modal-header prh-modal-header-change">
                 <div>
