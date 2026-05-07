@@ -5,15 +5,14 @@ namespace App\Filament\Pages\App;
 use App\Constants\PrStatusConstant;
 use App\Constants\RoleConstant;
 use App\Models\Department;
-use App\Models\Item;
 use App\Models\ItemCategory;
-use App\Models\PrHistory;
-use App\Models\Vessel;
+use App\Models\PrHeader;
+use App\Models\PrLog;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-class PurchaseRequisitionHistory extends Page
+class PurchaseRequisitionRequestList extends Page
 {
     public string $search = '';
     public ?string $requestDate = null;
@@ -23,25 +22,18 @@ class PurchaseRequisitionHistory extends Page
     public bool $hasMoreRows = false;
 
     public bool $showFlowModal = false;
-    public bool $showItemChangesModal = false;
-
     public ?array $selectedFlowHeader = null;
-
-    /** @var array<int, array<string, string>> */
     public array $latestItems = [];
-
-    /** @var array<int, array<string, mixed>> */
+    public bool $showItemChangesModal = false;
     public array $itemChangeSteps = [];
-
-    /** @var array<int, array<string, mixed>> */
     public array $itemSnapshots = [];
 
-    protected static ?string $navigationLabel = 'Riwayat Pengajuan Barang';
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationLabel = 'Daftar Permintaan Barang';
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $title = 'Riwayat Pengajuan Barang';
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';
-    protected string $view = 'filament.app.pages.purchase-requisition-history';
+    protected static ?string $title = 'Daftar Permintaan Barang';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
+    protected string $view = 'filament.app.pages.purchase-requisition-request-list';
 
     public static function canAccess(): bool
     {
@@ -63,12 +55,12 @@ class PurchaseRequisitionHistory extends Page
         $this->search = '';
         $this->requestDate = null;
         $this->visibleCount = $this->initialTake;
-        $this->dispatch('pr-history-date-filters-reset');
+        $this->dispatch('pr-request-list-date-filters-reset');
     }
 
     public function loadMore(): void
     {
-        if (! $this->hasMoreRows) {
+        if (!$this->hasMoreRows) {
             return;
         }
 
@@ -80,36 +72,36 @@ class PurchaseRequisitionHistory extends Page
         $userId = auth()->id();
         $matchedItemHints = [];
 
-        $latestIdsPerBatch = PrHistory::query()
-            ->selectRaw('MAX(id)')
+        $query = PrHeader::query()
+            ->with(['detail.vessel', 'items.itemCategory'])
             ->where('requester_id', $userId)
-            ->groupBy('batch_id');
-
-        $query = PrHistory::query()
-            ->whereIn('id', $latestIdsPerBatch)
-            ->where('requester_id', $userId)
-            ->whereNull('current_step_id');
+            ->whereNotIn('pr_status', [
+                PrStatusConstant::REJECTED,
+                PrStatusConstant::CLOSED,
+            ]);
 
         if ($this->search !== '') {
             $search = '%' . $this->search . '%';
 
             $query->where(function ($q) use ($search): void {
-                $q->where('document_no', 'like', $search)
-                    ->orWhere('needs', 'like', $search)
-                    ->orWhere('title', 'like', $search)
-                    ->orWhere('pr_number', 'like', $search)
-                    ->orWhereExists(function ($itemQuery) use ($search): void {
-                        $itemQuery->selectRaw('1')
-                            ->from('pr_details')
-                            ->join('items', 'items.pr_detail_id', '=', 'pr_details.id')
-                            ->whereColumn('pr_details.pr_header_id', 'pr_histories.pr_header_id')
-                            ->where('items.type', 'like', $search);
+                $q->where('pr_number', 'like', $search)
+                    ->orWhereHas('detail', function ($detailQuery) use ($search): void {
+                        $detailQuery->where('document_no', 'like', $search)
+                            ->orWhereHas('vessel', function ($vesselQuery) use ($search): void {
+                                $vesselQuery->where('name', 'like', $search);
+                            });
+                    })
+                    ->orWhereHas('department', function ($deptQuery) use ($search): void {
+                        $deptQuery->where('name', 'like', $search);
+                    })
+                    ->orWhereHas('items', function ($itemQuery) use ($search): void {
+                        $itemQuery->where('type', 'like', $search);
                     });
             });
         }
 
         if ($this->requestDate) {
-            $query->whereDate('request_date', '=', Carbon::parse($this->requestDate)->toDateString());
+            $query->whereDate('created_at', '=', Carbon::parse($this->requestDate)->toDateString());
         }
 
         $rows = $query
@@ -118,131 +110,106 @@ class PurchaseRequisitionHistory extends Page
             ->get();
 
         $this->hasMoreRows = $rows->count() > $this->visibleCount;
-        $historyList = $rows->take($this->visibleCount)->values();
+        $requestList = $rows->take($this->visibleCount)->values();
 
         if ($this->search !== '') {
             $search = '%' . $this->search . '%';
-
-            $headerIds = $historyList
-                ->pluck('pr_header_id')
-                ->filter()
-                ->unique()
-                ->values();
+            $headerIds = $requestList->pluck('id')->filter()->unique()->values();
 
             if ($headerIds->isNotEmpty()) {
                 $matchedItemHints = Item::query()
-                    ->withTrashed()
                     ->select('pr_details.pr_header_id', 'items.type')
                     ->join('pr_details', 'pr_details.id', '=', 'items.pr_detail_id')
                     ->whereIn('pr_details.pr_header_id', $headerIds)
                     ->where('items.type', 'like', $search)
-                    ->orderBy('items.type')
                     ->get()
                     ->groupBy('pr_header_id')
                     ->map(function (Collection $rows): array {
                         return $rows->pluck('type')
-                            ->map(fn($type) => $this->stringValue($type))
-                            ->filter(fn($type) => $type !== '-')
                             ->unique()
                             ->take(3)
                             ->values()
                             ->all();
                     })
-                    ->all();
+                    ->toArray();
             }
         }
 
         return [
-            'historyList' => $historyList,
-            'statusLabels' => PrStatusConstant::getStatuses(),
+            'requestList' => $requestList,
             'matchedItemHints' => $matchedItemHints,
-            'hasMoreRows' => $this->hasMoreRows,
+            'statusMap' => PrStatusConstant::getStatuses(),
         ];
     }
 
-    public function showFlowDetails(string $batchId): void
+    public function showFlowDetails(int $headerId): void
     {
-        $userId = auth()->id();
-
-        $steps = PrHistory::query()
-            ->where('batch_id', $batchId)
-            ->where('requester_id', $userId)
-            ->orderBy('id')
-            ->get();
-
-        if ($steps->isEmpty()) {
-            return;
-        }
-
-        $latest = $steps->last();
-
-        $vesselNameMap = Vessel::query()
-            ->whereIn('id', $steps->pluck('vessel_id')->filter()->unique())
-            ->pluck('name', 'id');
-
-        $departmentNameMap = Department::query()
-            ->whereIn('id', $steps->pluck('department_id')->filter()->unique())
-            ->pluck('name', 'id');
-
-        $latestPayload = is_array($latest->payload ?? null) ? $latest->payload : [];
-
-        $vesselName = $this->stringValue($latestPayload['vessel_name'] ?? null);
-        if ($vesselName === '-' && $latest->vessel_id) {
-            $vesselName = $this->stringValue($vesselNameMap[$latest->vessel_id] ?? null);
-        }
-
-        $departmentName = $this->stringValue($latestPayload['department_name'] ?? null);
-        if ($departmentName === '-' && $latest->department_id) {
-            $departmentName = $this->stringValue($departmentNameMap[$latest->department_id] ?? null);
-        }
-
-        $itemData = $this->buildPayloadItemChanges($steps);
+        $header = PrHeader::with(['detail.vessel', 'items.itemCategory', 'requester'])->find($headerId);
+        if (!$header) return;
 
         $this->selectedFlowHeader = [
-            'batch_id' => $batchId,
-            'document_no' => $this->stringValue($latest->document_no),
-            'pr_number' => $this->stringValue($latest->pr_number),
-            'title' => $this->stringValue($latest->title),
-            'needs' => $this->stringValue($latest->needs),
-            'status' => $latest->pr_status,
-            'status_label' => PrStatusConstant::getStatuses()[$latest->pr_status] ?? ($latest->pr_status ?: '-'),
-            'request_date' => $this->formatDate($latest->request_date),
-            'client_request_date' => $this->formatDate($latestPayload['request_date'] ?? $latest->request_date),
-            'vessel_name' => $vesselName,
-            'department_name' => $departmentName,
+            'id' => $header->id,
+            'title' => $header->detail?->title,
+            'document_no' => $header->detail?->document_no,
+            'pr_number' => $header->pr_number,
+            'vessel_name' => $header->detail?->vessel?->name,
+            'needs' => $header->detail?->needs,
+            'request_date' => $header->created_at?->format('d M Y H:i'),
+            'client_request_date' => $header->detail?->request_date_client?->format('d M Y H:i'),
+            'status_label' => PrStatusConstant::getStatuses()[$header->pr_status] ?? $header->pr_status,
+            'status_code' => $header->pr_status,
+            'requester_name' => $header->requester?->name,
+            'delivery_address' => $header->detail?->delivery_address,
         ];
 
-        $this->latestItems = $itemData['latest_items'];
-        $this->itemChangeSteps = $itemData['changes'];
-        $this->itemSnapshots = $itemData['snapshots'];
+        $this->latestItems = $header->items->map(function ($item) {
+            return [
+                'category' => $item->itemCategory?->name,
+                'item' => $item->type,
+                'size' => $item->size,
+                'quantity' => $item->quantity,
+                'unit' => $item->unit,
+                'priority' => $item->priority,
+                'remaining' => $item->remaining,
+                'po_number' => $item->po_number,
+            ];
+        })->toArray();
 
-        $this->showItemChangesModal = false;
         $this->showFlowModal = true;
-    }
-
-    public function openItemChangesModal(): void
-    {
-        $this->showItemChangesModal = true;
-    }
-
-    public function closeItemChangesModal(): void
-    {
-        $this->showItemChangesModal = false;
     }
 
     public function closeFlowDetails(): void
     {
         $this->showFlowModal = false;
-        $this->showItemChangesModal = false;
         $this->selectedFlowHeader = null;
         $this->latestItems = [];
+    }
+
+    public function showItemChanges(): void
+    {
+        if (!$this->selectedFlowHeader) {
+            return;
+        }
+
+        $logs = PrLog::query()
+            ->where('pr_header_id', $this->selectedFlowHeader['id'])
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $payload = $this->buildPayloadItemChanges($logs);
+
+        $this->itemChangeSteps = $payload['changes'];
+        $this->itemSnapshots = $payload['snapshots'];
+        $this->showItemChangesModal = true;
+    }
+
+    public function closeItemChanges(): void
+    {
+        $this->showItemChangesModal = false;
         $this->itemChangeSteps = [];
         $this->itemSnapshots = [];
     }
 
-    /**
-     * @return array{latest_items: array<int, array<string, string>>, changes: array<int, array<string, mixed>>, snapshots: array<int, array<string, mixed>>}
-     */
     private function buildPayloadItemChanges(Collection $steps): array
     {
         $categoryMap = $this->resolveItemCategoryMap($steps);
@@ -321,11 +288,6 @@ class PurchaseRequisitionHistory extends Page
         ];
     }
 
-    /**
-     * @param array<string, array<string, mixed>> $previousRows
-     * @param array<string, mixed> $after
-     * @param array<string, bool> $usedPreviousKeys
-     */
     private function findBestPreviousKey(array $previousRows, array $after, array $usedPreviousKeys): ?string
     {
         $category = $after['category'] ?? '-';
@@ -346,13 +308,11 @@ class PurchaseRequisitionHistory extends Page
             $prevSize = $prevRow['size'] ?? '-';
             $prevUnit = $prevRow['unit'] ?? '-';
 
-            // Strong match: category + item + unit (quantity edits will still match here)
             if ($prevCategory === $category && $prevItem === $item && $prevUnit === $unit) {
                 $tier1[] = $prevKey;
                 continue;
             }
 
-            // Fallback match: category + item
             if ($prevCategory === $category && $prevItem === $item) {
                 $tier2[] = $prevKey;
             }
@@ -362,7 +322,6 @@ class PurchaseRequisitionHistory extends Page
             return $tier1[0];
         }
 
-        // If multiple strong candidates, prefer same size.
         foreach ($tier1 as $candidate) {
             if (($previousRows[$candidate]['size'] ?? '-') === $size) {
                 return $candidate;
@@ -380,9 +339,6 @@ class PurchaseRequisitionHistory extends Page
         return $tier2[0] ?? null;
     }
 
-    /**
-     * @return array<int, string>
-     */
     private function resolveItemCategoryMap(Collection $steps): array
     {
         $categoryIds = [];
@@ -391,12 +347,12 @@ class PurchaseRequisitionHistory extends Page
             $payload = is_array($step->payload ?? null) ? $step->payload : [];
             $items = $payload['items'] ?? [];
 
-            if (! is_array($items)) {
+            if (!is_array($items)) {
                 continue;
             }
 
             foreach ($items as $item) {
-                if (! is_array($item)) {
+                if (!is_array($item)) {
                     continue;
                 }
 
@@ -418,21 +374,16 @@ class PurchaseRequisitionHistory extends Page
             ->all();
     }
 
-    /**
-     * @param mixed $items
-     * @param array<int, string> $categoryMap
-     * @return array<int, array<string, mixed>>
-     */
     private function normalizePayloadItems(mixed $items, array $categoryMap): array
     {
-        if (! is_array($items)) {
+        if (!is_array($items)) {
             return [];
         }
 
         $result = [];
 
         foreach ($items as $item) {
-            if (! is_array($item)) {
+            if (!is_array($item)) {
                 continue;
             }
 
@@ -448,47 +399,29 @@ class PurchaseRequisitionHistory extends Page
 
             $itemName = $this->stringValue(
                 $item['item']
+                    ?? $item['item_type']
                     ?? $item['type']
-                    ?? $item['name']
                     ?? null
             );
 
-            $size = $this->stringValue(
-                $item['size']
-                    ?? $item['specification']
-                    ?? $item['spesifikasi']
-                    ?? '-'
-            );
-
-            $rowNo = $this->stringValue($item['no'] ?? $item['line_no'] ?? null);
-            $quantity = $this->stringValue($item['quantity'] ?? $item['qty'] ?? null);
+            $size = $this->stringValue($item['size'] ?? null);
             $unit = $this->stringValue($item['unit'] ?? null);
-            $remaining = $this->stringValue($item['remaining'] ?? $item['sisa'] ?? null);
-            $notes = $this->stringValue($item['keterangan'] ?? $item['Keterangan'] ?? null);
+            $quantity = $item['quantity'] ?? 0;
+            $remaining = $item['remaining'] ?? 0;
+            $priority = $this->stringValue($item['priority'] ?? null);
+            $isDeleted = (bool) ($item['is_deleted'] ?? false);
 
-            $rawDeletedAt = $item['deleted_at'] ?? null;
-            $isDeleted = $this->hasDeletedAtValue($rawDeletedAt);
-            $deletedAt = $isDeleted ? $this->stringValue($rawDeletedAt) : '-';
-
-            $identity = $this->stringValue($item['id'] ?? null);
-            if ($identity !== '-') {
-                $key = 'id:' . $identity;
-            } elseif ($rowNo !== '-') {
-                $key = 'no:' . $rowNo;
-            } else {
-                $key = 'sig:' . md5($category . '|' . $itemName . '|' . $size . '|' . $unit);
-            }
+            $key = ($item['id'] ?? null) ?: md5($category . $itemName . $size . $unit);
 
             $result[] = [
-                'key' => $key,
+                'key' => (string) $key,
                 'category' => $category,
                 'item' => $itemName,
                 'size' => $size,
                 'quantity' => $quantity,
                 'unit' => $unit,
                 'remaining' => $remaining,
-                'notes' => $notes,
-                'deleted_at' => $deletedAt,
+                'priority' => $priority,
                 'is_deleted' => $isDeleted,
             ];
         }
@@ -496,35 +429,20 @@ class PurchaseRequisitionHistory extends Page
         return $result;
     }
 
-    /**
-     * @param array<string, string> $before
-     * @param array<string, string> $after
-     */
-    private function rowChanged(array $before, array $after): bool
+    private function diffChangedFields(?array $before, array $after): array
     {
-        return $this->diffChangedFields($before, $after) !== [];
-    }
+        if ($before === null) {
+            return [];
+        }
 
-    /**
-     * @param array<string, mixed>|null $before
-     * @param array<string, mixed>|null $after
-     * @return array<int, string>
-     */
-    private function diffChangedFields(?array $before, ?array $after): array
-    {
-        $fields = ['category', 'item', 'size', 'quantity', 'unit', 'remaining', 'deleted_at'];
+        $fields = ['category', 'item', 'size', 'quantity', 'unit', 'priority'];
         $changed = [];
 
         foreach ($fields as $field) {
-            $beforeValue = $before[$field] ?? '-';
-            $afterValue = $after[$field] ?? '-';
+            $valBefore = $before[$field] ?? null;
+            $valAfter = $after[$field] ?? null;
 
-            if ($before === null && ($afterValue ?? '-') !== '-') {
-                $changed[] = $field;
-                continue;
-            }
-
-            if ($beforeValue !== $afterValue) {
+            if ((string) $valBefore !== (string) $valAfter) {
                 $changed[] = $field;
             }
         }
@@ -534,60 +452,19 @@ class PurchaseRequisitionHistory extends Page
 
     private function stringValue(mixed $value): string
     {
-        if ($value === null) {
-            return '-';
-        }
-
-        $text = trim((string) $value);
-        return $text === '' ? '-' : $text;
-    }
-
-    private function hasDeletedAtValue(mixed $value): bool
-    {
-        if ($value === null) {
-            return false;
-        }
-
-        $text = trim((string) $value);
-        if ($text === '') {
-            return false;
-        }
-
-        $normalized = strtolower($text);
-        return ! in_array($normalized, ['-', 'null', '0000-00-00', '0000-00-00 00:00:00'], true);
-    }
-
-    private function formatDate(mixed $value): string
-    {
         if ($value === null || $value === '') {
             return '-';
         }
 
-        if ($value instanceof Carbon) {
-            return $value->format('d M Y');
-        }
-
-        try {
-            return Carbon::parse((string) $value)->format('d M Y');
-        } catch (\Throwable) {
-            return $this->stringValue($value);
-        }
+        return (string) $value;
     }
 
-    private function formatDateTime(mixed $value): string
+    private function formatDateTime(?Carbon $dateTime): string
     {
-        if ($value === null || $value === '') {
+        if (!$dateTime) {
             return '-';
         }
 
-        if ($value instanceof Carbon) {
-            return $value->format('d M Y H:i:s');
-        }
-
-        try {
-            return Carbon::parse((string) $value)->format('d M Y H:i:s');
-        } catch (\Throwable) {
-            return $this->stringValue($value);
-        }
+        return $dateTime->format('d M Y H:i:s');
     }
 }

@@ -33,6 +33,7 @@ class AppPanelProvider extends PanelProvider
         'css/procurement-officer-pr-list.css',
         'css/purchase-requisition-form.css',
         'css/purchase-requisition-history.css',
+        'css/purchase-requisition-request-list.css',
         'css/purchase-requisition.css',
         'css/vessel-pr-overview.css',
     ];
@@ -70,6 +71,7 @@ class AppPanelProvider extends PanelProvider
                 \App\Filament\Pages\App\AppDashboard::class,
                 \App\Filament\Pages\App\PurchaseRequisitionForm::class,
                 \App\Filament\Pages\App\PurchaseRequisition::class,
+                \App\Filament\Pages\App\PurchaseRequisitionRequestList::class,
                 \App\Filament\Pages\App\PurchaseRequisitionHistory::class,
                 \App\Filament\Pages\App\ProcurementOfficerPrList::class,
                 \App\Filament\Pages\App\ProcessedPoList::class,
