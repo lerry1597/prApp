@@ -15,7 +15,7 @@
         
         <h2>Akses Lokasi Diperlukan</h2>
         <p>
-            Untuk melanjutkan penggunaan aplikasi, kami memerlukan akses lokasi Anda sebagai bagian dari pendataan informasi karyawan yang valid.
+            Untuk alasan keamanan dan validitas data, sistem memerlukan akses lokasi Anda. Mohon aktifkan GPS atau izinkan akses lokasi pada browser Anda.
         </p>
 
         <div class="location-guard-actions">
@@ -332,16 +332,10 @@
                         try {
                             const lat = position.coords.latitude;
                             const lng = position.coords.longitude;
-
-                            // Ambil CSRF token dengan cara yang lebih tangguh
+                            
                             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
-                                            || document.querySelector('input[name="_token"]')?.value;
+                                             || document.querySelector('input[name="_token"]')?.value;
 
-                            if (!csrfToken) {
-                                console.error("CSRF token tidak ditemukan.");
-                            }
-
-                            // Kirim ke backend
                             const response = await fetch(this.endpoint, {
                                 method: 'POST',
                                 headers: {
@@ -352,37 +346,39 @@
                                 body: JSON.stringify({ lat, lng })
                             });
 
-                            if (response.ok) {
-                                sessionStorage.setItem('location_captured', 'true');
-                                
-                                // Dispatch event agar Livewire/Alpine komponen lain tahu
-                                window.dispatchEvent(new CustomEvent('location-captured', { 
-                                    detail: { lat, lng } 
-                                }));
+                            sessionStorage.setItem('location_captured', 'true');
+                            
+                            window.dispatchEvent(new CustomEvent('location-captured', { 
+                                detail: { lat, lng } 
+                            }));
 
-                                this.show = false;
-                                this.toggleBodyScroll(false);
-                                this.blockSubmitButtons(false);
-                            } else {
-                                const errData = await response.json().catch(() => ({}));
-                                console.error("Gagal menyimpan lokasi:", response.status, errData);
-                                this.error = `Gagal menyimpan lokasi ke server (Error ${response.status}).`;
-                            }
+                            this.show = false;
+                            this.toggleBodyScroll(false);
+                            this.blockSubmitButtons(false);
                         } catch (err) {
-                            this.error = "Terjadi kesalahan sistem.";
+                            console.error(err);
+                            this.error = "Terjadi kesalahan saat memproses lokasi.";
                         } finally {
                             this.loading = false;
                         }
                     },
                     (err) => {
                         this.loading = false;
-                        if (err.code === err.PERMISSION_DENIED) {
-                            this.error = "Akses ditolak. Mohon izinkan lokasi di pengaturan browser Anda.";
-                        } else {
-                            this.error = "Gagal mendapatkan lokasi. Silakan coba lagi.";
+                        switch(err.code) {
+                            case err.PERMISSION_DENIED:
+                                this.error = "Akses ditolak. Silakan aktifkan lokasi di pengaturan browser/sistem Anda.";
+                                break;
+                            case err.POSITION_UNAVAILABLE:
+                                this.error = "Informasi lokasi tidak tersedia. Pastikan GPS aktif.";
+                                break;
+                            case err.TIMEOUT:
+                                this.error = "Waktu permintaan habis. Silakan coba lagi.";
+                                break;
+                            default:
+                                this.error = "Gagal mendapatkan lokasi.";
                         }
                     },
-                    { timeout: 10000 }
+                    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
                 );
             }
         };

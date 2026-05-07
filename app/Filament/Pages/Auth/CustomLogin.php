@@ -53,18 +53,9 @@ class CustomLogin extends BaseAuth
             $lat = $data['latitude'] ?? null;
             $lng = $data['longitude'] ?? null;
 
-            if (empty($lat) || empty($lng)) {
-                \Filament\Notifications\Notification::make()
-                    ->warning()
-                    ->color('warning')
-                    ->title('Izin Lokasi Wajib')
-                    ->body('Mohon izinkan akses lokasi terlebih dahulu melalui jendela yang muncul sebelum login.')
-                    ->persistent()
-                    ->send();
-                
-                return null;
-            }
-
+            // Lokasi akan ditangani oleh Location Guard Component
+            // Data latitude dan longitude akan otomatis terisi melalui Alpine.js event
+            
             $logData = [
                 'identifier' => $login,
                 'ip_address' => request()->ip(),
