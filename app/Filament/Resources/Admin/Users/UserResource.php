@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Admin\Users;
 
+use App\Filament\Resources\Admin\Users\Pages\CreateCrewUser;
+use App\Filament\Resources\Admin\Users\Pages\CreateGeneralUser;
 use App\Filament\Resources\Admin\Users\Pages\CreateUser;
 use App\Filament\Resources\Admin\Users\Pages\EditUser;
 use App\Filament\Resources\Admin\Users\Pages\ListUsers;
@@ -65,10 +67,12 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListUsers::route('/'),
-            'create' => CreateUser::route('/create'),
-            'view' => ViewUser::route('/{record}'),
-            'edit' => EditUser::route('/{record}/edit'),
+            'index'         => ListUsers::route('/'),
+            'create'        => CreateUser::route('/create'),
+            'create-crew'   => CreateCrewUser::route('/create/crew'),
+            'create-general' => CreateGeneralUser::route('/create/general'),
+            'view'          => ViewUser::route('/{record}'),
+            'edit'          => EditUser::route('/{record}/edit'),
         ];
     }
 

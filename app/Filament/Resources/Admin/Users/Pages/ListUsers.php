@@ -3,7 +3,8 @@
 namespace App\Filament\Resources\Admin\Users\Pages;
 
 use App\Filament\Resources\Admin\Users\UserResource;
-use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\ListRecords;
 
 class ListUsers extends ListRecords
@@ -13,8 +14,21 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->label('Tambahkan Pengguna Baru'),
+            ActionGroup::make([
+                Action::make('create-crew')
+                    ->label('Kru Kapal')
+                    ->icon('lucide-ship')
+                    ->url(UserResource::getUrl('create-crew')),
+
+                Action::make('create-general')
+                    ->label('Pengguna Umum')
+                    ->icon('heroicon-o-user')
+                    ->url(UserResource::getUrl('create-general')),
+            ])
+                ->label('Tambahkan Pengguna Baru')
+                ->icon('heroicon-o-user-plus')
+                ->button()
+                ->color('primary'),
         ];
     }
 }

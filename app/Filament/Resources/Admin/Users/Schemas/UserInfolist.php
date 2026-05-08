@@ -46,6 +46,11 @@ class UserInfolist
                         TextEntry::make('vessel.name')
                             ->label('Kapal (Vessel)')
                             ->placeholder('Tidak ada kapal'),
+                        TextEntry::make('companies.name')
+                            ->label('Perusahaan')
+                            ->badge()
+                            ->separator(', ')
+                            ->placeholder('Tidak ada perusahaan'),
                     ]),
                 //Meta data    
                 Section::make('Metadata')

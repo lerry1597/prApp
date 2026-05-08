@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Constants\RoleConstant;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['username', 'name', 'email', 'password', 'vessel_id', 'id_employee', 'is_primary', 'user_code'])]
@@ -25,6 +26,12 @@ class User extends Authenticatable implements FilamentUser
     public function vessel(): BelongsTo
     {
         return $this->belongsTo(Vessel::class);
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class)
+            ->withTimestamps();
     }
 
     protected static function booted()
