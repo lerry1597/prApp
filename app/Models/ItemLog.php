@@ -27,6 +27,7 @@ class ItemLog extends Model
         'unit',
         'remaining',
         'item_priority',
+        'status',
         'step_order',
     ];
 

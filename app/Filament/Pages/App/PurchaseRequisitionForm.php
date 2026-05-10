@@ -242,9 +242,10 @@ class PurchaseRequisitionForm extends Page
         } while (PrHeader::where('pr_number', $prNumber)->exists());
 
         $batchId = (string) Str::uuid();
+        $newHeaderId = null;
 
         try {
-            DB::transaction(function () use ($user, $details, $workflow, $currentStep, $nextStep, $prNumber, $batchId) {
+            DB::transaction(function () use ($user, $details, $workflow, $currentStep, $nextStep, $prNumber, $batchId, &$newHeaderId) {
                 $requestedItemsPayload = [
                     'items' => collect($this->items)->values()->map(function ($item) {
                         return [
@@ -271,6 +272,7 @@ class PurchaseRequisitionForm extends Page
                     'current_step_id' => $nextStep->id,
                     'description' => null,
                 ]);
+                $newHeaderId = $header->id;
 
                 // B. Simpan PrDetail
                 $dateService = app(DateService::class);
@@ -377,7 +379,8 @@ class PurchaseRequisitionForm extends Page
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
                         'item_priority' => $itemData['item_priority'],
-                        'description' => $itemData['type'],
+                        'status' => PrStatusConstant::WAITING_APPROVAL,
+                        // 'description' => $itemData['type'],
                     ]);
 
                     // Snapshot ke items_log
@@ -394,6 +397,7 @@ class PurchaseRequisitionForm extends Page
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
                         'item_priority' => $itemData['item_priority'],
+                        'status' => PrStatusConstant::WAITING_APPROVAL,
                         'step_order' => $currentStep->step_order,
                     ]);
 
@@ -411,6 +415,7 @@ class PurchaseRequisitionForm extends Page
                         'unit' => $itemData['unit'],
                         'remaining' => $itemData['remaining'],
                         'item_priority' => $itemData['item_priority'],
+                        'status' => PrStatusConstant::WAITING_APPROVAL,
                         'step_order' => $currentStep->step_order,
                     ]);
                 }
@@ -423,9 +428,10 @@ class PurchaseRequisitionForm extends Page
                 ->body("Pengajuan PR dengan nomor {$prNumber} telah berhasil dikirim dan menunggu persetujuan.")
                 ->send();
 
-            $this->reset(['items', 'needs', 'deliveryAddress']);
             $this->showPreviewModal = false;
-            $this->mount(); // Refresh document number and sequence
+            $this->redirect(
+                route('filament.app.pages.purchase-requisition-request-list') . '?openPr=' . $newHeaderId
+            );
 
         } catch (\Exception $e) {
             $this->showPreviewModal = false;

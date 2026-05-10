@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Admin;
 use App\Models\Vessel;
 use App\Models\VesselCategory;
 use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\TextInput;
@@ -86,7 +87,19 @@ class VesselSettings extends Page implements HasSchemas
 
     public function getVesselsProperty(): Collection
     {
-        return Vessel::with(['vesselCategory', 'company'])->get();
+        return $this->baseVesselQuery()->with(['vesselCategory', 'company'])->get();
+    }
+
+    protected function baseVesselQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Vessel::query();
+        $user  = Auth::user();
+
+        if ($user && ! $user->isGlobalAdmin()) {
+            $query->whereIn('company_id', $user->accessibleCompanyIds());
+        }
+
+        return $query;
     }
 
     public function getCategoriesProperty(): Collection
@@ -97,7 +110,7 @@ class VesselSettings extends Page implements HasSchemas
     public function infolist(Schema $schema): Schema
     {
         // Dynamic count for Vessels
-        $vesselQuery = Vessel::query();
+        $vesselQuery = $this->baseVesselQuery();
         if (!empty($this->vesselSearch)) {
             $vesselQuery->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->vesselSearch . '%')
@@ -216,7 +229,7 @@ class VesselSettings extends Page implements HasSchemas
 
     protected function getVesselSchema(): array
     {
-        $query = Vessel::with(['vesselCategory', 'company']);
+        $query = $this->baseVesselQuery()->with(['vesselCategory', 'company']);
 
         if (!empty($this->vesselSearch)) {
             $query->where(function ($q) {

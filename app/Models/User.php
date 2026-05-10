@@ -98,4 +98,37 @@ class User extends Authenticatable implements FilamentUser
             ->withPivot(['assigned_by', 'assigned_at'])
             ->withTimestamps();
     }
+
+    /**
+     * Cek apakah user adalah global admin (super_admin / admin) yang bisa akses semua data.
+     */
+    public function isGlobalAdmin(): bool
+    {
+        return $this->roles()
+            ->whereIn('name', [RoleConstant::SUPER_ADMIN, RoleConstant::ADMIN])
+            ->exists();
+    }
+
+    /**
+     * Kembalikan daftar company_id yang boleh diakses user ini.
+     * - Global admin: array kosong → artinya bypass, lihat semua.
+     * - User lain: ID perusahaan yang terhubung via company_user (status active).
+     *
+     * Cara pakai di query:
+     *   $ids = auth()->user()->accessibleCompanyIds();
+     *   $query->when($ids !== null, fn($q) => $q->whereIn('company_id', $ids));
+     *
+     * Gunakan isGlobalAdmin() terlebih dahulu jika perlu bypass total.
+     */
+    public function accessibleCompanyIds(): array
+    {
+        if ($this->isGlobalAdmin()) {
+            return [];   // kosong = bypass filter
+        }
+
+        return $this->companies()
+            ->wherePivot('status', 'active')
+            ->pluck('companies.id')
+            ->toArray();
+    }
 }

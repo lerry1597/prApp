@@ -8,6 +8,7 @@ class PrStatusConstant
     public const SUBMITTED = 'submitted';
     public const WAITING_APPROVAL = 'waiting_approval';
     public const APPROVED = 'approved';
+    public const PARTIALLY_APPROVED = 'partially_approved';
     public const REJECTED = 'rejected';
     public const CONVERTED_TO_PO = 'converted_to_po';
     public const CLOSED = 'closed';
@@ -17,6 +18,8 @@ class PrStatusConstant
     public const PICKED_UP = 'picked_up';
     public const DELIVERED = 'delivered';
     public const ONBOARD = 'onboard';
+    public const ERROR = 'error';
+    public const UNKNOWN = 'unknown';
 
     public static function getStatuses(): array
     {
@@ -25,6 +28,7 @@ class PrStatusConstant
             self::SUBMITTED => 'Diajukan',
             self::WAITING_APPROVAL => 'Menunggu Persetujuan',
             self::APPROVED => 'Disetujui',
+            self::PARTIALLY_APPROVED => 'Disetujui Sebagian',
             self::REJECTED => 'Ditolak',
             self::CONVERTED_TO_PO => 'Dikonversi ke PO',
             self::CLOSED => 'Ditutup',
@@ -32,6 +36,8 @@ class PrStatusConstant
             self::PICKED_UP => 'Diambil',
             self::DELIVERED => 'Dikirim',
             self::ONBOARD => 'Di Kapal',
+            self::ERROR => 'Error/Bug',
+            self::UNKNOWN => 'Tidak Diketahui',
         ];
     }
 
@@ -43,10 +49,12 @@ class PrStatusConstant
     {
         return match ($status) {
             self::WAITING_APPROVAL, self::CONVERTED_TO_PO   => 'warning',
-            self::REJECTED                                  => 'danger',
+            self::PARTIALLY_APPROVED                        => 'success',
+            self::REJECTED, self::ERROR                     => 'danger',
             self::APPROVED                                  => 'success',
             self::SUBMITTED                                 => 'info',
             self::PICKED_UP, self::DELIVERED, self::ONBOARD => 'info',
+            self::UNKNOWN                                   => 'secondary',
             default                                         => 'gray',
         };
     }

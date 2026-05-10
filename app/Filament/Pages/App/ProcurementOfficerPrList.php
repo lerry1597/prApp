@@ -60,6 +60,16 @@ class ProcurementOfficerPrList extends Page
         $this->resetPage();
     }
 
+    public function updatedStartDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEndDate(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';
@@ -67,7 +77,8 @@ class ProcurementOfficerPrList extends Page
         $this->endDate = null;
         $this->statusFilter = '';
         $this->resetPage();
-        $this->dispatch('po-date-filters-reset');
+        $this->dispatch('po-start-date-reset');
+        $this->dispatch('po-end-date-reset');
     }
 
     public function getViewData(): array
@@ -268,6 +279,7 @@ class ProcurementOfficerPrList extends Page
         $this->itemCategoryFilter = '';
         $this->itemSearch = '';
         $this->showDetailPanel = true;
+        $this->dispatch('poc-modal-scroll-lock', locked: true);
     }
 
     public function closeDetail(): void
@@ -277,6 +289,7 @@ class ProcurementOfficerPrList extends Page
         $this->itemCategoryFilter = '';
         $this->itemSearch = '';
         $this->showDiffModal = false;
+        $this->dispatch('poc-modal-scroll-lock', locked: false);
     }
 
     public function openDiffModal(): void

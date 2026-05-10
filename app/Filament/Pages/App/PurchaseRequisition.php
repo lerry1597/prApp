@@ -25,6 +25,7 @@ class PurchaseRequisition extends Page
     protected static ?string $title = 'Daftar Barang';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 3;
+    protected static bool $shouldRegisterNavigation = false;
     protected string $view = 'filament.app.pages.purchase-requisition';
 
     public static function canAccess(): bool

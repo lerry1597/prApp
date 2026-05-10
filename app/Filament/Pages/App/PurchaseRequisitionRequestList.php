@@ -41,6 +41,14 @@ class PurchaseRequisitionRequestList extends Page
         return auth()->user()?->roles()->where('name', RoleConstant::VESSEL_CREW_REQUESTER)->exists() ?? false;
     }
 
+    public function mount(): void
+    {
+        $openPr = request()->query('openPr');
+        if ($openPr) {
+            $this->showFlowDetails((int) $openPr);
+        }
+    }
+
     public function updatedSearch(): void
     {
         $this->visibleCount = $this->initialTake;
@@ -109,6 +117,12 @@ class PurchaseRequisitionRequestList extends Page
         $this->hasMoreRows = $rows->count() > $this->visibleCount;
         $requestList = $rows->take($this->visibleCount)->values();
 
+        $requestList->each(function (PrHeader $header): void {
+            $items = $header->items()->withTrashed()->with('itemCategory')->orderBy('id')->get();
+            $header->setRelation('items', $items);
+            $header->setAttribute('display_pr_status', $header->pr_status);
+        });
+
         if ($this->search !== '') {
             $search = '%' . $this->search . '%';
             $headerIds = $requestList->pluck('id')->filter()->unique()->values();
@@ -141,8 +155,11 @@ class PurchaseRequisitionRequestList extends Page
 
     public function showFlowDetails(int $headerId): void
     {
-        $header = PrHeader::with(['detail.vessel', 'items.itemCategory', 'requester'])->find($headerId);
+        $header = PrHeader::with(['detail.vessel', 'requester'])->find($headerId);
         if (!$header) return;
+
+        $items = $header->items()->withTrashed()->with('itemCategory')->orderBy('id')->get();
+        $displayStatus = $header->pr_status;
 
         $this->selectedFlowHeader = [
             'id' => $header->id,
@@ -153,22 +170,28 @@ class PurchaseRequisitionRequestList extends Page
             'needs' => $header->detail?->needs,
             'request_date' => $header->created_at?->format('d M Y H:i'),
             'client_request_date' => $header->detail?->request_date_client?->format('d M Y H:i'),
-            'status_label' => PrStatusConstant::getStatuses()[$header->pr_status] ?? $header->pr_status,
-            'status_code' => $header->pr_status,
+            'status_label' => PrStatusConstant::getStatuses()[$displayStatus] ?? $displayStatus,
+            'status_code' => $displayStatus,
             'requester_name' => $header->requester?->name,
             'delivery_address' => $header->detail?->delivery_address,
         ];
 
-        $this->latestItems = $header->items->map(function ($item) {
+        $this->latestItems = $items->values()->map(function (Item $item) {
+            $itemStatus = $item->status ?? PrStatusConstant::WAITING_APPROVAL;
+
             return [
                 'category' => $item->itemCategory?->name,
                 'item' => $item->type,
                 'size' => $item->size,
                 'quantity' => $item->quantity,
+                'quantity_approve' => $item->quantity_approve,
                 'unit' => $item->unit,
-                'priority' => $item->priority,
+                'item_priority' => $item->item_priority,
                 'remaining' => $item->remaining,
                 'po_number' => $item->po_number,
+                'status_code' => $itemStatus,
+                'status_label' => PrStatusConstant::getStatuses()[$itemStatus] ?? $itemStatus,
+                'status_color' => PrStatusConstant::getColor($itemStatus),
             ];
         })->toArray();
 

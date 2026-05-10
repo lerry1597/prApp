@@ -18,7 +18,7 @@
                 </div>
             </div>
 
-            <div class="poc-stat-card">
+            <!-- <div class="poc-stat-card">
                 <div class="poc-stat-icon green">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -28,9 +28,9 @@
                     <div class="poc-stat-value">{{ $stats['approved'] }}</div>
                     <div class="poc-stat-label">Disetujui</div>
                 </div>
-            </div>
+            </div> -->
 
-            <div class="poc-stat-card">
+            <!-- <div class="poc-stat-card">
                 <div class="poc-stat-icon violet">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
@@ -40,7 +40,7 @@
                     <div class="poc-stat-value">{{ $stats['converted'] }}</div>
                     <div class="poc-stat-label">Ke PO</div>
                 </div>
-            </div>
+            </div> -->
         </div>
 
         {{-- ── Toolbar ── --}}
@@ -55,6 +55,26 @@
                     wire:model.live.debounce.400ms="search"
                     placeholder="Cari nomor PR, kapal, keperluan, pengaju..."
                     class="poc-search-input">
+            </div>
+
+            <div class="poc-date-range-group">
+                <x-app.date-picker
+                    wire-model="startDate"
+                    placeholder="Tanggal mulai"
+                    reset-event="po-start-date-reset"
+                    :value="$startDate"
+                    :show-icon="false"
+                    :with-time="true"
+                    :submit-with-time="true" />
+
+                <x-app.date-picker
+                    wire-model="endDate"
+                    placeholder="Tanggal selesai"
+                    reset-event="po-end-date-reset"
+                    :value="$endDate"
+                    :show-icon="false"
+                    :with-time="true"
+                    :submit-with-time="true" />
             </div>
 
             {{-- Status filter --}}
@@ -89,10 +109,11 @@
             <table class="poc-table">
                 <thead>
                     <tr>
+                        <th style="width: 50px; text-align: center;">No</th>
                         <th>Nomor PR</th>
                         <th>Nama Kapal</th>
                         <th>Keperluan</th>
-                        <th>Pengaju</th>
+                        <th>Disetujui Oleh</th>
                         <th>Tgl Pengajuan</th>
                         <th>Status</th>
                         <th></th>
@@ -105,8 +126,11 @@
                     $label = \App\Constants\PrStatusConstant::getStatuses()[$pr->pr_status] ?? $pr->pr_status ?? '—';
                     @endphp
                     <tr>
+                        <td style="text-align: center; font-weight: 600; color: #666;">
+                            {{ $loop->iteration }}
+                        </td>
                         <td>
-                            <span class="poc-pr-number">{{ $pr->pr_number }}</span>
+                            <span class="poc-pr-number">{{ $pr->detail?->document_no ?? '—' }}</span>
                         </td>
                         <td>
                             <span class="poc-vessel-name">{{ $pr->detail?->vessel?->name ?? '—' }}</span>
@@ -115,7 +139,7 @@
                             <span class="poc-needs-text">{{ $pr->detail?->needs ?? '—' }}</span>
                         </td>
                         <td>
-                            <span class="poc-requester-text">{{ $pr->requester?->name ?? '—' }}</span>
+                            <span class="poc-approver-text">{{ $pr->approver?->name ?? '—' }}</span>
                         </td>
                         <td>
                             <div class="poc-date-text">
@@ -140,7 +164,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                Tinjau
+                                Proses
                             </button>
                         </td>
                     </tr>
@@ -193,7 +217,7 @@
     $items = $det?->items ?? collect();
     @endphp
 
-    <div class="poc-modal-backdrop" wire:click.self="closeDetail">
+    <div class="poc-modal-backdrop poc-modal-backdrop-fullscreen" wire:click.self="closeDetail">
         <div class="poc-detail-modal" role="dialog" aria-modal="true" aria-labelledby="poc-detail-title">
 
             {{-- Modal Header --}}
@@ -201,7 +225,7 @@
                 <div class="poc-detail-modal-header-left">
                     <div>
                         <div class="poc-panel-kicker">Detail Pengajuan PR</div>
-                        <div class="poc-panel-pr-number" id="poc-detail-title">{{ $pr->pr_number }}</div>
+                        <div class="poc-panel-pr-number" id="poc-detail-title">{{ $pr->detail?->document_no ?? '—' }}</div>
                     </div>
                     <span class="poc-status-pill poc-pill-{{ $color }}" style="font-size:.73rem;">
                         <span class="poc-dot poc-dot-{{ $color }}"></span>
@@ -234,29 +258,7 @@
                         {{-- Card: Identitas PR --}}
                         <div class="poc-info-card">
                             <div class="poc-info-card-title">Identitas PR</div>
-                            <div class="poc-info-row">
-                                <div class="poc-info-row-icon poc-row-icon-indigo">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="poc-info-label">Nomor PR</div>
-                                    <div class="poc-info-value">{{ $pr->pr_number }}</div>
-                                </div>
-                            </div>
-                            <div class="poc-info-row">
-                                <div class="poc-info-row-icon poc-row-icon-sky">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="poc-info-label">Pengaju</div>
-                                    <div class="poc-info-value">{{ $pr->requester?->name ?? '—' }}</div>
-                                </div>
-                            </div>
-                            @if($det?->document_no)
+                             @if($det?->document_no)
                             <div class="poc-info-row">
                                 <div class="poc-info-row-icon poc-row-icon-teal">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -264,11 +266,13 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="poc-info-label">Nomor Dokumen</div>
+                                    <div class="poc-info-label">Nomor PR</div>
                                     <div class="poc-info-value">{{ $det->document_no }}</div>
                                 </div>
                             </div>
                             @endif
+                            
+                           
                             <div class="poc-info-row">
                                 <div class="poc-info-row-icon poc-row-icon-sky">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -282,19 +286,21 @@
                                     </div>
                                 </div>
                             </div>
-                            @if($det?->required_date)
+                           
                             <div class="poc-info-row">
                                 <div class="poc-info-row-icon poc-row-icon-rose">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="poc-info-label">Tgl Dibutuhkan</div>
-                                    <div class="poc-info-value" style="font-size:.85rem;">{{ $det->required_date->format('d M Y') }}</div>
+                                    <div class="poc-info-label">Tgl Disetujui</div>
+                                    <div class="poc-info-value" style="font-size:.85rem;">
+                                        {{ $pr->approved_at->timezone('Asia/Jakarta')->format('d M Y, H:i') }}
+                                    </div>
                                 </div>
                             </div>
-                            @endif
+                            
                         </div>
 
                         {{-- Card: Kapal & Keperluan --}}
@@ -318,51 +324,21 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="poc-info-label">Keperluan</div>
+                                    <div class="poc-info-label">Departemen</div>
                                     <div class="poc-info-value">{{ $det?->needs ?? '—' }}</div>
                                 </div>
                             </div>
-                            @if($det?->title)
                             <div class="poc-info-row">
                                 <div class="poc-info-row-icon poc-row-icon-green">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="green">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="poc-info-label">Judul</div>
-                                    <div class="poc-info-value" style="font-size:.85rem;">{{ $det->title }}</div>
+                                    <div class="poc-info-label">Disetujui Oleh</div>
+                                    <div class="poc-info-value" style="font-size:.85rem;">{{ $pr->approver?->name ?? '—' }}</div>
                                 </div>
                             </div>
-                            @endif
-                            @if($pr->currentRole)
-                            <div class="poc-info-row">
-                                <div class="poc-info-row-icon poc-row-icon-rose">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="poc-info-label">Ditangani Oleh</div>
-                                    <div class="poc-info-value">{{ $pr->currentRole->name }}</div>
-                                </div>
-                            </div>
-                            @endif
-                            @if($det?->request_date_client)
-                            <div class="poc-info-row">
-                                <div class="poc-info-row-icon poc-row-icon-teal">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="poc-info-label">Tgl Pengajuan (Klien)</div>
-                                    <div class="poc-info-value" style="font-size:.85rem;">
-                                        {{ $det->request_date_client->format('d M Y, H:i') }}
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
                         </div>
 
                     </div>
@@ -400,16 +376,24 @@
                                 <tr>
                                     <th style="width:2.5rem;">#</th>
                                     <th>Kategori</th>
-                                    <th>Jenis</th>
-                                    <th>Ukuran / Spesifikasi</th>
-                                    <th>Keterangan</th>
-                                    <th>Qty</th>
+                                    <th>Nama Barang</th>
+                                    <th>Ukuran / Spek</th>
+                                    <th>Jumlah Permintaan</th>
+                                    <th>Jumlah Disetujui</th>
                                     <th>Satuan</th>
                                     <th>Sisa</th>
+                                    <th>Klasifikasi Urgensi</th>
+                                    <th>Keterangan</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($items as $item)
+                                @php
+                                $itemStatus = $item->status ?? \App\Constants\PrStatusConstant::UNKNOWN;
+                                $itemStatusColor = \App\Constants\PrStatusConstant::getColor($itemStatus);
+                                $itemStatusLabel = \App\Constants\PrStatusConstant::getStatuses()[$itemStatus] ?? $itemStatus;
+                                @endphp
                                 <tr>
                                     <td>
                                         <div class="poc-item-no">{{ $item->no ?? $loop->iteration }}</div>
@@ -423,11 +407,11 @@
                                     <td>
                                         <div class="poc-item-size">{{ $item->size ?? '—' }}</div>
                                     </td>
-                                    <td style="max-width:180px;">
-                                        <div class="poc-item-desc">{{ $item->description ?? '—' }}</div>
+                                    <td>
+                                        <span class="poc-item-qty">{{ $item->quantity ?? '—' }}</span>
                                     </td>
                                     <td>
-                                        <span class="poc-item-qty">{{ $item->quantity }}</span>
+                                        <span class="poc-item-qty">{{ $item->quantity_approve ?? '—' }}</span>
                                     </td>
                                     <td>
                                         <span class="poc-item-unit">{{ $item->unit ?? '—' }}</span>
@@ -438,6 +422,18 @@
                                         @else
                                         <span style="color:#94a3b8;font-size:.8rem;">—</span>
                                         @endif
+                                    </td>
+                                    <td>
+                                        <div class="poc-item-size">{{ $item->item_priority ?? '—' }}</div>
+                                    </td>
+                                    <td style="max-width:180px;">
+                                        <div class="poc-item-desc">{{ $item->description ?? '—' }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="poc-status-pill poc-pill-{{ $itemStatusColor }}" style="font-size:.7rem;">
+                                            <span class="poc-dot poc-dot-{{ $itemStatusColor }}"></span>
+                                            {{ $itemStatusLabel }}
+                                        </span>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -461,7 +457,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Konversi ke PO
+                   Proses ke PO
                 </button>
             </div>
 
@@ -708,3 +704,45 @@
     </div>
     @endif
 </x-filament-panels::page>
+
+<script>
+(() => {
+    if (window.__pocModalScrollLockBound) {
+        return;
+    }
+
+    window.__pocModalScrollLockBound = true;
+
+    const setScrollLock = (locked) => {
+        const body = document.body;
+        const html = document.documentElement;
+
+        if (!body || !html) {
+            return;
+        }
+
+        if (locked) {
+            if (!body.dataset.pocPrevOverflow) {
+                body.dataset.pocPrevOverflow = body.style.overflow || '';
+            }
+
+            if (!html.dataset.pocPrevOverflow) {
+                html.dataset.pocPrevOverflow = html.style.overflow || '';
+            }
+
+            body.style.overflow = 'hidden';
+            html.style.overflow = 'hidden';
+            return;
+        }
+
+        body.style.overflow = body.dataset.pocPrevOverflow ?? '';
+        html.style.overflow = html.dataset.pocPrevOverflow ?? '';
+        delete body.dataset.pocPrevOverflow;
+        delete html.dataset.pocPrevOverflow;
+    };
+
+    window.addEventListener('poc-modal-scroll-lock', (event) => {
+        setScrollLock(Boolean(event.detail?.locked));
+    });
+})();
+</script>

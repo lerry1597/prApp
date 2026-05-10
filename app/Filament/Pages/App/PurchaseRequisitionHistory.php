@@ -464,7 +464,15 @@ class PurchaseRequisitionHistory extends Page
             $quantity = $this->stringValue($item['quantity'] ?? $item['qty'] ?? null);
             $unit = $this->stringValue($item['unit'] ?? null);
             $remaining = $this->stringValue($item['remaining'] ?? $item['sisa'] ?? null);
-            $notes = $this->stringValue($item['keterangan'] ?? $item['Keterangan'] ?? null);
+            $itemPriority = $this->stringValue($item['item_priority'] ?? $item['priority'] ?? $item['urgency'] ?? null);
+            $description = $this->stringValue($item['description'] ?? $item['keterangan'] ?? $item['Keterangan'] ?? $item['notes'] ?? null);
+
+            $statusCodeRaw = $this->stringValue($item['status'] ?? null);
+            $statusCode = $statusCodeRaw === '-' ? PrStatusConstant::UNKNOWN : $statusCodeRaw;
+            $statusLabel = PrStatusConstant::getStatuses()[$statusCode] ?? $statusCode;
+            $statusColor = PrStatusConstant::getColor($statusCode);
+
+            $notes = $description;
 
             $rawDeletedAt = $item['deleted_at'] ?? null;
             $isDeleted = $this->hasDeletedAtValue($rawDeletedAt);
@@ -487,6 +495,11 @@ class PurchaseRequisitionHistory extends Page
                 'quantity' => $quantity,
                 'unit' => $unit,
                 'remaining' => $remaining,
+                'item_priority' => $itemPriority,
+                'description' => $description,
+                'status' => $statusCode,
+                'status_label' => $statusLabel,
+                'status_color' => $statusColor,
                 'notes' => $notes,
                 'deleted_at' => $deletedAt,
                 'is_deleted' => $isDeleted,

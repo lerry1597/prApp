@@ -48,6 +48,7 @@
                             <th>Nomor PR</th>
                             <th>Kebutuhan Mesin/Dek</th>
                             <th>Tanggal Pengajuan</th>
+                            <th>Status PR</th>
                             <th class="prh-action-col">Aksi</th>
                         </tr>
                     </thead>
@@ -55,6 +56,10 @@
                         @forelse($historyList as $row)
                         @php
                         $hintItems = $matchedItemHints[$row->pr_header_id] ?? [];
+                        $statusCode = $row->pr_status ?? \App\Constants\PrStatusConstant::UNKNOWN;
+                        $statusColor = \App\Constants\PrStatusConstant::getColor($statusCode);
+                        $badgeColor = in_array($statusColor, ['warning', 'danger', 'success', 'info', 'gray'], true) ? $statusColor : 'gray';
+                        $statusLabel = $statusLabels[$statusCode] ?? $statusCode;
                         @endphp
                         <tr>
                             <td>
@@ -65,6 +70,12 @@
                             </td>
                             <td>{{ $row->needs ?: '-' }}</td>
                             <td>{{ $row->request_date ? \Illuminate\Support\Carbon::parse($row->request_date)->format('d M Y') : '-' }}</td>
+                            <td>
+                                <span class="prh-badge prh-badge-{{ $badgeColor }}">
+                                    <span class="prh-badge-dot"></span>
+                                    {{ $statusLabel }}
+                                </span>
+                            </td>
                             <td class="prh-action-col">
                                 <button class="prh-detail-btn" wire:click="showFlowDetails('{{ $row->batch_id }}')">
                                     <span wire:loading wire:target="showFlowDetails('{{ $row->batch_id }}')" class="prh-spinner-sm"></span>
@@ -75,7 +86,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4">
+                            <td colspan="5">
                                 <div class="prh-empty-inline">Belum ada data riwayat pengajuan barang.</div>
                             </td>
                         </tr>
@@ -189,6 +200,9 @@
                                 <th>Jumlah</th>
                                 <th>Satuan</th>
                                 <th>Sisa</th>
+                                <th>Klasifikasi Urgensi</th>
+                                <th>Keterangan</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -200,10 +214,21 @@
                                 <td>{{ $item['quantity'] ?? '-' }}</td>
                                 <td>{{ $item['unit'] ?? '-' }}</td>
                                 <td>{{ $item['remaining'] ?? '-' }}</td>
+                                <td>{{ $item['item_priority'] ?? '-' }}</td>
+                                <td>{{ $item['description'] ?? '-' }}</td>
+                                <td>
+                                    @php
+                                    $itemStatusColor = in_array(($item['status_color'] ?? 'gray'), ['warning', 'danger', 'success', 'info', 'gray'], true) ? ($item['status_color'] ?? 'gray') : 'gray';
+                                    @endphp
+                                    <span class="prh-badge prh-badge-{{ $itemStatusColor }}">
+                                        <span class="prh-badge-dot"></span>
+                                        {{ $item['status_label'] ?? '-' }}
+                                    </span>
+                                </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="prh-item-empty">Data barang tidak tersedia pada payload terakhir.</td>
+                                <td colspan="9" class="prh-item-empty">Data barang tidak tersedia pada payload terakhir.</td>
                             </tr>
                             @endforelse
                         </tbody>

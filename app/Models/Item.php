@@ -20,9 +20,11 @@ class Item extends Model
         'size',
         'description',
         'quantity',
+        'quantity_approve',
         'unit',
         'remaining',
         'item_priority',
+        'status',
         'po_number',
     ];
 

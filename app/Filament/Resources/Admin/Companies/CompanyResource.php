@@ -47,6 +47,20 @@ class CompanyResource extends Resource
         return CompaniesTable::configure($table);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = auth()->user();
+
+        if ($user && ! $user->isGlobalAdmin()) {
+            $companyIds = $user->accessibleCompanyIds();
+            $query->whereIn('id', $companyIds);
+        }
+
+        return $query;
+    }
+
     public static function getRelations(): array
     {
         return [

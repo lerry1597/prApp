@@ -45,10 +45,10 @@ class PrHeaderResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
 
-    protected static ?string $navigationLabel = 'Daftar Pengajuan Barang';
+    protected static ?string $navigationLabel = 'Daftar pengajuan barang';
     protected static ?int $navigationSort = 2;
-    protected static ?string $pluralModelLabel = 'Daftar Pengajuan Barang';
-    protected static ?string $modelLabel = 'Pengajuan Barang';
+    protected static ?string $pluralModelLabel = 'Daftar pengajuan barang';
+    protected static ?string $modelLabel = 'Daftar pengajuan barang';
 
     // public static function canViewAny(): bool
     // {
@@ -225,10 +225,10 @@ class PrHeaderResource extends Resource
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make()
-                    ->label('Tinjau')
+                    ->label('Proses Pengajuan')
                     ->color('warning')
                     ->button()
-                    ->modalHeading('Tinjau / Proses Pengajuan PR')
+                    ->modalHeading('Proses Pengajuan PR')
                     ->modalWidth('7xl')
                     ->modalSubmitAction(function (\Filament\Actions\Action $action): \Filament\Actions\Action {
                         return $action

@@ -92,6 +92,16 @@ class PrHeader extends Model
             return $query;
         }
 
+        // Batasi hanya PR dari kapal-kapal yang berada di perusahaan user.
+        $companyIds = $user->accessibleCompanyIds();
+        if (! empty($companyIds)) {
+            $query->whereHas('detail', function (Builder $dq) use ($companyIds) {
+                $dq->whereHas('vessel', function (Builder $vq) use ($companyIds) {
+                    $vq->whereIn('company_id', $companyIds);
+                });
+            });
+        }
+
         return $query->where(function ($q) use ($user) {
             // 1. Jika sebagai Crew: Lihat milik sendiri yang masih aktif (dalam proses)
             if ($user->roles()->where('name', RoleConstant::VESSEL_CREW_REQUESTER)->exists()) {
@@ -101,7 +111,8 @@ class PrHeader extends Model
                            PrStatusConstant::WAITING_APPROVAL, 
                            PrStatusConstant::DRAFT, 
                            PrStatusConstant::SUBMITTED,
-                           PrStatusConstant::PENDING
+                           PrStatusConstant::PENDING,
+                           PrStatusConstant::PARTIALLY_APPROVED
                        ]);
                 });
             }

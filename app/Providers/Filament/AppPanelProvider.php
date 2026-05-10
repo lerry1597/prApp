@@ -101,15 +101,15 @@ class AppPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
-                fn (): string => $this->renderPanelStylesheets(),
+                fn(): string => $this->renderPanelStylesheets(),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_START,
-                fn (): string => $this->renderNavigationLoaderMarkup(),
+                fn(): string => $this->renderNavigationLoaderMarkup(),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => $this->renderNavigationLoaderScript(),
+                fn(): string => $this->renderNavigationLoaderScript(),
             );
     }
 

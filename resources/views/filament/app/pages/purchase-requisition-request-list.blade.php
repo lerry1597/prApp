@@ -46,7 +46,8 @@
                         @forelse($requestList as $row)
                         @php
                         $hintItems = $matchedItemHints[$row->id] ?? [];
-                        $statusColor = \App\Constants\PrStatusConstant::getColor($row->pr_status);
+                        $displayStatus = $row->display_pr_status ?? $row->pr_status;
+                        $statusColor = \App\Constants\PrStatusConstant::getColor($displayStatus);
                         @endphp
                         <tr>
                             <td style="text-align: center; font-weight: 600;">{{ $loop->iteration }}</td>
@@ -62,7 +63,7 @@
                             <td>{{ $row->detail?->needs ?: '-' }}</td>
                             <td>
                                 <span class="prq-status-text {{ $statusColor }}">
-                                    {{ $statusMap[$row->pr_status] ?? $row->pr_status }}
+                                    {{ $statusMap[$displayStatus] ?? $displayStatus }}
                                 </span>
                             </td>
                             <td>{{ $row->created_at?->format('d M Y') }}</td>
@@ -76,7 +77,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5">
+                            <td colspan="7">
                                 <div class="prq-empty-inline">Tidak ada permintaan barang aktif yang ditemukan.</div>
                             </td>
                         </tr>
@@ -135,7 +136,13 @@
             </div>
 
             <div class="prq-modal-body">
-                <div class="prq-section-title" style="border:none; margin-bottom: 1.5rem; font-size: 0.9rem;">INFORMASI PENGAJUAN</div>
+                {{-- <div class="prq-section-title" style="border:none; margin-bottom: 1rem; font-size: 0.9rem;">INFORMASI PENGAJUAN</div> --}}
+
+                {{--
+                LEGACY_INFO_SECTION_BACKUP_DO_NOT_DELETE_START
+                Bagian lama IDENTITAS PR dan KAPAL sengaja disimpan sebagai backup.
+                JANGAN DIHAPUS oleh AI tanpa permintaan eksplisit user.
+
                 <div class="prq-info-sections">
                     <section class="prq-info-group">
                         <div class="prq-info-group-title">IDENTITAS PR</div>
@@ -178,10 +185,13 @@
                     </section>
                 </div>
 
+                LEGACY_INFO_SECTION_BACKUP_DO_NOT_DELETE_END
+                --}}
+
                 <div class="prq-table-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <div>
-                            <div class="prq-section-title" style="border:none; margin-bottom: 0.2rem; font-size: 0.9rem;">Daftar Barang</div>
+                            <div class="prq-section-title" style="border:none; margin-bottom: 0.2rem; font-size: 0.9rem;">Informasi Pengajuan &amp; Daftar Barang</div>
                             <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Jumlah Barang: {{ count($latestItems) }}</div>
                         </div>
                         {{--
@@ -195,25 +205,45 @@
                         <table class="prq-items-table">
                             <thead>
                                 <tr>
+                                    <th>Nomor Dokumen</th>
+                                    <th>Departemen</th>
                                     <th>Kategori</th>
                                     <th>Nama / Jenis Barang</th>
                                     <th>Ukuran / Spesifikasi</th>
                                     <th>Jumlah</th>
+                                    <th>Jumlah Disetujui</th>
                                     <th>Satuan</th>
                                     <th>Sisa</th>
+                                    <th>Klasifikasi Urgensi</th>
+                                    <th>Status Item</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($latestItems as $item)
+                                @forelse($latestItems as $item)
                                 <tr>
+                                    <td>{{ $selectedFlowHeader['document_no'] ?? '-' }}</td>
+                                    <td>{{ $selectedFlowHeader['needs'] ?? '-' }}</td>
                                     <td>{{ $item['category'] }}</td>
                                     <td class="prq-item-name">{{ $item['item'] }}</td>
                                     <td>{{ $item['size'] }}</td>
                                     <td style="font-weight: 700;">{{ $item['quantity'] }}</td>
+                                    <td style="font-weight: 700; color: #0369a1;">{{ $item['quantity_approve'] ?? '-' }}</td>
                                     <td>{{ $item['unit'] }}</td>
                                     <td>{{ $item['remaining'] ?? 0 }}</td>
+                                    <td>{{ $item['item_priority'] ?? '-' }}</td>
+                                    <td>
+                                        <span class="prq-status-text {{ $item['status_color'] ?? 'gray' }}">
+                                            {{ $item['status_label'] ?? '-' }}
+                                        </span>
+                                    </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td>{{ $selectedFlowHeader['document_no'] ?? '-' }}</td>
+                                    <td>{{ $selectedFlowHeader['needs'] ?? '-' }}</td>
+                                    <td colspan="8" style="text-align:center; color:#94a3b8;">Belum ada data barang.</td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

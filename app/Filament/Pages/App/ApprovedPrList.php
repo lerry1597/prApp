@@ -47,17 +47,24 @@ class ApprovedPrList extends Page
 
     public function updateStats(): void
     {
-        $this->totalApproved = PrHeader::where('pr_status', PrStatusConstant::APPROVED)->count();
+        $this->totalApproved = PrHeader::whereIn('pr_status', [
+            PrStatusConstant::APPROVED,
+            PrStatusConstant::PARTIALLY_APPROVED,
+        ])->count();
     }
 
     public function getPrListProperty()
     {
         return PrHeader::query()
-            ->where('pr_status', PrStatusConstant::APPROVED)
+            ->whereIn('pr_status', [
+                PrStatusConstant::APPROVED,
+                PrStatusConstant::PARTIALLY_APPROVED,
+            ])
             ->with(['requester', 'detail.vessel', 'approver'])
             ->when($this->search, function (Builder $query) {
                 $query->where(function ($q) {
                     $q->where('pr_number', 'like', "%{$this->search}%")
+                        ->orWhereHas('detail', fn($d) => $d->where('document_no', 'like', "%{$this->search}%"))
                         ->orWhereHas('requester', fn($r) => $r->where('name', 'like', "%{$this->search}%"))
                         ->orWhereHas('detail', fn($d) => $d->where('needs', 'like', "%{$this->search}%")
                             ->orWhereHas('vessel', fn($v) => $v->where('name', 'like', "%{$this->search}%")));
@@ -74,7 +81,12 @@ class ApprovedPrList extends Page
 
     public function openDetail(int $id): void
     {
-        $this->selectedPr = PrHeader::with(['requester', 'detail.vessel', 'approver', 'items.itemCategory'])->findOrFail($id);
+        $this->selectedPr = PrHeader::with([
+            'requester',
+            'detail.vessel',
+            'approver',
+            'items' => fn($query) => $query->withTrashed()->with('itemCategory')->orderBy('id'),
+        ])->findOrFail($id);
         $this->showDetailModal = true;
     }
 
@@ -82,5 +94,29 @@ class ApprovedPrList extends Page
     {
         $this->showDetailModal = false;
         $this->selectedPr = null;
+    }
+
+    public function getItemStatusColorsProperty()
+    {
+        if (! $this->selectedPr) return [];
+        
+        $colors = [];
+        foreach ($this->selectedPr->items as $item) {
+            $status = $item->status ?? PrStatusConstant::UNKNOWN;
+            $colors[$item->id] = PrStatusConstant::getColor($status);
+        }
+        return $colors;
+    }
+
+    public function getItemStatusesProperty()
+    {
+        if (! $this->selectedPr) return [];
+        
+        $statuses = [];
+        foreach ($this->selectedPr->items as $item) {
+            $status = $item->status ?? PrStatusConstant::UNKNOWN;
+            $statuses[$item->id] = PrStatusConstant::getStatuses()[$status] ?? $status;
+        }
+        return $statuses;
     }
 }

@@ -51,10 +51,22 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->whereDoesntHave('roles', function (Builder $query) {
                 $query->where('name', \App\Constants\RoleConstant::SUPER_ADMIN);
             });
+
+        $user = auth()->user();
+
+        if ($user && ! $user->isGlobalAdmin()) {
+            $companyIds = $user->accessibleCompanyIds();
+            $query->whereHas('companies', fn (Builder $q) =>
+                $q->whereIn('companies.id', $companyIds)
+                  ->wherePivot('status', 'active')
+            );
+        }
+
+        return $query;
     }
 
     public static function getRelations(): array
